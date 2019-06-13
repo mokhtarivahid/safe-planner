@@ -25,15 +25,15 @@ To install it, run the following command line into the terminal:
 
 for example following command runs the planner using the `FF` to solve a `pickit` problem:
 
-`$ python3 main.py domains/pickit_seq/pickit.pddl domains/pickit_seq/prob0.pddl planners/ff`
+``$ python3 main.py domains/pickit_seq/pickit.pddl domains/pickit_seq/prob0.pddl planners/ff``
 
 or using `OPTIC` planner:
 
-`$ python3 main.py domains/pickit_seq/pickit.pddl domains/pickit_seq/prob0.pddl planners/optic-clp`
+``$ python3 main.py domains/pickit_seq/pickit.pddl domains/pickit_seq/prob0.pddl planners/optic-clp``
 
 or using `MADAGASCAR` planner:
 
-`$ python3 main.py domains/pickit_seq/pickit.pddl domains/pickit_seq/prob0.pddl planners/M`
+``$ python3 main.py domains/pickit_seq/pickit.pddl domains/pickit_seq/prob0.pddl planners/M``
 
 
 ## Output plan
