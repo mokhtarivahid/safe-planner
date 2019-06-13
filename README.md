@@ -4,7 +4,7 @@ A probabilistic planner to solve PPDDL problems by compilation into classical pl
 The planner can employ any off-the-shelf classical planner for problem solving, 
 however, it requires to implement a small code to parse and refine the resulting 
 plan of the classical planners.
-Currently, the classical planners [FF], [OPTIC], and [MDAGASCAR] have been integrated.
+Currently, the classical planners [FF], [OPTIC], and [MADAGASCAR] have been integrated.
 
 [FF]: https://fai.cs.uni-saarland.de/hoffmann/ff.html
 [OPTIC]: https://nms.kcl.ac.uk/planning/software/optic.html
