@@ -22,7 +22,7 @@ def parse():
 
 
 ###############################################################################
-def parse_plan():
+def parse_plan(plan):
 
     # a sample code to parse the output plan
     for level, step in plan.items():
@@ -63,4 +63,4 @@ if __name__ == '__main__':
 
     policy.print_plan(plan)
 
-    parse_plan()
+    parse_plan(plan)
