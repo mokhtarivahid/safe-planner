@@ -16,12 +16,16 @@ Currently, the classical planners [FF], [OPTIC], and [MADAGASCAR] have been inte
 Make sure you have the `ply` library installed on your system. 
 To install it, run the following command line into the terminal:
 
-`$ pip3 install ply`
+```
+$ pip3 install ply
+```
 
 
 ## Usage
 
-`$ python3 main.py <DOMAIN> <PROBLEM> [<PLANNER>] [-v | --verbose]`
+```
+$ python3 main.py <DOMAIN> <PROBLEM> [<PLANNER>] [-v | --verbose]
+```
 
 for example following command runs the planner using the `FF` to solve a `pickit` problem:
 
