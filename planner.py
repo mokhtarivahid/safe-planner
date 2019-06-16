@@ -68,6 +68,7 @@ class Planner(object):
         ##
         while self.open_stack:
 
+            # pop items as in LIFO
             (state, action) = self.open_stack.popitem()
 
             ###################################################################
@@ -96,7 +97,7 @@ class Planner(object):
                     policy = self.policy_image(domain_spec, state, plan)
 
                     ## check if the policy contains states and actions in the dead-ends list ##
-                    if self.has_deadend(policy, verbose=True):
+                    if self.has_deadend(policy, verbose):
                         policy = OrderedDict()
                         continue
 
@@ -142,7 +143,7 @@ class Planner(object):
                     try:
                         new_state = self.apply_step(state, self.policy[state], domain_spec)
                     except:
-                        print(fg_red("@@ other outcome '{0}' is not applicable!!".format(str(other_outcome))))
+                        print(fg_red("@@ other outcome '{0}' is not applicable!!".format(str(self.policy[state]))))
                         exit()
 
                     if new_state in self.policy:
@@ -171,7 +172,7 @@ class Planner(object):
                     policy.update(self.policy_image(domain_spec, new_state, plan))
 
                     ## check if the plan contains states and actions in the dead-ends list ##
-                    if self.has_deadend(policy, verbose=True):
+                    if self.has_deadend(policy, verbose):
                         policy = OrderedDict()
                         break
 
@@ -301,6 +302,9 @@ class Planner(object):
         if state in self.policy:
             step = self.policy[state]
             del self.policy[state]
+            if state in self.open_stack and not self.open_stack[state] is None:
+                self.deadend_list[state].append(Counter(self.open_stack[state]))
+                self.open_stack[state] = None
             if step == None: return
             for s in self.apply_step(state, step):
                 self.remove_path(s)
@@ -342,6 +346,10 @@ class Planner(object):
                 step = self.policy[state]
 
                 if step == None: 
+                    if state.is_true(*(self.problem.goals, self.problem.num_goals)):
+                        print(bg_green('@ Goal is achieved'))
+                    else:
+                        print(bg_red('@ Goal is not achieved!'))
                     plan[i] = 'goal'
                 else:
                     states = self.apply_step(state, step)
@@ -367,7 +375,7 @@ class Planner(object):
         """
         print the plan in a more readable form
         """
-        print(fg_yellow('@ plan'))
+        print(bg_yellow('@ plan'))
 
         plan_str = str()
         for level, step in plan.items():
