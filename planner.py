@@ -62,6 +62,12 @@ class Planner(object):
 
         self.number_of_calls = 0
 
+        # if new_state is itself a goal state (then the plan is empty)
+        if self.problem.initial_state.is_true(*(self.problem.goals, self.problem.num_goals)):
+            self.policy[self.problem.initial_state] = None
+            if verbose: print(fg_yellow('@@ initial state already contains the goal!'))
+            return
+
         ##
         ## main loop of the planner
         ##
@@ -146,9 +152,16 @@ class Planner(object):
                         exit()
 
                     if new_state in self.policy:
-                        if verbose: print(fg_red('@@ state already visited!'))
+                        if verbose: print(fg_red('@@ new state is already visited!'))
                         continue
 
+                    # if new_state is itself a goal state (then the plan is empty)
+                    if new_state.is_true(*(self.problem.goals, self.problem.num_goals)): 
+                        policy[new_state] = None
+                        if verbose: print(fg_yellow('@@ new state already contains the goal!'))
+                        continue
+
+                    # in some small problems, the state may become empty by the action application
                     if new_state.is_empty():
                         if verbose: print(fg_red('@@ new state becomes empty!'))
                         break
@@ -241,8 +254,7 @@ class Planner(object):
 
         if step is None:
             if verbose: print(bg_voilet('## step is None!!'))
-            if domain is not None:
-                return init
+            if domain is not None: return init
             return OrderedDict([(init, [])])
 
         # if the domain is given, only action signatures in step are grounded
@@ -350,7 +362,10 @@ class Planner(object):
                 visited[state] = i
 
                 if state not in self.policy:
-                    plan[i] = None
+                    if state.is_true(*(self.problem.goals, self.problem.num_goals)): 
+                        plan[i] = 'goal'
+                    else:
+                        plan[i] = None
                     continue
 
                 step = self.policy[state]
@@ -358,9 +373,10 @@ class Planner(object):
                 if step == None: 
                     if state.is_true(*(self.problem.goals, self.problem.num_goals)):
                         print(bg_green('@ Goal is achieved'))
+                        plan[i] = 'goal'
                     else:
                         print(bg_red('@ Goal is not achieved!'))
-                    plan[i] = 'goal'
+                        plan[i] = None
                 else:
                     states = self.apply_step(state, step, verbose=verbose)
 
