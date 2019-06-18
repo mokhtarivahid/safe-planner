@@ -2,10 +2,9 @@
 import os, sys
 from collections import OrderedDict, defaultdict, Counter
 
-from pddlparser import PDDLParser
-from pypddl import Domain, Problem, State, Action, neg
 from color import fg_green, fg_red, fg_yellow, fg_blue, fg_voilet, fg_beige, bg_green, bg_red, bg_yellow, bg_blue, bg_voilet
-from external_planner import call_planner, call_ff, call_m, call_optic_clp
+from pddlparser import PDDLParser
+from external_planner import call_planner
 
 class Planner(object):
 
@@ -61,7 +60,7 @@ class Planner(object):
         ## stores states and actions which lead to dead-ends ##
         self.deadend_list = defaultdict(list)
 
-        self.number_of_calls = -1
+        self.number_of_calls = 0
 
         ##
         ## main loop of the planner
@@ -94,7 +93,7 @@ class Planner(object):
                         if verbose: print(fg_red('@@ no plan exists'))
                         continue
 
-                    policy = self.policy_image(domain_spec, state, plan)
+                    policy = self.policy_image(domain_spec, state, plan, verbose)
 
                     ## check if the policy contains states and actions in the dead-ends list ##
                     if self.has_deadend(policy, verbose):
@@ -115,10 +114,10 @@ class Planner(object):
                     if verbose: print(fg_red('@@ no initial plan exists!'))
                     ## put in the dead-ends list all states leading to 'state' and remove their path from policy ##
                     for s, step in [(s, step) for s, step in self.policy.items() \
-                                              if state in self.apply_step(s, step)]:
+                                              if state in self.apply_step(s, step, verbose=verbose)]:
                         self.deadend_list[s].append(Counter(step))
                         self.open_stack[s] = None
-                        self.remove_path(s)
+                        self.remove_path(s, verbose)
                 else:
                     ## update global policy ##
                     self.policy.update(policy)
@@ -141,7 +140,7 @@ class Planner(object):
                     ## !! currently we only assume one probabilistic action in a state
 
                     try:
-                        new_state = self.apply_step(state, self.policy[state], domain_spec)
+                        new_state = self.apply_step(state, self.policy[state], domain_spec, verbose=verbose)
                     except:
                         print(fg_red("@@ other outcome '{0}' is not applicable!!".format(str(self.policy[state]))))
                         exit()
@@ -169,7 +168,7 @@ class Planner(object):
                         if verbose: print(fg_red('@@ no plan exists'))
                         break
 
-                    policy.update(self.policy_image(domain_spec, new_state, plan))
+                    policy.update(self.policy_image(domain_spec, new_state, plan, verbose))
 
                     ## check if the plan contains states and actions in the dead-ends list ##
                     if self.has_deadend(policy, verbose):
@@ -195,7 +194,7 @@ class Planner(object):
                     if verbose: print(fg_red('\n@@ no valid plan for all outcomes'))
                     self.deadend_list[state].append(Counter(self.policy[state]))
                     self.open_stack[state] = None
-                    self.remove_path(state)
+                    self.remove_path(state, verbose)
 
 
         ###################################################################
@@ -229,12 +228,22 @@ class Planner(object):
                         self.open_stack[state] = action
 
 
-    def apply_step(self, init, step, domain = None):
+    def apply_step(self, init, step, domain=None, verbose=False):
         """
         return a state resulting from the application of actions in the step
         @arg init : the initial state that the step has to apply on it
         @arg step : a sequence of (concurrent) fully grounded actions
+        @arg domain : if domain is given one state is generated from the application 
+                      of the step on init, if the domain is not given, all domains are 
+                      used and a list of states are genearted from the application of 
+                      the step on init
         """
+
+        if step is None:
+            if verbose: print(bg_voilet('## step is None!!'))
+            if domain is not None:
+                return init
+            return OrderedDict([(init, [])])
 
         # if the domain is given, only action signatures in step are grounded
         # based on the given domain specification
@@ -274,7 +283,7 @@ class Planner(object):
         return states
 
 
-    def policy_image(self, domain, state, plan):
+    def policy_image(self, domain, state, plan, verbose=False):
         """
         return a policy image of the given plan from given domain and initial state 
         @arg domain : the domain object used to generate the plan 
@@ -289,13 +298,13 @@ class Planner(object):
         for step in plan:
             policy[state] = step
             ## make full grounded specification of actions ##
-            state = self.apply_step(state, step, domain)
+            state = self.apply_step(state, step, domain, verbose)
             policy[state] = None
 
         return policy
 
 
-    def remove_path(self, state):
+    def remove_path(self, state, verbose=False):
         """
         remove all path starting from state in the policy
         """
@@ -306,11 +315,11 @@ class Planner(object):
                 self.deadend_list[state].append(Counter(self.open_stack[state]))
                 self.open_stack[state] = None
             if step == None: return
-            for s in self.apply_step(state, step):
-                self.remove_path(s)
+            for s in self.apply_step(state, step, verbose=verbose):
+                self.remove_path(s, verbose)
 
 
-    def plan(self):
+    def plan(self, verbose=False):
         """
         return an ordered dict as the final plan:
         the keys represent the steps of actions in the plan,
@@ -341,6 +350,7 @@ class Planner(object):
                 visited[state] = i
 
                 if state not in self.policy:
+                    plan[i] = None
                     continue
 
                 step = self.policy[state]
@@ -352,7 +362,7 @@ class Planner(object):
                         print(bg_red('@ Goal is not achieved!'))
                     plan[i] = 'goal'
                 else:
-                    states = self.apply_step(state, step)
+                    states = self.apply_step(state, step, verbose=verbose)
 
                     next_steps = list()
                     for s, c in states.items():
@@ -382,6 +392,8 @@ class Planner(object):
             plan_str+= '{:2} : '.format(level)
             if step == 'goal': 
                 plan_str+= fg_beige('Goal achieved!')
+            elif step == None: 
+                plan_str+= fg_voilet('None!')
             else:
                 (actions, conditions) = step
                 plan_str+= '{}'.format(' '.join(map(str, actions)))

@@ -1,7 +1,7 @@
 
 import argparse
-from color import fg_green, fg_red, fg_yellow, fg_blue, fg_voilet, fg_beige
 
+from color import fg_green, fg_red, fg_yellow, fg_blue, fg_voilet, fg_beige, bg_voilet, bg_beige
 from planner import Planner
 
 
@@ -30,6 +30,11 @@ def parse_plan(plan):
         if step == 'goal':
             # goal state is achieved
             print(fg_voilet('@ goal'))
+            pass
+        elif step == None:
+            # normally shouldn't happen; otherwise, something is wrong (report it if happened)
+            # anyway, it makes the plan a weak solution
+            print(bg_voilet('None!'))
             pass
         else:
             # unfold step into a tuple of actoins and outcomes
@@ -63,4 +68,4 @@ if __name__ == '__main__':
 
     policy.print_plan(plan)
 
-    parse_plan(plan)
+    # parse_plan(plan)

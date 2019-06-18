@@ -78,3 +78,6 @@ def bg_blue(*str):
 
 def bg_voilet(*str):
     return (CVIOLETBG + ''.join(str) + CEND)
+
+def bg_beige(*str):
+    return (CBEIGEBG + ''.join(str) + CEND)

@@ -216,7 +216,7 @@ def call_planner(domain, problem, planner='ff', verbose=False):
 
     ## Madagascar (M) planner ##
     elif 'm' in planner.lower():
-        return call_m(domain, problem)
+        return call_m(domain, problem, verbose)
 
     ## optic-clp planner ##
     elif 'optic-clp' in planner.lower():
