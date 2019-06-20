@@ -288,7 +288,7 @@ class Planner(object):
             for action in grounded_step:
                 if action is not None:
                     if action.name in self.prob_actions:
-                        add_effects = action.add_effects
+                        add_effects = action.add_effects #+ [(-1, d) for d in action.del_effects]
                     state = state.apply(action)
             states[state] = add_effects
 
@@ -414,7 +414,7 @@ class Planner(object):
                 (actions, conditions) = step
                 plan_str+= '{}'.format(' '.join(map(str, actions)))
                 for (case, jump) in conditions:
-                    plan_str+= fg_yellow(' -- ({}) {}'.format(' '.join(['({0})'.format(' '.join(map(str, c[1]))) for c in case]), fg_voilet(str(jump))))
+                    plan_str+= fg_yellow(' -- ({}) {}'.format(' '.join(['({0})'.format(' '.join(map(str, c))) for c in case]), fg_voilet(str(jump))))
             plan_str+= '\n'
         print(plan_str)
 

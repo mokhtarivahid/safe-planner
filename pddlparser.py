@@ -16,6 +16,8 @@
 
 from ply import lex
 from ply import yacc
+import re
+from fractions import Fraction
 
 from pypddl import Domain, Problem, Action, neg
 
@@ -102,9 +104,17 @@ def t_VARIABLE(t):
 
 
 def t_PROBABILITY(t):
-    r'[0-1]\.\d+'
-    t.value = float(t.value)
+    r'[0-9]+/0*[1-9][0-9]*|[0-1]\.\d+'
+    if is_fraction(t.value):
+        t.value = float(sum(Fraction(s) for s in t.value.split()))
+    else:
+        t.value = float(t.value)
     return t
+
+
+def is_fraction(string):
+    """Return True iff the string represents a valid fraction."""
+    return bool(re.search(r'^-?[0-9]+/0*[1-9][0-9]*$', string))
 
 
 def t_newline(t):
@@ -286,12 +296,15 @@ def p_effects_lst(p):
 
 def p_effect(p):
     '''effect : literal
-              | LPAREN PROBABILISTIC_KEY PROBABILITY literal RPAREN'''
-              # | LPAREN PROBABILISTIC_KEY probability_literal_lst RPAREN'''
+              | LPAREN PROBABILISTIC_KEY PROBABILITY literal RPAREN
+              | LPAREN PROBABILISTIC_KEY PROBABILITY LPAREN AND_KEY literals_lst RPAREN RPAREN'''
     if len(p) == 2:
-        p[0] = (1.0, p[1])
+        p[0] = p[1]
+        # p[0] = (1.0, p[1])
     elif len(p) == 6:
-        p[0] = (p[3], p[4])
+        p[0] = (p[3], tuple([p[4]]))
+    elif len(p) == 9:
+        p[0] = (p[3], tuple(p[6]))
 
 
 def p_literals_lst(p):

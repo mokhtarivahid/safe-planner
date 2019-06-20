@@ -26,7 +26,7 @@ def parse_plan(plan):
 
     # a sample code to parse the output plan
     for level, step in plan.items():
-        print(fg_beige('@@ level'), level)
+        print('@ level', level)
         if step == 'goal':
             # goal state is achieved
             print(fg_voilet('@ goal'))
@@ -43,17 +43,16 @@ def parse_plan(plan):
             for action in actions:
                 # you can access to the properties of the action:
                 print(fg_yellow('>> action:'), action.sig)
-                print(fg_yellow('preconditions:'), action.preconditions)
-                print(fg_yellow('add_effects:'), action.add_effects)
-                print(fg_yellow('del_effects:'), action.del_effects)
+                print(fg_yellow('   preconditions:'), action.preconditions)
+                print(fg_yellow('   effects:'), action.add_effects)
                 pass
             # each outcome is a tuple of conditions and jump to a next level
             # check the outcome of the actions for jumping to the next step
             for (conditions, jump) in outcomes:
                 # check if the conditions meet in the current state
-                print(fg_yellow('condition:'), ' '.join(map(str,conditions)))
+                print(fg_yellow('   condition:'), ' '.join(map(str,conditions)))
                 # jump to the next step if the conditions met
-                print(fg_yellow('jump to:'), jump)
+                print(fg_beige('   jump to:'), jump)
                 pass
 ###############################################################################
 
@@ -68,4 +67,4 @@ if __name__ == '__main__':
 
     policy.print_plan(plan)
 
-    # parse_plan(plan)
+    parse_plan(plan)

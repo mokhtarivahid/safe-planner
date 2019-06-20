@@ -40,6 +40,7 @@ class Domain(object):
         Ground all action schemas given a dictionary
         of objects keyed by type
         """
+        deterministic = not ':probabilistic-effects' in self.requirements
         grounded_actions = list()
         for action in self.actions:
             param_lists = [objects[t] for t in action.types]
@@ -51,7 +52,7 @@ class Domain(object):
                 if action.no_permute and param_set in param_combos:
                     continue
                 param_combos.add(param_set)
-                grounded_actions.append(action.ground(*params))
+                grounded_actions.append(action.ground(*params, deterministic=deterministic))
         return grounded_actions
 
     def ground(self, action_sig):
@@ -59,9 +60,10 @@ class Domain(object):
         Return the grounded action schema of a given action signature,
         an action signature example: 'move(robot1,room1,room2)'
         """
+        deterministic = not ':probabilistic-effects' in self.requirements
         for action in self.actions:
             if action.name == action_sig[0]:
-                return action.ground(*tuple(action_sig[1:]))
+                return action.ground(*tuple(action_sig[1:]), deterministic=deterministic)
         return None
 
 
@@ -234,9 +236,9 @@ class State(object):
         If monotone, ignore the delete list (for A* heuristic)
         """
         new_preds = set(self.predicates)
-        new_preds |= set([add_effect[1] for add_effect in action.add_effects])
+        new_preds |= set(action.add_effects)
         if not monotone:
-            new_preds -= set([del_effect[1] for del_effect in action.del_effects])
+            new_preds -= set(action.del_effects)
         new_functions = dict()
         new_functions.update(self.functions)
         for function, value in action.num_effects:
@@ -318,8 +320,8 @@ class Action(object):
         self.unique = unique
         self.no_permute = no_permute
 
-    def ground(self, *args):
-        return _GroundedAction(self, *args)
+    def ground(self, *args, deterministic=True):
+        return _GroundedAction(self, *args, deterministic=deterministic)
 
     def __str__(self, pddl=False, body=True):
         if not pddl:
@@ -341,16 +343,19 @@ class Action(object):
             pddl_str += ')\n'
             pddl_str += '\t:effect (and'
             for effect in self.effects:
-                if effect[0] == 1.0:
-                    if effect[1][0] == -1:
-                        pddl_str += '\n\t\t\t(not ({0}))'.format(' '.join(map(str, effect[1][1])))
-                    else:
-                        pddl_str += '\n\t\t\t({0})'.format(' '.join(map(str, effect[1])))
+                if types(effect[0]) == float:
+                    pddl_str += '\n\t\t\t(probabilistic {}'.format(effect[0])
+                    for eff in effect[1]:
+                        if eff[0] == -1:
+                            pddl_str += ' (not ({})))'.format(' '.join(map(str, eff[1])))
+                        else:
+                            pddl_str += ' ({}))'.format(' '.join(map(str, eff)))
+                    pddl_str += ')'
                 else:
-                    if effect[1][0] == -1:
-                        pddl_str += '\n\t\t\t(probabilistic {0} (not ({0})))'.format(effect[0], ' '.join(map(str, effect[1][1])))
+                    if effect[0] == -1:
+                        pddl_str += '\n\t\t\t(not ({0}))'.format(' '.join(map(str, effect[1])))
                     else:
-                        pddl_str += '\n\t\t\t(probabilistic {0} ({1}))'.format(effect[0], ' '.join(map(str, effect[1])))
+                        pddl_str += '\n\t\t\t({0})'.format(' '.join(map(str, effect)))
 
             pddl_str += '))\n'
             return pddl_str
@@ -386,8 +391,9 @@ def _num_pred(op, x, y):
 class _GroundedAction(object):
     """
     An action schema that has been grounded with objects
+    if @probabilistic is True, effects are grounded and only added to add_effects
     """
-    def __init__(self, action, *args):
+    def __init__(self, action, *args, deterministic=True):
         self.name = action.name
         ground = _grounder(action.arg_names, args)
 
@@ -410,23 +416,48 @@ class _GroundedAction(object):
             else:
                 self.preconditions.append(ground(pre))
 
+
         # Ground Effects
         self.add_effects = list()
         self.del_effects = list()
         self.num_effects = list()
-        for effect in action.effects:
-            if effect[1][0] == -1:
-                self.del_effects.append((effect[0], ground(effect[1][1])))
-            elif effect[1][0] == '+=':
-                function = ground(effect[1][1])
-                value = effect[1][2]
-                self.num_effects.append((function, value))
-            elif effect[1][0] == '-=':
-                function = ground(effect[1][1])
-                value = -effect[1][2]
-                self.num_effects.append((function, value))
-            else:
-                self.add_effects.append((effect[0], ground(effect[1])))
+
+        if deterministic:
+            for effect in action.effects:
+                if effect[0] == -1:
+                    self.del_effects.append(ground(effect[1]))
+                elif effect[0] == '+=':
+                    function = ground(effect[1])
+                    value = effect[2]
+                    self.num_effects.append((function, value))
+                elif effect[0] == '-=':
+                    function = ground(effect[1])
+                    value = -effect[2]
+                    self.num_effects.append((function, value))
+                else:
+                    self.add_effects.append(ground(effect))
+        # since the planner does not support probabilistic planning
+        # in probabilistic domains, all positive/negative effects 
+        # are ONLY grounded and added into add_effects (del_effects will be empty)
+        # we just make ground probabilistic domains for the final policy representation,
+        # and not for the planning!
+        else:
+            for effect in action.effects:
+                # an action is probabilistic if the type of effect[0] is float 
+                # i.e., effect[0] is the probability, e.g., effect = (0.5, (-1, ('holding', '?x')))
+                if type(effect[0]) == float:
+                    # probabilistic effects have the form (PROBABILITY tuple_of_effects)
+                    eff_prob = list()
+                    for eff in effect[1]:
+                        if eff[0] == -1:
+                            eff_prob.append((-1, ground(eff[1])))
+                        else:
+                            eff_prob.append(ground(eff))
+                    self.add_effects.append((effect[0], tuple(eff_prob)))
+                elif effect[0] == -1:
+                    self.add_effects.append((-1, ground(effect[1])))
+                else:
+                    self.add_effects.append(ground(effect))
 
 
     def sig(self):
