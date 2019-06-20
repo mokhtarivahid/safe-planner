@@ -50,8 +50,8 @@ $ python3 main.py domains/pickit_seq/pickit.pddl domains/pickit_seq/prob0.pddl p
 
 The output plan is a sequence of steps (i.e., each step may contain more than one action).
 The numbers represent the order of the execution of the steps.
-Steps in each line is followed by some conditions under which the next step is selected.
-Empty conditions are true conditions and are usually appears for deterministic actions.
+Steps in each line is followed by some conditions under which the next step is chosen.
+Empty conditions are true conditions and usually appear for deterministic actions.
 Some steps (i.e., steps containing probabilistic actions) have more than one conditions.
 Conditions are, in fact, the different possible effects of the probabilistic actions.
 The number after each condition represents the next step for the execution.
