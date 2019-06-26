@@ -32,20 +32,25 @@ class Planner(object):
         ## domains and values as domain objects -- dict({pddl:object})
         self.domains = OrderedDict()
 
-        ## parse pddl domains
-        for domain in sorted(listdir_fullpath(base)):
-            if domain.endswith('.pddl'):
-                self.domains[domain] = PDDLParser.parse(domain)
-
-        ## read the probabilistic actions names
+        ## list of the probabilistic actions names
         self.prob_actions = list()
-        try:
-            with open(base+'.prob') as f:
-                self.prob_actions = f.read().splitlines()
-        except FileNotFoundError as fnf_error:
-            if ":probabilistic-effects" in self.domain.requirements:
-                print(fg_red("\n'"+base+".prob' containing the name of probabilistic actions should exist!\n"))
-                exit()
+
+        ## if the domain is probabilistic
+        if ":probabilistic-effects" in self.domain.requirements:
+            ## read the probabilistic actions names
+            try:
+                with open(base+'.prob') as f:
+                    self.prob_actions = f.read().splitlines()
+            except FileNotFoundError as fnf_error:
+                    print(fg_red("\n'"+base+".prob' containing the name of probabilistic actions should exist!\n"))
+                    exit()
+
+            ## parse deterministic pddl domains
+            for domain in sorted(listdir_fullpath(base)):
+                if domain.endswith('.pddl'):
+                    self.domains[domain] = PDDLParser.parse(domain)
+        else:
+            self.domains[domain] = self.domain
 
         ## parse pddl problem
         self.problem = PDDLParser.parse(problem)
