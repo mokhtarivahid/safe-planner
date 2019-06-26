@@ -67,4 +67,7 @@ if __name__ == '__main__':
 
     policy.print_plan(plan)
 
+    print('Planning time: %.3f s' % policy.planning_time)
+    print('Number of replannings:', policy.planning_call)
+
     parse_plan(plan)

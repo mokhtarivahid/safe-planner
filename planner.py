@@ -1,6 +1,7 @@
 
 import os, sys
 from collections import OrderedDict, defaultdict, Counter
+from time import time
 
 from color import fg_green, fg_red, fg_yellow, fg_blue, fg_voilet, fg_beige, bg_green, bg_red, bg_yellow, bg_blue, bg_voilet
 from pddlparser import PDDLParser
@@ -60,7 +61,9 @@ class Planner(object):
         ## stores states and actions which lead to dead-ends ##
         self.deadend_list = defaultdict(list)
 
-        self.number_of_calls = 0
+        self.planning_call = 0
+
+        self.planning_time = time()
 
         # if new_state is itself a goal state (then the plan is empty)
         if self.problem.initial_state.is_true(*(self.problem.goals, self.problem.num_goals)):
@@ -93,6 +96,8 @@ class Planner(object):
                         print(fg_yellow('@ problem:'), problm_pddl)
 
                     plan = call_planner(domain, problm_pddl, self.planner, verbose)
+
+                    self.planning_call += 1
 
                     ## if no plan exists try the next domain ##
                     if plan == None:
@@ -176,6 +181,8 @@ class Planner(object):
 
                     plan = call_planner(domain, problm_pddl, self.planner, verbose)
 
+                    self.planning_call += 1
+
                     ## if no plan exists :- dead ends ##
                     if plan == None:
                         if verbose: print(fg_red('@@ no plan exists'))
@@ -209,6 +216,7 @@ class Planner(object):
                     self.open_stack[state] = None
                     self.remove_path(state, verbose)
 
+        self.planning_time = time() - self.planning_time
 
         ###################################################################
 

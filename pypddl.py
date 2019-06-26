@@ -86,9 +86,9 @@ class Domain(object):
             domain_str += '>> requirements: {0}\n'.format(self.requirements)
             if len(self.types) > 0:
                 domain_str += '>> types: {0}\n'.format(self.types)
-            domain_str += '>> predicates: \n    {0}\n'.format('\n    '.join(map(str, self.predicates)))
-            domain_str += '>> operators:\n    {0}\n'.format(
-                '\n    '.join(str(op).replace('\n', '\n    ') for op in self.actions if op.name not in ex_actions))
+            domain_str += '>> predicates: \n   {0}\n'.format('\n   '.join(map(str, self.predicates)))
+            domain_str += '>> operators:\n   {0}\n'.format(
+                '\n   '.join(str(op).replace('\n', '\n   ') for op in self.actions if op.name not in ex_actions))
             return domain_str
         else:
             pddl_str  = '(define (domain {0})\n\n'.format(self.name)
@@ -187,11 +187,11 @@ class Problem(object):
             if len(self.objects) > 0:
                 problem_str += '>> objects:\n'
                 for type, objects in self.objects.items():
-                    problem_str += '{0} -> {1}\n'.format(type, ', '.join(sorted(objects)))
-            problem_str += '>> init:\n{0}\n'.format('\n'.join(map(str, self.initial_state.predicates)))
+                    problem_str += '   {0} -> {1}\n'.format(type, ', '.join(sorted(objects)))
+            problem_str += '>> init:\n   {0}\n'.format('\n   '.join(map(str, self.initial_state.predicates)))
             if len(self.initial_state.functions) > 0:
-                problem_str += '>> init:\n{0}\n'.format('\n'.join(map(str, self.initial_state.functions)))
-            problem_str += '>> goal:\n{0}\n'.format('\n'.join(map(str, self.goals)))
+                problem_str += '>> init:\n{0}\n'.format('\n   '.join(map(str, self.initial_state.functions)))
+            problem_str += '>> goal:\n   {0}\n'.format('\n   '.join(map(str, self.goals)))
             return problem_str
         else:
             pddl_str  = '(define (problem {0})\n'.format(self.problem)
