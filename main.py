@@ -7,7 +7,7 @@ from planner import Planner
 
 def parse():
     usage = 'python3 main.py <DOMAIN> <PROBLEM> [<PLANNER>] [-v | --verbose]'
-    description = "pypddl is a probabilistic planner."
+    description = "pyppddl is a probabilistic planner."
     parser = argparse.ArgumentParser(usage=usage, description=description)
 
     parser.add_argument('domain',  type=str, help='path to PDDL domain file')
@@ -70,4 +70,4 @@ if __name__ == '__main__':
     print('Planning time: %.3f s' % policy.planning_time)
     print('Number of replannings:', policy.planning_call)
 
-    parse_plan(plan)
+    # parse_plan(plan)

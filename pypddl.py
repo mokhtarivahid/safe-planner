@@ -67,7 +67,7 @@ class Domain(object):
         return None
 
 
-    def to_pddl(self, ex_actions=[]):
+    def pddl(self, ex_actions=[]):
         """
         create a pddl file of the problem and return its path as a string
         @arg ex_actions : a list of name of actions should be excluded 
@@ -165,7 +165,7 @@ class Problem(object):
         """
         self.initial_state = state
 
-    def to_pddl(self, state=None):
+    def pddl(self, state=None):
         """
         create a pddl file of the problem and return its path as a string
         @arg state : a given initial state (default is the problem initial state)
@@ -333,18 +333,18 @@ class Action(object):
             return operator_str
         else:
             arglist   = ', '.join(['%s - %s' % pair for pair in zip(self.arg_names, self.types)])
-            pddl_str  = '\n  (:action {0}\n\t:parameters ({1})\n'.format(self.name, arglist)
-            pddl_str += '\t:precondition (and'
+            pddl_str  = '\n  (:action {0}\n   :parameters ({1})\n'.format(self.name, arglist)
+            pddl_str += '   :precondition (and'
             for precondition in self.preconditions:
                 if precondition[0] == -1:
-                    pddl_str += '\n\t\t\t(not ({0}))'.format(' '.join(map(str, precondition[1:][0])))
+                    pddl_str += ' (not ({0}))'.format(' '.join(map(str, precondition[1:][0])))
                 else:
-                    pddl_str += '\n\t\t\t({0})'.format(' '.join(map(str, precondition)))
+                    pddl_str += ' ({0})'.format(' '.join(map(str, precondition)))
             pddl_str += ')\n'
-            pddl_str += '\t:effect (and'
+            pddl_str += '   :effect (and'
             for effect in self.effects:
-                if types(effect[0]) == float:
-                    pddl_str += '\n\t\t\t(probabilistic {}'.format(effect[0])
+                if type(effect[0]) == float:
+                    pddl_str += ' (probabilistic {}'.format(effect[0])
                     for eff in effect[1]:
                         if eff[0] == -1:
                             pddl_str += ' (not ({})))'.format(' '.join(map(str, eff[1])))
@@ -353,9 +353,9 @@ class Action(object):
                     pddl_str += ')'
                 else:
                     if effect[0] == -1:
-                        pddl_str += '\n\t\t\t(not ({0}))'.format(' '.join(map(str, effect[1])))
+                        pddl_str += ' (not ({0}))'.format(' '.join(map(str, effect[1])))
                     else:
-                        pddl_str += '\n\t\t\t({0})'.format(' '.join(map(str, effect)))
+                        pddl_str += ' ({0})'.format(' '.join(map(str, effect)))
 
             pddl_str += '))\n'
             return pddl_str

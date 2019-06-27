@@ -89,7 +89,7 @@ class Planner(object):
                 if verbose: print(fg_green('\n>> [make initial plan]'))
 
                 ## create a pddl problem given retrieved 'state' as its initial state ##
-                problm_pddl = self.problem.to_pddl(state)
+                problm_pddl = self.problem.pddl(state)
 
                 policy = OrderedDict()
 
@@ -177,7 +177,7 @@ class Planner(object):
                         break
 
                     ## create a pddl problem of 'new_state' as its initial state ##
-                    problm_pddl = self.problem.to_pddl(new_state)
+                    problm_pddl = self.problem.pddl(new_state)
 
                     ## print out some info
                     if verbose:
