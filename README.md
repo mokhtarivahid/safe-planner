@@ -1,4 +1,4 @@
-# ppddl-planner -- a Probabilistic Planner by Compilation into Classical Planners
+# pyppddl-planner -- a Probabilistic Planner by Compilation into Classical Planners
 
 A probabilistic planner to solve PPDDL problems by compilation into classical planning (in Python3). 
 The planner can employ any off-the-shelf classical planner for problem solving, 
