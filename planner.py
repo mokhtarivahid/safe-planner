@@ -352,8 +352,14 @@ class Planner(object):
         every sequence of actions in each step is followed by pairs of 
         conditions and a level to jump. the conditions are the outcome of 
         the actions that should be achieved after their execution.
-        every step takes the following form:
-        level : actions -- (conditions1) level1 -- (conditions2) level2 -- and so on
+        the plan is dictionary as: 
+            plan = { level : step, ...}
+            step is a tuple as:
+                step = (actions, outcomes)
+                    - actions is a list of actions to be executed
+                    - outcomes is a list of tuples as: (conditions, jump)
+                    - conditions are the effects produced by actions
+                    - jump is the next level to jump and execute
         e.g., 
         4 : (check_bottom_up arm2 base1 camera1) -- ((bottom_up base1) (camera_checked base1)) 5 -- ((top_up base1) (camera_checked base1)) 6
         """
@@ -410,10 +416,14 @@ class Planner(object):
         return plan
 
 
-    def print_plan(self, plan):
+    def print_plan(self, plan=None):
         """
         print the plan in a more readable form
         """
+
+        if plan == None:
+            plan = self.plan()
+
         print(bg_yellow('@ plan'))
 
         plan_str = str()
