@@ -3,7 +3,7 @@
 (:objects 
           arm1 arm2 - robot
           table1 - table
-          crate1
+          crate1 - crate
           bottle1 bottle2 bottle3 bottle4 bottle5 
           bottle6 bottle7 bottle8 bottle9 bottle10 - object)
 
@@ -49,6 +49,19 @@
           (on bottle9 table1)
           (on bottle10 table1)
 
+          ; (clear bottle1)
+          ; (clear bottle2)
+          (clear bottle3)
+          (clear bottle4)
+          (clear bottle5)
+          (clear bottle6)
+          (clear bottle7)
+          (clear bottle8)
+          (clear bottle9)
+          (clear bottle10)
+
+          (blocked bottle1 bottle2)
+          (blocked bottle2 bottle3)
           )
 
 (:goal  (and

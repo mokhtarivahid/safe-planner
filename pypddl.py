@@ -179,8 +179,10 @@ class Problem(object):
         return pddl
 
     def __str__(self, pddl=False, state=None):
+
         if state == None:
             state = self.initial_state
+
         if not pddl:
             problem_str  = '@ Problem: {0}\n'.format(self.problem)
             problem_str += '>> domain: {0}\n'.format(self.domain)
@@ -273,7 +275,7 @@ class State(object):
                  (other.predicates, other.functions)))
 
     def __str__(self, pddl=False):
-        if pddl == False:
+        if not pddl:
             if len(self.functions) > 0:
                 return ('Predicates:\n%s' % '\n'.join(map(str, self.predicates))
                         +'\nFunctions:\n%s' % '\n'.join(map(str, self.functions)))

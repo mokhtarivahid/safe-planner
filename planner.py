@@ -366,16 +366,16 @@ class Planner(object):
 
         plan = OrderedDict()
 
-        queue = OrderedDict()
+        jumpto = OrderedDict()
         visited = OrderedDict()
 
         level = 0
-        queue[self.problem.initial_state] = level
+        jumpto[self.problem.initial_state] = level
 
-        while queue:
+        while jumpto:
 
             # pop items as in FIFO
-            (state, i) = queue.popitem(False)
+            (state, i) = jumpto.popitem(False)
             if state not in visited:
                 # keep track of visited states
                 visited[state] = i
@@ -401,14 +401,14 @@ class Planner(object):
 
                     next_steps = list()
                     for s, c in states.items():
-                        if s in queue:
-                            next_steps.append((c, queue[s]))
+                        if s in jumpto:
+                            next_steps.append((c, jumpto[s]))
                         elif s in visited:
                             next_steps.append((c, visited[s]))
-                            queue[s] = visited[s]
+                            jumpto[s] = visited[s]
                         else:
                             level += 1
-                            queue[s] = level
+                            jumpto[s] = level
                             next_steps.append((c, level))
 
                     plan[i] = ([self.domain.ground(action) for action in step], next_steps)
