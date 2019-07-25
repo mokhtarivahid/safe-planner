@@ -47,37 +47,37 @@ CBEIGEBG2  = '\33[106m'
 CWHITEBG2  = '\33[107m'
 
 def fg_green(*str):
-    return (CGREEN + ''.join(str) + CEND)
+    return (CGREEN + ' '.join(str) + CEND)
 
 def fg_red(*str):
-    return (CRED + ''.join(str) + CEND)
+    return (CRED + ' '.join(str) + CEND)
 
 def fg_yellow(*str):
-    return (CYELLOW + ''.join(str) + CEND)
+    return (CYELLOW + ' '.join(str) + CEND)
 
 def fg_blue(*str):
-    return (CBLUE + ''.join(str) + CEND)
+    return (CBLUE + ' '.join(str) + CEND)
 
 def fg_voilet(*str):
-    return (CVIOLET + ''.join(str) + CEND)
+    return (CVIOLET + ' '.join(str) + CEND)
 
 def fg_beige(*str):
-    return (CBEIGE + ''.join(str) + CEND)
+    return (CBEIGE + ' '.join(str) + CEND)
 
 def bg_green(*str):
-    return (CGREENBG + ''.join(str) + CEND)
+    return (CGREENBG + ' '.join(str) + CEND)
 
 def bg_red(*str):
-    return (CREDBG + ''.join(str) + CEND)
+    return (CREDBG + ' '.join(str) + CEND)
 
 def bg_yellow(*str):
-    return (CYELLOWBG + ''.join(str) + CEND)
+    return (CYELLOWBG + ' '.join(str) + CEND)
 
 def bg_blue(*str):
-    return (CBLUEBG + ''.join(str) + CEND)
+    return (CBLUEBG + ' '.join(str) + CEND)
 
 def bg_voilet(*str):
-    return (CVIOLETBG + ''.join(str) + CEND)
+    return (CVIOLETBG + ' '.join(str) + CEND)
 
 def bg_beige(*str):
-    return (CBEIGEBG + ''.join(str) + CEND)
+    return (CBEIGEBG + ' '.join(str) + CEND)

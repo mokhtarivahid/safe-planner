@@ -273,7 +273,7 @@ if __name__ == '__main__':
                         ## print out some info
                         # if args.verbose: 
                         print(fg_red('-'), action)
-                        print('@ arm', action_args[0], 'cannot reach', action_args[1])
+                        print(fg_red('@ arm', action_args[0], 'cannot reach', action_args[1]))
 
                     ## if there is an object blocking the target object
                     else:
@@ -295,11 +295,16 @@ if __name__ == '__main__':
                         ## print out some info
                         # if args.verbose: 
                         print(fg_red('-'), action)
-                        print('@', action_args[1], 'is blocked by', objects_ref[blocking_object])
+                        print(fg_red('@', action_args[1], 'is blocked by', objects_ref[blocking_object]))
 
                     ## in either case break the for loop and make a replanning at the current updated state
+                    ## note: the following three lines make sure to break from both (action and step) for-loops
                     break
-
+            else:
+                ## continue if the action is successfully executed (the inner for-loop wasn't broken)
+                continue
+            ## inner loop was broken, break the outer too (either reach or blocking failure happened)
+            break
 
     planning_time = time() - planning_time
 
