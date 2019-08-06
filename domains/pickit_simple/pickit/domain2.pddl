@@ -23,7 +23,6 @@
                 (arm_free ?a - arm)
 
                 (object_in ?o - object ?c - object)
-                (ungripped ?o - object)
                 (upward ?o - object)
                 (downward ?o - object)
                 (camera_checked ?o - object)
