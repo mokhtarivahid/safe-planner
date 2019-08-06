@@ -66,6 +66,48 @@ class Domain(object):
                 return action.ground(*tuple(action_sig[1:]), deterministic=deterministic)
         return None
 
+    def make_inapplicable(self, ex_actions, state):
+        """
+        modify the domain such that the given ex_actions become inapplicable in the given state
+        @arg ex_actions : a list of ground action signatures that should become inapplicable in @state
+        @arg state : a state that @ex_actions should become inapplicable in that state 
+        """
+
+        for ex_action in ex_actions:
+            # print(ex_action)
+            for action in self.actions:
+                if action.name == ex_action[0]:
+                    print(action.preconditions)
+                    ex_preconditions = list(action.preconditions)
+                    for pred in state.predicates:
+                        if set(pred[1:]) == set(ex_action[1:]):
+                        # if all(t in ex_action[1:] for t in pred[1:]):
+                        # if set(pred[1:]) == set(ex_action[1:]) and len(ex_action[1:]) > 1:
+                        # if len([t for t in pred[1:] if t not in ex_action[1:]]) == 0:
+                            ex_preconditions.append((-1, pred))
+                            print(pred[1:], ex_action[1:])
+                            print('>>pred', pred)
+                    # for i in range(len(action.arg_names)):
+                    #     ex_preconditions.append((-1, ('=', action.arg_names[i], ex_action[i+1])))
+                    action.preconditions = tuple(ex_preconditions)
+                    print(action.preconditions)
+
+    # def make_inapplicable(self, ex_actions=[]):
+    #     """
+    #     modify the domain such that the given ground actions become inapplicable 
+    #     @arg ex_actions : a list of ground action signatures (list of tuples) that should become inapplicable 
+    #     """
+
+    #     for ex_action in ex_actions:
+    #         # print(ex_action)
+    #         for action in self.actions:
+    #             if action.name == ex_action[0]:
+    #                 ex_preconditions = list(action.preconditions)
+    #                 for i in range(len(action.arg_names)):
+    #                     ex_preconditions.append((-1, ('=', action.arg_names[i], ex_action[i+1])))
+    #                 action.preconditions = tuple(ex_preconditions)
+    #                 # print(action.preconditions)
+
 
     def pddl(self, ex_actions=[]):
         """

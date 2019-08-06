@@ -2,6 +2,7 @@
 import os, sys
 from collections import OrderedDict, defaultdict, Counter
 from time import time
+import copy
 
 from color import fg_green, fg_red, fg_yellow, fg_blue, fg_voilet, fg_beige, bg_green, bg_red, bg_yellow, bg_blue, bg_voilet
 from pddlparser import PDDLParser
@@ -68,6 +69,8 @@ class Planner(object):
 
         self.planning_call = 0
 
+        self.deadends_call = 0
+
         self.planning_time = time()
 
         # if new_state is itself a goal state (then the plan is empty)
@@ -95,6 +98,10 @@ class Planner(object):
 
                 for domain, domain_spec in self.domains.items():
 
+                    # ## if state is in deadend_list modify the domain and make inapplicable actions in deadend_list[state]
+                    # if state in self.deadend_list:
+                    #     domain, domain_spec = self.modify_domain(state, domain, domain_spec)
+
                     ## print out some info
                     if verbose:
                         print(fg_yellow('@ domain:'), domain)
@@ -114,6 +121,7 @@ class Planner(object):
                     ## check if the policy contains states and actions in the dead-ends list ##
                     if self.has_deadend(policy, verbose):
                         policy = OrderedDict()
+                        self.deadends_call += 1
                         continue
 
                     ## there exists a valid plan: terminate the loop ##
@@ -151,6 +159,10 @@ class Planner(object):
                 ## for every other outcome of 'action' look for if there is a valid plan ##
                 for domain, domain_spec in self.domains.items():
 
+                    # ## if state is in deadend_list modify the domain and make inapplicable actions in deadend_list[state]
+                    # if state in self.deadend_list:
+                    #     domain, domain_spec = self.modify_domain(state, domain, domain_spec)
+
                     ## generate a new state and then make plan ##
                     ## update step by replacing 'other_outcome' action with an old outcome
                     ## !! currently we only assume one probabilistic action in a state
@@ -176,6 +188,18 @@ class Planner(object):
                         if verbose: print(fg_red('@@ new state becomes empty!'))
                         break
 
+                    # ## if state is in deadend_list create a domain with inapplicable actions in deadend_list[state]
+                    # if new_state in self.deadend_list:
+                    #     ## make a list of excluding action signatures (these actions become inapplicable in the current state)
+                    #     ex_actions = [list(act)[0] for act in self.deadend_list[new_state]] ## convert back the Counter to a list
+                    #     print(ex_actions)
+                    #     domain_spec_cp = copy.deepcopy(domain_spec)
+                    #     domain_spec_cp.make_inapplicable(ex_actions, state)
+                    #     domain = domain_spec_cp.pddl()
+                    #     # del domain_spec_cp
+                    #     # domain_spec.make_inapplicable(ex_actions)
+                    #     # domain = domain_spec.pddl()
+
                     ## create a pddl problem of 'new_state' as its initial state ##
                     problm_pddl = self.problem.pddl(new_state)
 
@@ -198,6 +222,7 @@ class Planner(object):
                     ## check if the plan contains states and actions in the dead-ends list ##
                     if self.has_deadend(policy, verbose):
                         policy = OrderedDict()
+                        self.deadends_call += 1
                         break
 
                 ## there exist a valid plan for all other outcomes (no break happened)
@@ -236,6 +261,30 @@ class Planner(object):
                     if verbose: print(fg_red('@@ dead-end state by: ', str(step)))
                     return True
         return False
+
+
+    def modify_domain(self, state, domain_pddl, domain_obj):
+        ''' modify the domain_obj such that the actions in deadend_list[state] become
+            inapplicable in state
+            @arg state: the current state should be investigated in deadend_list
+            @arg domain_obj: the current domain that should be modified
+        '''
+
+        ## make a list of excluding action signatures (these actions become inapplicable in the current state)
+        ex_actions = [list(act)[0] for act in self.deadend_list[state]] ## convert back the Counter to a list
+
+        print(ex_actions)
+        domain_obj_cp = copy.deepcopy(domain_obj)
+        domain_obj_cp.make_inapplicable(ex_actions, state)
+        domain_pddl = domain_obj_cp.pddl()
+        # del domain_obj_cp
+        # domain_obj.make_inapplicable(ex_actions, state)
+        # domain_pddl = domain_obj.pddl()
+        print(domain_pddl)
+        print(state)
+        print()
+
+        return domain_pddl, domain_obj_cp
 
 
     def push_prob_actions(self, policy, verbose=False):
@@ -337,7 +386,7 @@ class Planner(object):
             step = self.policy[state]
             del self.policy[state]
             if state in self.open_stack and not self.open_stack[state] is None:
-                self.deadend_list[state].append(Counter(self.open_stack[state]))
+                self.deadend_list[state].append(Counter([self.open_stack[state]]))
                 self.open_stack[state] = None
             if step == None: return
             for s in self.apply_step(state, step, verbose=verbose):
