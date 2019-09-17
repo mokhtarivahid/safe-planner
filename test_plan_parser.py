@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 
 import argparse
 
@@ -49,8 +50,12 @@ def parse_plan(plan):
             # each outcome is a tuple of conditions and jump to a next level
             # check the outcome of the actions for jumping to the next step
             for (conditions, jump) in outcomes:
-                # check if the conditions meet in the current state
-                print(fg_yellow('   condition:'), ' '.join(map(str,conditions)))
+                # unfold conditions as add and delete lists
+                if len(conditions) > 0: 
+                    (add_list, del_list) = conditions
+                    # check if the conditions meet in the current state
+                    if add_list: print(fg_yellow('   effect+:'), ' '.join(map(str,add_list)))
+                    if del_list: print(fg_yellow('   effect-:'), ' '.join(map(str,del_list)))
                 # jump to the next step if the conditions met
                 print(fg_beige('   jump to:'), jump)
                 pass

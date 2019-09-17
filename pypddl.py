@@ -207,7 +207,7 @@ class Problem(object):
         """
         self.initial_state = state
 
-    def pddl(self, state=None):
+    def pddl(self, state=None, goals=None):
         """
         create a pddl file of the problem and return its path as a string
         @arg state : a given initial state (default is the problem initial state)
@@ -216,14 +216,17 @@ class Problem(object):
             os.makedirs("/tmp/pyddl/")
         pddl = "/tmp/pyddl/prob"+str(int(time.time()*1000000))+".pddl"
         with open(pddl, 'w') as f:
-            f.write(self.__str__(pddl=True, state=state))
+            f.write(self.__str__(pddl=True, state=state, goals=goals))
             f.close()
         return pddl
 
-    def __str__(self, pddl=False, state=None):
+    def __str__(self, pddl=False, state=None, goals=None):
 
         if state == None:
             state = self.initial_state
+
+        if goals == None:
+            goals = self.goals
 
         if not pddl:
             problem_str  = '@ Problem: {0}\n'.format(self.problem)
@@ -235,7 +238,7 @@ class Problem(object):
             problem_str += '>> init:\n   {0}\n'.format('\n   '.join(map(str, self.initial_state.predicates)))
             if len(self.initial_state.functions) > 0:
                 problem_str += '>> init:\n{0}\n'.format('\n   '.join(map(str, self.initial_state.functions)))
-            problem_str += '>> goal:\n   {0}\n'.format('\n   '.join(map(str, self.goals)))
+            problem_str += '>> goal:\n   {0}\n'.format('\n   '.join(map(str, goals)))
             return problem_str
         else:
             pddl_str  = '(define (problem {0})\n'.format(self.problem)
@@ -251,7 +254,7 @@ class Problem(object):
                 pddl_str += '\n\t\t({0})'.format(' '.join(map(str, predicate)))
             pddl_str += ')\n'
             pddl_str += '  (:goal (and'
-            for predicate in self.goals:
+            for predicate in goals:
                 pddl_str += '\n\t\t({0})'.format(' '.join(map(str, predicate)))
             pddl_str += ')))\n'
             return pddl_str

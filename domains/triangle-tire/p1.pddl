@@ -1,5 +1,0 @@
-(define (problem triangle-tire-1)
-  (:domain triangle-tire)
-  (:objects l1 l2 l3 l4 l5 l6 l7 l8 l9 - location)
-  (:init (vehicle-at l1)(road l1 l2)(road l2 l3)(road l1 l4)(road l2 l5)(road l4 l2)(road l5 l3)(spare-in l4)(spare-in l5)(road l4 l7)(road l7 l5)(spare-in l7)(spare-in l7)(not-flattire))
-  (:goal (vehicle-at l3)))

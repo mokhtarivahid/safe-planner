@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 
 import os, sys
 from collections import OrderedDict, defaultdict, Counter
@@ -346,13 +347,13 @@ class Planner(object):
         states = OrderedDict()
         for grounded_step in grounded_steps:
             state = init
-            add_effects = list()
+            effects = list()
             for action in grounded_step:
                 if action is not None:
                     if action.name in self.prob_actions:
-                        add_effects = action.add_effects #+ [(-1, d) for d in action.del_effects]
+                        effects = (action.add_effects, action.del_effects)
                     state = state.apply(action)
-            states[state] = add_effects
+            states[state] = effects
 
         return states
 
@@ -483,10 +484,26 @@ class Planner(object):
             elif step == None: 
                 plan_str+= fg_voilet('None!')
             else:
-                (actions, conditions) = step
+                (actions, outcomes) = step
                 plan_str+= '{}'.format(' '.join(map(str, actions)))
-                for (case, jump) in conditions:
-                    plan_str+= fg_yellow(' -- ({}) {}'.format(' '.join(['({0})'.format(' '.join(map(str, c))) for c in case]), fg_voilet(str(jump))))
+                for (conditions, jump) in outcomes:
+                    # unfold conditions as add and delete lists
+                    # if there is non-deterministic outcomes
+                    if len(conditions) > 0: 
+                        (add_list, del_list) = conditions
+                        # if there is non-deterministic delete list in outcomes
+                        if len(del_list) > 0:
+                            plan_str+= fg_yellow(' -- ({})({}) {}'.format( \
+                                    ' '.join(['({0})'.format(' '.join(map(str, c))) for c in add_list]), \
+                                    ' '.join(['({0})'.format(' '.join(map(str, c))) for c in del_list]), \
+                                    fg_voilet(str(jump))))
+                        # otherwise, exclude delete list in the representation of the plan
+                        else:
+                            plan_str+= fg_yellow(' -- ({}) {}'.format( \
+                                    ' '.join(['({0})'.format(' '.join(map(str, c))) for c in add_list]), \
+                                    fg_voilet(str(jump))))
+                    else:
+                        plan_str+= fg_yellow(' -- () {}'.format(fg_voilet(str(jump))))
             plan_str+= '\n'
         print(plan_str)
 
