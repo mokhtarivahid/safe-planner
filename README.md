@@ -1,6 +1,7 @@
-# pyppddl-planner -- a Probabilistic Planner by Compilation into Classical Planners
+# pyppddl-planner -- a Non-Deterministic Planner by Compilation into Classical Planners
 
-A probabilistic planner to solve PPDDL problems by compilation into classical planning (in Python3). 
+A nondeterministic planner to solve PPDDL problems by compilation into classical planning 
+(in Python3). 
 The planner can employ any off-the-shelf classical planner for problem solving, 
 however, it requires to implement a small code to parse and refine the resulting 
 plan of the classical planners.
@@ -17,6 +18,7 @@ Make sure you have the `ply` library installed on your system.
 To install it, run the following command line into the terminal:
 
 ```
+$ sudo apt install python3-pip
 $ pip3 install ply
 ```
 
@@ -52,8 +54,8 @@ The output plan is a sequence of steps (i.e., each step may contain more than on
 The numbers represent the order of the execution of the steps.
 Steps in each line is followed by some conditions under which the next step is chosen.
 Empty conditions are true conditions and usually appear for deterministic actions.
-Some steps (i.e., steps containing probabilistic actions) have more than one conditions.
-Conditions are, in fact, the different possible effects of the probabilistic actions.
+Some steps (i.e., steps containing nondeterministic actions) have more than one conditions.
+Conditions are, in fact, the different possible effects of the nondeterministic actions.
 The number after each condition represents the next step for the execution.
 
 
@@ -88,7 +90,36 @@ $ python3 main.py domains/pickit_seq/pickit.pddl domains/pickit_seq/prob0.pddl p
 24 : Goal achieved!
 ```
 
+
+```
+$ python3 main.py domains/pickit_seq/pickit.pddl domains/pickit_seq/prob0.pddl planners/optic-clp
+
+@ plan
+ 0 : (move_to_grasp arm1 box1 base1 box2) (move_to_grasp arm2 box2 cap1 box1) -- () 1
+ 1 : (vacuum_object arm2 cap1 box1) (vacuum_object arm1 base1 box2) -- () 2
+ 2 : (carry_to_camera arm2 cap1 box1 camera1) -- () 3
+ 3 : (check_bottom_up arm2 cap1 camera1) -- ((bottom_up cap1) (camera_checked cap1)) 4 -- ((top_up cap1) (camera_checked cap1)) 5
+ 4 : (carry_to_hole arm2 cap1 camera1 hole1) -- () 6
+ 5 : (rotate_object arm2 cap1) (carry_to_hole arm2 cap1 camera1 hole1) (carry_to_peg arm1 base1 box2 peg1) -- () 7
+ 6 : (put_in_hole arm2 cap1 hole1) (carry_to_camera arm1 base1 box2 camera1) -- () 8
+ 7 : (put_in_hole arm2 cap1 hole1) (carry_to_camera arm1 base1 peg1 camera1) -- () 8
+ 8 : (check_bottom_up arm1 base1 camera1) -- ((bottom_up base1) (camera_checked base1)) 9 -- ((top_up base1) (camera_checked base1)) 10
+ 9 : (carry_to_peg arm1 base1 camera1 peg1) -- () 11
+10 : (rotate_object arm1 base1) (carry_to_peg arm1 base1 camera1 peg1) -- () 11
+11 : (put_in_peg arm1 base1 peg1) -- () 12
+12 : (move_to_grasp arm1 peg1 cap1 hole1) -- () 13
+13 : (grip_object arm1 cap1 hole1) -- () 14
+14 : (carry_to_assemble arm1 cap1 hole1 assembly_pose1) (move_to_grasp arm2 hole1 base1 peg1) -- () 15
+15 : (grip_object arm2 base1 peg1) -- () 16
+16 : (carry_to_assemble arm2 base1 peg1 assembly_pose2) -- () 17
+17 : (assemble arm1 arm2 cap1 base1 assembly_pose1 assembly_pose2) -- () 18
+18 : (ungrip_object arm2 cap1 base1) -- () 19
+19 : (carry_to_pack arm1 cap1 base1 assembly_pose1 package1) -- () 20
+20 : (put_in_pack arm1 cap1 base1 package1) -- () 21
+21 : Goal achieved!
+```
+
 ## Use the planner as a library
 
-In `main.py` the function `parse_plan()` is a sample code to parse and output the resulting plan.
+`test_plan_parser.py` provides a snippet to parse and output the resulting plan.
 

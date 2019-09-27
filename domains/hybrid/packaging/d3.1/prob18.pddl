@@ -4,20 +4,20 @@
 
   (:objects 
             left-arm right-arm - arm
-            surface-left surface-right ; - surface
+            ; surface-left surface-right ; - surface
             _handover-left _handover-right ; - space
             bin ; - container
             package ; - package
             camera ; - camera
-            obj1 obj2 obj3 obj4 obj5 obj6 obj7 obj8 obj9 obj10 - location ; - graspable
+            obj1 obj2 obj3 obj4 obj5 obj6 obj7 obj8 obj9 obj10 obj11 obj12 obj13 obj14 obj15 obj16 obj17 obj18 - location ; - graspable
             )
 
   (:init 
             ;; location
             (arm left-arm)
             (arm right-arm)
-            (surface surface-left)
-            (surface surface-right)
+            ; (surface surface-left)
+            ; (surface surface-right)
             (space _handover-left)
             (space _handover-right)
             (container bin)
@@ -35,10 +35,18 @@
             (graspable obj8)
             (graspable obj9)
             (graspable obj10)
+            (graspable obj11)
+            (graspable obj12)
+            (graspable obj13)
+            (graspable obj14)
+            (graspable obj15)
+            (graspable obj16)
+            (graspable obj17)
+            (graspable obj18)
 
             ;; arm_canreach
             (arm_canreach left-arm _handover-left)
-            (arm_canreach left-arm surface-left)
+            ; (arm_canreach left-arm surface-left)
             (arm_canreach left-arm bin)
             (arm_canreach left-arm camera)
             (arm_canreach left-arm package)
@@ -52,9 +60,17 @@
             (arm_canreach left-arm obj8)
             (arm_canreach left-arm obj9)
             (arm_canreach left-arm obj10)
+            (arm_canreach left-arm obj11)
+            (arm_canreach left-arm obj12)
+            (arm_canreach left-arm obj13)
+            (arm_canreach left-arm obj14)
+            (arm_canreach left-arm obj15)
+            (arm_canreach left-arm obj16)
+            (arm_canreach left-arm obj17)
+            (arm_canreach left-arm obj18)
 
             (arm_canreach right-arm _handover-right)
-            (arm_canreach right-arm surface-right)
+            ; (arm_canreach right-arm surface-right)
             (arm_canreach right-arm bin)
             (arm_canreach right-arm camera)
             (arm_canreach right-arm package)
@@ -68,6 +84,14 @@
             (arm_canreach right-arm obj8)
             (arm_canreach right-arm obj9)
             (arm_canreach right-arm obj10)
+            (arm_canreach right-arm obj11)
+            (arm_canreach right-arm obj12)
+            (arm_canreach right-arm obj13)
+            (arm_canreach right-arm obj14)
+            (arm_canreach right-arm obj15)
+            (arm_canreach right-arm obj16)
+            (arm_canreach right-arm obj17)
+            (arm_canreach right-arm obj18)
 
             ;; arm_free
             (arm_free left-arm)
@@ -88,10 +112,18 @@
             (object_in obj8 bin)
             (object_in obj9 bin)
             (object_in obj10 bin)
+            (object_in obj11 bin)
+            (object_in obj12 bin)
+            (object_in obj13 bin)
+            (object_in obj14 bin)
+            (object_in obj15 bin)
+            (object_in obj16 bin)
+            (object_in obj17 bin)
+            (object_in obj18 bin)
 
             ;; location free state
-            (location_free surface-left)
-            (location_free surface-right)
+            ; (location_free surface-left)
+            ; (location_free surface-right)
             (location_free bin)
             (location_free package)
             (location_free camera)
@@ -105,6 +137,14 @@
             (location_free obj8)
             (location_free obj9)
             (location_free obj10)
+            (location_free obj11)
+            (location_free obj12)
+            (location_free obj13)
+            (location_free obj14)
+            (location_free obj15)
+            (location_free obj16)
+            (location_free obj17)
+            (location_free obj18)
 
             ;; obstruction state
             ; (blocked obj1 obj2)
@@ -118,6 +158,14 @@
             (unblocked obj8)
             (unblocked obj9)
             (unblocked obj10)
+            (unblocked obj11)
+            (unblocked obj12)
+            (unblocked obj13)
+            (unblocked obj14)
+            (unblocked obj15)
+            (unblocked obj16)
+            (unblocked obj17)
+            (unblocked obj18)
 
             ;; improper grasp pose
             ; (improper_grasp right-arm obj1)
@@ -134,6 +182,14 @@
             (packed obj8 package)
             (packed obj9 package)
             (packed obj10 package)
+            (packed obj11 package)
+            (packed obj12 package)
+            (packed obj13 package)
+            (packed obj14 package)
+            (packed obj15 package)
+            (packed obj16 package)
+            (packed obj17 package)
+            (packed obj18 package)
           ))
 
 )

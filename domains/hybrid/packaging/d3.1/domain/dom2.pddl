@@ -44,10 +44,10 @@
  :precondition (and (arm_free ?a)(arm_at ?a ?s)(arm_canreach ?a ?d)(location_free ?d))
  :effect       (and (arm_at ?a ?d)(location_free ?s)(not(location_free ?d))(not(arm_at ?a ?s))))
 
-(:action move_to_grasp
- :parameters   (?a - arm ?o - location ?s ?d - location)
- :precondition (and (arm_free ?a)(arm_at ?a ?s)(arm_canreach ?a ?d)(object_in ?o ?d)(location_free ?o))
- :effect       (and (arm_at ?a ?o)(location_free ?s)(not(location_free ?o))(not(arm_at ?a ?s))))
+; (:action move_to_grasp
+;  :parameters   (?a - arm ?o - location ?s ?d - location)
+;  :precondition (and (arm_free ?a)(arm_at ?a ?s)(arm_canreach ?a ?d)(object_in ?o ?d)(location_free ?o))
+;  :effect       (and (arm_at ?a ?o)(location_free ?s)(not(location_free ?o))(not(arm_at ?a ?s))))
 
 (:action carry_to_camera
  :parameters   (?a - arm ?o - location ?s ?d - location)
@@ -102,33 +102,33 @@
 ;; possible geometric constraints and recovery actions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; in case of grasping an object at an improper grasp pose
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; ;; in case of grasping an object at an improper grasp pose
+; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; remove 'free' later, since the table does not become busy by one arm
-(:action carry_to_table
- :parameters   (?a - arm ?o - location ?s ?d - location)
- :precondition (and (improper_grasp ?a ?o)(gripped ?a ?o)(arm_at ?a ?s)(arm_canreach ?a ?d)(location_free ?d)(surface ?d))
- :effect       (and (arm_at ?a ?d)(location_free ?s)(not(arm_at ?a ?s))(not(location_free ?d))))
+; ;; remove 'free' later, since the table does not become busy by one arm
+; (:action carry_to_table
+;  :parameters   (?a - arm ?o - location ?s ?d - location)
+;  :precondition (and (improper_grasp ?a ?o)(gripped ?a ?o)(arm_at ?a ?s)(arm_canreach ?a ?d)(location_free ?d)(surface ?d))
+;  :effect       (and (arm_at ?a ?d)(location_free ?s)(not(arm_at ?a ?s))(not(location_free ?d))))
 
-(:action put_on_table
- :parameters   (?a - arm ?o - location ?l - location)
- :precondition (and (improper_grasp ?a ?o)(gripped ?a ?o)(arm_at ?a ?l)(surface ?l))
- :effect       (and (arm_free ?a)(object_in ?o ?l)(location_free ?o)(not(gripped ?a ?o))(not(improper_grasp ?a ?o))))
+; (:action put_on_table
+;  :parameters   (?a - arm ?o - location ?l - location)
+;  :precondition (and (improper_grasp ?a ?o)(gripped ?a ?o)(arm_at ?a ?l)(surface ?l))
+;  :effect       (and (arm_free ?a)(object_in ?o ?l)(location_free ?o)(not(gripped ?a ?o))(not(improper_grasp ?a ?o))))
 
-(:action handover
- :parameters   (?a1 ?a2 - arm ?o - location ?l1 ?l2 - location)
- :precondition (and (improper_grasp ?a1 ?o)(arm_free ?a2)(gripped ?a1 ?o)(arm_at ?a1 ?l1)(arm_at ?a2 ?l2)(space ?l1)(space ?l2))
- :effect       (and (gripped ?a2 ?o)(arm_free ?a1)(not(arm_free ?a2))(not(gripped ?a1 ?o))(not(improper_grasp ?a1 ?o))))
+; (:action handover
+;  :parameters   (?a1 ?a2 - arm ?o - location ?l1 ?l2 - location)
+;  :precondition (and (improper_grasp ?a1 ?o)(arm_free ?a2)(gripped ?a1 ?o)(arm_at ?a1 ?l1)(arm_at ?a2 ?l2)(space ?l1)(space ?l2))
+;  :effect       (and (gripped ?a2 ?o)(arm_free ?a1)(not(arm_free ?a2))(not(gripped ?a1 ?o))(not(improper_grasp ?a1 ?o))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; in case of obstructing an object by another object
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+; ;; in case of obstructing an object by another object
+; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(:action object_cleared
- :parameters   (?a - arm ?o - location ?b - location)
- :precondition (and (gripped ?a ?b)(blocked ?o ?b))
- :effect       (and (not(blocked ?o ?b))(unblocked ?o)))
+; (:action object_cleared
+;  :parameters   (?a - arm ?o - location ?b - location)
+;  :precondition (and (gripped ?a ?b)(blocked ?o ?b))
+;  :effect       (and (not(blocked ?o ?b))(unblocked ?o)))
 
 )

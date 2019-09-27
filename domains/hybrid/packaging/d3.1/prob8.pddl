@@ -4,20 +4,20 @@
 
   (:objects 
             left-arm right-arm - arm
-            surface-left surface-right ; - surface
+            ; surface-left surface-right ; - surface
             _handover-left _handover-right ; - space
             bin ; - container
             package ; - package
             camera ; - camera
-            obj1 obj2 obj3 obj4 obj5 obj6 obj7 obj8 obj9 obj10 - location ; - graspable
+            obj1 obj2 obj3 obj4 obj5 obj6 obj7 obj8 - location ; - graspable
             )
 
   (:init 
             ;; location
             (arm left-arm)
             (arm right-arm)
-            (surface surface-left)
-            (surface surface-right)
+            ; (surface surface-left)
+            ; (surface surface-right)
             (space _handover-left)
             (space _handover-right)
             (container bin)
@@ -33,12 +33,10 @@
             (graspable obj6)
             (graspable obj7)
             (graspable obj8)
-            (graspable obj9)
-            (graspable obj10)
 
             ;; arm_canreach
             (arm_canreach left-arm _handover-left)
-            (arm_canreach left-arm surface-left)
+            ; (arm_canreach left-arm surface-left)
             (arm_canreach left-arm bin)
             (arm_canreach left-arm camera)
             (arm_canreach left-arm package)
@@ -50,11 +48,9 @@
             (arm_canreach left-arm obj6)
             (arm_canreach left-arm obj7)
             (arm_canreach left-arm obj8)
-            (arm_canreach left-arm obj9)
-            (arm_canreach left-arm obj10)
 
             (arm_canreach right-arm _handover-right)
-            (arm_canreach right-arm surface-right)
+            ; (arm_canreach right-arm surface-right)
             (arm_canreach right-arm bin)
             (arm_canreach right-arm camera)
             (arm_canreach right-arm package)
@@ -66,8 +62,6 @@
             (arm_canreach right-arm obj6)
             (arm_canreach right-arm obj7)
             (arm_canreach right-arm obj8)
-            (arm_canreach right-arm obj9)
-            (arm_canreach right-arm obj10)
 
             ;; arm_free
             (arm_free left-arm)
@@ -86,12 +80,10 @@
             (object_in obj6 bin)
             (object_in obj7 bin)
             (object_in obj8 bin)
-            (object_in obj9 bin)
-            (object_in obj10 bin)
 
             ;; location free state
-            (location_free surface-left)
-            (location_free surface-right)
+            ; (location_free surface-left)
+            ; (location_free surface-right)
             (location_free bin)
             (location_free package)
             (location_free camera)
@@ -103,8 +95,6 @@
             (location_free obj6)
             (location_free obj7)
             (location_free obj8)
-            (location_free obj9)
-            (location_free obj10)
 
             ;; obstruction state
             ; (blocked obj1 obj2)
@@ -116,8 +106,6 @@
             (unblocked obj6)
             (unblocked obj7)
             (unblocked obj8)
-            (unblocked obj9)
-            (unblocked obj10)
 
             ;; improper grasp pose
             ; (improper_grasp right-arm obj1)
@@ -132,8 +120,6 @@
             (packed obj6 package)
             (packed obj7 package)
             (packed obj8 package)
-            (packed obj9 package)
-            (packed obj10 package)
           ))
 
 )

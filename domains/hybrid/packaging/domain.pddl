@@ -47,7 +47,7 @@
 (:action move_to_grasp
  :parameters   (?a - arm ?o - location ?s ?d - location)
  :precondition (and (arm_free ?a)(arm_at ?a ?s)(arm_canreach ?a ?d)(object_in ?o ?d)(location_free ?o))
- :effect       (and (arm_at ?a ?o)(not(location_free ?o))(not(arm_at ?a ?s))))
+ :effect       (and (arm_at ?a ?o)(location_free ?s)(not(location_free ?o))(not(arm_at ?a ?s))))
 
 (:action carry_to_camera
  :parameters   (?a - arm ?o - location ?s ?d - location)
