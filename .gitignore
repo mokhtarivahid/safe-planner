@@ -1,3 +1,5 @@
 __pycache__/*
 domains/__pycache__/*
 domains/hybrid/__pycache__/*
+domains/hybrid/packaging/__pycache__/*
+*.pyc 
