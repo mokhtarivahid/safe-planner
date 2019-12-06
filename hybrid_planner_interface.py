@@ -74,8 +74,8 @@ if __name__ == '__main__':
         object_name = str(obj['object_type'])+str(int(obj['index']))
         objects[obj['object_type']].append(object_name)
 
-    print(bg_yellow('@ objects_ref\n'), objects_ref)
-    print(bg_yellow('@ objects\n'), objects)
+    # print(bg_yellow('@ objects_ref\n'), objects_ref)
+    # print(bg_yellow('@ objects\n'), objects)
 
     ## 2) create a problem object given the objects
     # (problem_name, domain_name, objects, init, goal) = create_problem(objects)
