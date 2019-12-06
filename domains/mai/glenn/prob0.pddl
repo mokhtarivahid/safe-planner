@@ -1,0 +1,17 @@
+(define (problem prob0)
+(:domain hie)
+(:objects left-arm right-arm - arm
+          hole1 hole2 - hole
+          obj1 obj2 - object)
+(:init (arm_free left-arm)
+       (arm_free right-arm)
+       (at obj1 hole1)
+       (at obj2 hole2)
+       (arm_at_base left-arm)
+       (arm_at_base right-arm)
+       (location_free hole1)
+       (location_free hole2))
+(:goal (and (arm_at left-arm hole1)
+            (arm_at right-arm hole2)
+       ))
+)

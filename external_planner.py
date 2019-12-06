@@ -41,6 +41,12 @@ def call_ff(domain, problem, verbose=False):
     if "goal can be simplified to TRUE" in shell:
         return list()
 
+    ## if solution already exists in the problem ##
+    if "undeclared predicate" in shell:
+        print(shell)
+        print("[planning failed due to some errors in the domain description]\n")
+        exit()
+
     ## refine the output screen and build a plan of actions' signatures ##
     shell = shell[shell.find('step')+len('step'):shell.rfind('time spent')].strip()  # extract plan
 
@@ -97,10 +103,10 @@ def call_optic_clp(domain, problem, verbose=False):
 
     ## refine the output screen and build a plan of actions' signatures ##
 
-    # extract plan
+    # extract plan from ';<problem_name>' to 'Time:<value>'
     shell = shell[shell.find('; Time'):].strip()
 
-    # split shell into a list of actions and ignote '; Time'
+    # split shell into a list of actions and ignore ';<problem_name>'
     shell = shell.split('\n')[1:]
 
     plan = OrderedDict()
@@ -126,7 +132,7 @@ def call_m(domain, problem, verbose=False):
                    e.g., [[('move-car', 'l1', 'l4')], [('changetire', 'l4')]]
     """
 
-    cmd = './planners/M {0} {1} -o {1}.soln'.format(domain, problem)
+    cmd = './planners/M -P 1 -t 5 {0} {1} -o {1}.soln'.format(domain, problem)
 
 
     ## call command ##
@@ -145,6 +151,10 @@ def call_m(domain, problem, verbose=False):
     ## bytes to string ##
     shell = ''.join(map(chr, output))
 
+    ## if no solution exists try the next domain ##
+    if "Timeout after" in shell:
+        return None
+
     ## read the probabilistic actions names
     plan = list()
     try:
@@ -157,9 +167,63 @@ def call_m(domain, problem, verbose=False):
         print(shell)
         exit()
 
+    if verbose: print('\n'+open(problem+'.soln').read())
     if verbose: print(shell)
 
     return plan
+
+
+###############################################################################
+###############################################################################
+## call vhpop planner
+def call_vhpop(domain, problem, verbose=False):
+    """
+    Call an external planner
+    @arg domain : path to a given domain 
+    @arg problem : path to a given problem 
+    @arg verbose : if True, prints statistics before returning
+
+    @return plan : the output plan is a list of actions as tuples, 
+                   e.g., [[('move-car', 'l1', 'l4')], [('changetire', 'l4')]]
+    """
+
+    cmd = './planners/vhpop -f DSep-LIFO -s HC -w 5 -l 10000000 {0} {1}'.format(domain, problem)
+
+
+    ## call command ##
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+
+    (output, err) = process.communicate()
+
+    # s = str()
+    # for out in run(cmd):
+    #     s+=out
+
+    ## Wait for cmd to terminate. Get return returncode ##
+    # p_status = process.wait()
+    # print("Command exit status/return code : ", p_status)
+
+    ## bytes to string ##
+    shell = ''.join(map(chr, output))
+
+    # extract plan
+    shell = shell[shell.find(';'):shell.find('Time')].strip()
+
+    ## if no solution exists try the next domain ##
+    if ";Problem has no solution." in shell or "no plan" in shell or ";Search limit reached." in shell:
+        return None
+
+    # split shell into a list of actions and ignore '; Time'
+    shell = shell.split('\n')[1:]
+
+    plan = OrderedDict()
+
+    for action in shell:
+        action = re.split('[, ) (]+', action)[:-1]
+        plan.setdefault(action[0], []).append(tuple(action[1:]))
+
+    # print(list(plan.values()))
+    return list(plan.values())
 
 
 ###############################################################################
@@ -221,4 +285,8 @@ def call_planner(domain, problem, planner='ff', verbose=False):
     ## optic-clp planner ##
     elif 'optic-clp' in planner.lower():
         return call_optic_clp(domain, problem, verbose)
+
+    ## optic-clp planner ##
+    elif 'vhpop' in planner.lower():
+        return call_vhpop(domain, problem, verbose)
 

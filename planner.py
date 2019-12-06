@@ -169,7 +169,8 @@ class Planner(object):
                     ## !! currently we only assume one probabilistic action in a state
 
                     try:
-                        new_state = self.apply_step(state, self.policy[state], domain_spec, verbose=verbose)
+                        # new_state = self.apply_step(state, self.policy[state], domain_spec, verbose=verbose)
+                        new_state = self.apply_step(state, [action], domain_spec, verbose=verbose)
                     except:
                         print(fg_red("@@ other outcome '{0}' is not applicable!!".format(str(self.policy[state]))))
                         exit()
@@ -424,7 +425,7 @@ class Planner(object):
 
         while jumpto:
 
-            # pop items as in FIFO
+            # pop items as FIFO
             (state, i) = jumpto.popitem(False)
             if state not in visited:
                 # keep track of visited states
@@ -441,7 +442,7 @@ class Planner(object):
 
                 if step == None: 
                     if state.is_true(*(self.problem.goals, self.problem.num_goals)):
-                        print(bg_green('@ Goal is achieved'))
+                        if verbose: print(bg_green('@ Goal is achieved'))
                         plan[i] = 'goal'
                     else:
                         print(bg_red('@ Goal is not achieved!'))
@@ -466,13 +467,13 @@ class Planner(object):
         return plan
 
 
-    def print_plan(self, plan=None):
+    def print_plan(self, plan=None, verbose=True):
         """
         print the plan in a more readable form
         """
 
         if plan == None:
-            plan = self.plan()
+            plan = self.plan(verbose)
 
         print(bg_yellow('@ plan'))
 

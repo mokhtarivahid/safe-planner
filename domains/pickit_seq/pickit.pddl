@@ -1,6 +1,6 @@
 (define (domain pickit)
 
-  (:requirements :strips :typing :probabilistic-effects)
+  (:requirements :strips :typing :probabilistic-effects :typing)
 
   (:types graspable container camera location arm object)
 

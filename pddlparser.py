@@ -37,20 +37,25 @@ tokens = (
     'EQUALITY_KEY',
     'TYPING_KEY',
     'PROBABILISTIC_EFFECTS_KEY',
+    'EXISTENTIAL_PRECONDITIONS_KEY',
+    'NEGATIVE_PRECONDITIONS_KEY',
+    'UNIVERSAL_PRECONDITIONS_KEY',
     'TYPES_KEY',
     'PREDICATES_KEY',
     'ACTION_KEY',
     'PARAMETERS_KEY',
     'PRECONDITION_KEY',
     'EFFECT_KEY',
-    'WHEN_KEY',
     'AND_KEY',
     'NOT_KEY',
     'PROBABILISTIC_KEY',
     'PROBLEM_KEY',
     'OBJECTS_KEY',
     'INIT_KEY',
-    'GOAL_KEY'
+    'GOAL_KEY',
+    'WHEN_KEY',
+    'EXISTS_KEY',
+    'FORALL_KEY'
 )
 
 
@@ -69,13 +74,15 @@ reserved = {
     ':equality'                 : 'EQUALITY_KEY',
     ':typing'                   : 'TYPING_KEY',
     ':probabilistic-effects'    : 'PROBABILISTIC_EFFECTS_KEY',
+    ':existential-preconditions': 'EXISTENTIAL_PRECONDITIONS_KEY',
+    ':negative-preconditions'   : 'NEGATIVE_PRECONDITIONS_KEY',
+    ':universal-preconditions'  : 'UNIVERSAL_PRECONDITIONS_KEY',
     ':types'                    : 'TYPES_KEY',
     ':predicates'               : 'PREDICATES_KEY',
     ':action'                   : 'ACTION_KEY',
     ':parameters'               : 'PARAMETERS_KEY',
     ':precondition'             : 'PRECONDITION_KEY',
     ':effect'                   : 'EFFECT_KEY',
-    'when'                      : 'WHEN_KEY',
     'and'                       : 'AND_KEY',
     'not'                       : 'NOT_KEY',
     'probabilistic'             : 'PROBABILISTIC_KEY',
@@ -83,7 +90,10 @@ reserved = {
     ':domain'                   : 'DOMAIN_KEY',
     ':objects'                  : 'OBJECTS_KEY',
     ':init'                     : 'INIT_KEY',
-    ':goal'                     : 'GOAL_KEY'
+    ':goal'                     : 'GOAL_KEY',
+    'when'                      : 'WHEN_KEY',
+    'exists'                    : 'EXISTS_KEY',
+    'forall'                    : 'FORALL_KEY'
 }
 
 
@@ -106,7 +116,7 @@ def t_VARIABLE(t):
 def t_PROBABILITY(t):
     r'[0-9]+/0*[1-9][0-9]*|[0-1]\.\d+'
     if is_fraction(t.value):
-        t.value = float(sum(Fraction(s) for s in t.value.split()))
+        t.value = round(float(sum(Fraction(s) for s in t.value.split())), 2)
     else:
         t.value = float(t.value)
     return t
@@ -207,7 +217,10 @@ def p_require_key(p):
     '''require_key : STRIPS_KEY
                    | EQUALITY_KEY
                    | TYPING_KEY
-                   | PROBABILISTIC_EFFECTS_KEY'''
+                   | PROBABILISTIC_EFFECTS_KEY
+                   | EXISTENTIAL_PRECONDITIONS_KEY
+                   | NEGATIVE_PRECONDITIONS_KEY
+                   | UNIVERSAL_PRECONDITIONS_KEY'''
     p[0] = str(p[1])
 
 
@@ -264,16 +277,57 @@ def p_parameters_def(p):
 
 def p_action_def_body(p):
     '''action_def_body : precond_def effects_def'''
-    p[0] = (p[1], p[2])
+    #p[0] = (p[1], p[2])
+
+    ## precondition = (literals_lst, existential_lst, universal_lst)
+    l, e, u = list(), list(), list()
+    for a in p[1]:
+        if 'EXISTS_KEY' in a: e.append(a)
+        elif 'FORALL_KEY' in a: u.append(a)
+        else: l.append(a)
+    #print((tuple(l),tuple(e),tuple(u)))
+    #p[0] = ((tuple(l),tuple(e),tuple(u)), p[2])
+    p[0] = (tuple(l), p[2])
 
 
 def p_precond_def(p):
-    '''precond_def : PRECONDITION_KEY LPAREN AND_KEY literals_lst RPAREN
-                   | PRECONDITION_KEY literal'''
+    '''precond_def : PRECONDITION_KEY LPAREN AND_KEY preconds_lst RPAREN
+                   | PRECONDITION_KEY precond'''
     if len(p) == 3:
         p[0] = tuple([p[2]])
     elif len(p) == 6:
         p[0] = tuple(p[4])
+
+
+def p_preconds_lst(p):
+    '''preconds_lst : precond preconds_lst
+                    | precond'''
+    if len(p) == 2:
+        p[0] = [p[1]]
+    elif len(p) == 3:
+        p[0] = [p[1]] + p[2]
+
+
+def p_precond(p):
+    '''precond : literal
+               | LPAREN EXISTS_KEY LPAREN typed_variables_lst RPAREN literal RPAREN
+               | LPAREN EXISTS_KEY LPAREN typed_variables_lst RPAREN LPAREN AND_KEY literals_lst RPAREN RPAREN
+               | LPAREN FORALL_KEY LPAREN typed_variables_lst RPAREN literal RPAREN
+               | LPAREN FORALL_KEY LPAREN typed_variables_lst RPAREN LPAREN AND_KEY literals_lst RPAREN RPAREN'''
+    if len(p) == 2:
+        p[0] = p[1]
+    elif len(p) == 8:
+        #p[0] = tuple()
+        if p[2] == 'forall':
+            p[0] = ('FORALL_KEY', tuple(p[4]), tuple(p[6]))
+        elif p[2] == 'exists':
+            p[0] = ('EXISTS_KEY', tuple(p[4]), tuple(p[6]))
+    elif len(p) == 11:
+        #p[0] = tuple()
+        if p[2] == 'forall':
+            p[0] = ('FORALL_KEY', tuple(p[4]), tuple(p[8]))
+        elif p[2] == 'exists':
+            p[0] = ('EXISTS_KEY', tuple(p[4]), tuple(p[8]))
 
 
 def p_effects_def(p):

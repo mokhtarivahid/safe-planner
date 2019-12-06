@@ -277,15 +277,20 @@ class State(object):
         return (all(p in self.predicates for p in predicates) and
                 all(np(self) for np in num_predicates))
 
-    def apply(self, action, monotone=False):
+    def apply(self, action, monotone=False, prob_eff=0):
         """
         Apply the action to this state to produce a new state.
-        If monotone, ignore the delete list (for A* heuristic)
+        If monotone, ignore the delete list (for A* heuristic).
+        'prob_eff' is the index of the probabilistic effects to apply. 
         """
         new_preds = set(self.predicates)
         new_preds |= set(action.add_effects)
         if not monotone:
             new_preds -= set(action.del_effects)
+        if len(action.prob_effects):
+            new_preds |= set(action.prob_effects[prob_eff][1])
+            if not monotone:
+                new_preds -= set(action.prob_effects[prob_eff][2])
         new_functions = dict()
         new_functions.update(self.functions)
         for function, value in action.num_effects:
@@ -438,7 +443,9 @@ def _num_pred(op, x, y):
 class _GroundedAction(object):
     """
     An action schema that has been grounded with objects
-    if @probabilistic is True, effects are grounded and only added to add_effects
+    if @deterministic is True, the actions is deterministic and effects 
+    are grounded to add_effects and del_effects; otherwise, the actions 
+    is probabilistic and effects are grounded to prob_effects as well
     """
     def __init__(self, action, *args, deterministic=True):
         self.name = action.name
@@ -467,6 +474,7 @@ class _GroundedAction(object):
         # Ground Effects
         self.add_effects = list()
         self.del_effects = list()
+        self.prob_effects = list() # probabilistic effects: a list of list as [[probability, add_effects, del_effects], ...]
         self.num_effects = list()
 
         if deterministic:
@@ -494,15 +502,18 @@ class _GroundedAction(object):
                 # i.e., effect[0] is the probability, e.g., effect = (0.5, (-1, ('holding', '?x')))
                 if type(effect[0]) == float:
                     # probabilistic effects have the form (PROBABILITY tuple_of_effects)
-                    eff_prob = list()
+                    prob_add_eff = list()
+                    prob_del_eff = list()
                     for eff in effect[1]:
                         if eff[0] == -1:
-                            eff_prob.append((-1, ground(eff[1])))
+                            prob_del_eff.append(ground(eff[1]))
                         else:
-                            eff_prob.append(ground(eff))
-                    self.add_effects.append((effect[0], tuple(eff_prob)))
+                            prob_add_eff.append(ground(eff))
+                    self.prob_effects.append((effect[0], prob_add_eff, prob_del_eff))
+                    # self.add_effects.append((effect[0], tuple(prob_add_eff)))
                 elif effect[0] == -1:
-                    self.add_effects.append((-1, ground(effect[1])))
+                    # self.add_effects.append((-1, ground(effect[1])))
+                    self.del_effects.append(ground(effect[1]))
                 else:
                     self.add_effects.append(ground(effect))
 
@@ -523,8 +534,17 @@ class _GroundedAction(object):
         operator_str = '({})'.format(' '.join(self.sig))
         if body:
             operator_str += '\n>> precond: {0}\n'.format(', '.join(map(str, self.preconditions)))
-            operator_str += '>> effects+: {0}\n'.format(', '.join(map(str, self.add_effects)))
-            operator_str += '>> effects-: {0}\n'.format(', '.join(map(str, self.del_effects)))
+            if self.add_effects:
+                operator_str += '>> effects+: {0}\n'.format(', '.join(map(str, self.add_effects)))
+            if self.del_effects:
+                operator_str += '>> effects-: {0}\n'.format(', '.join(map(str, self.del_effects)))
+            if self.prob_effects:
+                for eff in self.prob_effects:
+                    (prob, add_eff, del_eff) = eff
+                    operator_str += '>> probability: {0}\n'.format(prob)
+                    if add_eff: operator_str += '>> effects+: {0}\n'.format(', '.join(map(str, add_eff)))
+                    if del_eff: operator_str += '>> effects-: {0}\n'.format(', '.join(map(str, del_eff)))
+                    # operator_str += '>> effects: {0}\n'.format(', '.join(map(str, eff)))
         return operator_str
 
     def __hash__(self):
