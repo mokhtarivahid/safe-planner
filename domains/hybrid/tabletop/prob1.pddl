@@ -46,14 +46,14 @@
           (reachable right-arm obj3_gpr)
 
 
-          (obstructed obj1_gpl obj2)
-          ; (obstructed obj2_gpr obj1)
-          (obstructed obj1_gpr obj3)
-          ; (obstructed obj3_gpl obj1)
+          ; (obstructed obj1_gpl obj2)
+          ; ; (obstructed obj2_gpr obj1)
+          ; (obstructed obj1_gpr obj3)
+          ; ; (obstructed obj3_gpl obj1)
 
           (unobstructed obj1_gpt)
-          ; (unobstructed obj1_gpl)
-          ; (unobstructed obj1_gpr)
+          (unobstructed obj1_gpl)
+          (unobstructed obj1_gpr)
           (unobstructed obj2_gpt)
           (unobstructed obj2_gpl)
           (unobstructed obj2_gpr)
@@ -63,14 +63,7 @@
           )
 
 (:goal  (and
-          ; (holding obj1)
-          ; (holding obj2)
-          ; (ontray obj1 tray1)
+          (ontray obj1 tray1)
           (filled obj1)
-          ; (ontray obj2 tray1)
-          ; (filled obj2)
-          ; (ontray obj3 tray1)
-          ; (filled obj3)
-          (co_lifted obj1)
         ))
 )

@@ -93,7 +93,7 @@
           (filled obj1)
           (filled obj2)
           (filled obj3)
-          (filled obj4)
+          (empty obj4)
           (empty obj5)
           ; (filled obj6)
           ; (filled obj7)
@@ -150,8 +150,6 @@
           (filled obj1)
           (filled obj2)
           (filled obj3)
-          (filled obj4)
-          ; (empty obj5)
           ; (filled obj6)
           ; (filled obj7)
 

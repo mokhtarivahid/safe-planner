@@ -28,7 +28,7 @@ def parse():
     parser = argparse.ArgumentParser(usage=usage, description=description)
 
     parser.add_argument('domain',  type=str, help='path to PDDL domain file')
-    # parser.add_argument('problem', type=str, help='path to PDDL problem file')
+    parser.add_argument('problem', type=str, help='path to PDDL problem file')
     parser.add_argument('planner', type=str, nargs='?', const=1, 
         help="external planner: ff, m, optic, vhpop, ... (default=ff)", default="ff")
     parser.add_argument("-v", "--verbose", help="increase output verbosity", 
@@ -74,10 +74,13 @@ if __name__ == '__main__':
         object_name = str(obj['object_type'])+str(int(obj['index']))
         objects[obj['object_type']].append(object_name)
 
+    print(bg_yellow('@ objects_ref\n'), objects_ref)
+    print(bg_yellow('@ objects\n'), objects)
+
     ## 2) create a problem object given the objects
-    (problem_name, domain_name, objects, init, goal) = create_problem(objects)
-    problem = Problem(problem_name, domain_name, objects, init, goal)
-    # problem = PDDLParser.parse(args.problem)
+    # (problem_name, domain_name, objects, init, goal) = create_problem(objects)
+    # problem = Problem(problem_name, domain_name, objects, init, goal)
+    problem = PDDLParser.parse(args.problem)
 
     ## keep track of the current state and the current goal to achieve
     ## in any geometric limitation, the goal is updated to recover from 
@@ -121,8 +124,8 @@ if __name__ == '__main__':
         if args.verbose: print(fg_yellow('@ problem:'), problem_pddl)
 
         ## call planner to make a plan given the domain, problem and planner
-        # policy = Planner(args.domain, problem_pddl, args.planner, args.verbose)
-        policy = Planner(args.domain, problem_pddl, args.planner)
+        policy = Planner(args.domain, problem_pddl, args.planner, args.verbose)
+        # policy = Planner(args.domain, problem_pddl, args.planner)
 
         ## accumulate the planning calls
         planning_call += 1

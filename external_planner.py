@@ -43,8 +43,8 @@ def call_ff(domain, problem, verbose=False):
 
     ## if solution already exists in the problem ##
     if "undeclared predicate" in shell:
+        print("[planning failed due to some errors in the domain description (see below)]\n")
         print(shell)
-        print("[planning failed due to some errors in the domain description]\n")
         exit()
 
     ## refine the output screen and build a plan of actions' signatures ##
@@ -187,7 +187,7 @@ def call_vhpop(domain, problem, verbose=False):
                    e.g., [[('move-car', 'l1', 'l4')], [('changetire', 'l4')]]
     """
 
-    cmd = './planners/vhpop -f DSep-LIFO -s HC -w 5 -l 10000000 {0} {1}'.format(domain, problem)
+    cmd = './planners/vhpop -f DSep-LIFO -s HC -w 5 -l 1000000 {0} {1}'.format(domain, problem)
 
 
     ## call command ##
@@ -205,6 +205,8 @@ def call_vhpop(domain, problem, verbose=False):
 
     ## bytes to string ##
     shell = ''.join(map(chr, output))
+
+    if verbose: print(shell)
 
     # extract plan
     shell = shell[shell.find(';'):shell.find('Time')].strip()
