@@ -372,7 +372,10 @@ class Action(object):
         self.unique = unique
         self.no_permute = no_permute
 
-    def ground(self, *args, deterministic=True):
+    # def ground(self, *args, deterministic=True):
+    #     return _GroundedAction(self, *args, deterministic=deterministic)
+    def ground(self, *args, **kwargs):
+        deterministic = kwargs.pop('deterministic', True)
         return _GroundedAction(self, *args, deterministic=deterministic)
 
     def __str__(self, pddl=False, body=True):
@@ -447,7 +450,9 @@ class _GroundedAction(object):
     are grounded to add_effects and del_effects; otherwise, the actions 
     is probabilistic and effects are grounded to prob_effects as well
     """
-    def __init__(self, action, *args, deterministic=True):
+    # def __init__(self, action, *args, deterministic=True):
+    def __init__(self, action, *args, **kwargs):
+        deterministic = kwargs.pop('deterministic', True)
         self.name = action.name
         ground = _grounder(action.arg_names, args)
 

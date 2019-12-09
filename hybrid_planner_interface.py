@@ -12,13 +12,12 @@ from time import time
 from color import fg_green, bg_green, fg_red, fg_yellow, bg_red, bg_yellow, fg_blue, fg_voilet, fg_beige, bg_voilet, bg_beige
 from planner import Planner
 from pddlparser import PDDLParser
-from pypddl import Domain, Problem, State, Action
+# from pypddl import Domain, Problem, State, Action
 
 ## domains/hybrid/tabletop
 # from domains.hybrid.tabletop import create_problem, objects_mat
-# from domains.hybrid.robotic_arms import create_problem, objects_mat
-# from domains.hybrid.packaging import create_problem, objects_mat
 # from domains.hybrid.robotic_arms import *
+# from domains.hybrid.packaging import create_problem, objects_mat
 
 import importlib
 
@@ -50,7 +49,7 @@ if __name__ == '__main__':
 
     print()
     ## parse domain and create a domain object
-    domain = PDDLParser.parse(args.domain)
+    # domain = PDDLParser.parse(args.domain)
 
     ## call the matlab code and get the initial objects
     #################################
@@ -202,7 +201,7 @@ if __name__ == '__main__':
 
                         ## print out some info
                         # if args.verbose: 
-                        print(fg_yellow('+'), action.__str__(body=False))
+                        print(fg_yellow(' + ') + action.__str__(body=False))
 
 
                     ## if there is some failure (infeasible)
@@ -228,7 +227,7 @@ if __name__ == '__main__':
 
                             ## print out some info
                             # if args.verbose: 
-                            print(fg_red('-'), action)
+                            print(fg_red(' - ') + action)
                             print(fg_red('@ arm', action_args[0], 'cannot reach', action_args[2]))
 
                         ## if there is an object blocking the target object
@@ -250,7 +249,7 @@ if __name__ == '__main__':
 
                             ## print out some info
                             # if args.verbose: 
-                            print(fg_red('-'), action)
+                            print(fg_red(' - ') + action)
                             print(fg_red('@', action_args[2], 'is obstructed by', objects_ref[obstructing_object]))
 
                         ## in either case break the for loop and make a replanning at the current updated state

@@ -130,7 +130,7 @@ class Planner(object):
 
 
                 ## push the state and probabilistic actions into the self.open_stack 
-                ## if {(s, a) ∈ p | s !∈ Sg, s !∈ Sπ, a is probabilistic}
+                ## if {(s, a) exist p | s !exist Sg, s !exist S_\pi, a is probabilistic}
                 ## ! currently, we assume only one probabilistic action in each state
                 self.push_prob_actions(policy, verbose)
 
@@ -232,7 +232,7 @@ class Planner(object):
                     if verbose: print(fg_yellow('\n@@ valid plan for all outcomes'))
 
                     ## push the state and probabilistic actions into the self.open_stack 
-                    ## if {(s, a) ∈ p | s !∈ Sg, s !∈ Sπ, a is probabilistic}
+                    ## if {(s, a) exist p | s !exist Sg, s !exist S_\pi, a is probabilistic}
                     ## ! currently, we assume only one probabilistic action in each state
                     self.push_prob_actions(policy, verbose)
 

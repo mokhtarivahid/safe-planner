@@ -29,7 +29,8 @@ def call_ff(domain, problem, verbose=False):
     # print("Command exit status/return code : ", p_status)
 
     ## bytes to string ##
-    shell = ''.join(map(chr, output))
+    # shell = ''.join(map(chr, output))
+    shell = to_str(output)
 
     if verbose: print(shell)
 
@@ -80,7 +81,8 @@ def call_optic_clp(domain, problem, verbose=False):
     # print("Command exit status/return code : ", p_status)
 
     ## bytes to string ##
-    shell = ''.join(map(chr, output))
+    # shell = ''.join(map(chr, output))
+    shell = to_str(output)
 
     ## if problem is unsolvable by EHC remove -b (activate best-first search)
     if "Problem unsolvable by EHC, and best-first search has been disabled":
@@ -88,7 +90,8 @@ def call_optic_clp(domain, problem, verbose=False):
         cmd = './planners/optic-clp -N {0} {1}'.format(domain, problem)
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
         (output, err) = process.communicate()
-        shell = ''.join(map(chr, output))
+        # shell = ''.join(map(chr, output))
+        shell = to_str(output)
 
     if verbose: print(shell)
 
@@ -149,7 +152,8 @@ def call_m(domain, problem, verbose=False):
     # print("Command exit status/return code : ", p_status)
 
     ## bytes to string ##
-    shell = ''.join(map(chr, output))
+    # shell = ''.join(map(chr, output))
+    shell = to_str(output)
 
     ## if no solution exists try the next domain ##
     if "Timeout after" in shell:
@@ -204,7 +208,8 @@ def call_vhpop(domain, problem, verbose=False):
     # print("Command exit status/return code : ", p_status)
 
     ## bytes to string ##
-    shell = ''.join(map(chr, output))
+    # shell = ''.join(map(chr, output))
+    shell = to_str(output)
 
     if verbose: print(shell)
 
@@ -292,3 +297,14 @@ def call_planner(domain, problem, planner='ff', verbose=False):
     elif 'vhpop' in planner.lower():
         return call_vhpop(domain, problem, verbose)
 
+
+## checks the output type and convert it to str
+## in python 3 is of type 'byte' and in 2 is of type 'str' already
+def to_str(output):
+
+    ## bytes to string ##
+    if '3' in sys.version:
+        return ''.join(map(chr, output))
+
+    ## already in string ##
+    return output

@@ -18,6 +18,7 @@ from ply import lex
 from ply import yacc
 import re
 from fractions import Fraction
+import io
 
 from pypddl import Domain, Problem, Action, neg
 
@@ -483,7 +484,7 @@ class PDDLParser(object):
 
     @classmethod
     def __read_input(cls, filename):
-        with open(filename, 'r', encoding='utf-8') as file:
+        with io.open(filename, 'r', encoding='utf-8') as file:
             data = ''
             for line in file:
                 line = line.rstrip().lower()

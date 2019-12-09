@@ -30,5 +30,5 @@ if __name__ == '__main__':
     policy.print_plan(verbose=args.verbose)
 
     print('Planning time: %.3f s' % policy.planning_time)
-    print('Number of replannings:', policy.planning_call)
-    print('Number of replannings leading to deadends:', policy.deadends_call)
+    print('Number of replannings: %i' % policy.planning_call)
+    print('Number of replannings leading to deadends: %i' % policy.deadends_call)
