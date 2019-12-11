@@ -47,7 +47,7 @@ if __name__ == '__main__':
     # importlib.import_module('.'.join(map(str, args.domain.split('/')[:-1])))
     exec('from {} import *'.format('.'.join(map(str, args.domain.split('/')[:-1]))))
 
-    print()
+    print('--------------------------------------------------------------------------------')
     ## parse domain and create a domain object
     # domain = PDDLParser.parse(args.domain)
 
@@ -264,10 +264,13 @@ if __name__ == '__main__':
 
     planning_time = time() - planning_time
 
-    print('\nNumber of replannings: %s' % planning_call)
-    print('Planning time: %.3f s\n' % planning_time)
+    print('--------------------------------------------------------------------------------')
+    print('Number of replannings: %s' % planning_call)
+    print('Planning time: %.3f s' % planning_time)
+    print('--------------------------------------------------------------------------------')
 
     # for level, step in refined_plan.items():
     #     for action in step:
     #         print(level, action.__str__(body=True))
 
+    # print('--------------------------------------------------------------------------------')
