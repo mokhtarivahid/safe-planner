@@ -467,7 +467,7 @@ class Planner(object):
         return plan
 
 
-    def print_plan(self, plan=None, verbose=True):
+    def print_plan(self, plan=None, verbose=True, del_list_included=True):
         """
         print the plan in a more readable form
         """
@@ -493,7 +493,7 @@ class Planner(object):
                     if len(conditions) > 0: 
                         (add_list, del_list) = conditions
                         # if there is non-deterministic delete list in outcomes
-                        if len(del_list) > 0:
+                        if del_list_included and len(del_list) > 0:
                             plan_str+= fg_yellow(' -- ({})({}) {}'.format( \
                                     ' '.join(['({0})'.format(' '.join(map(str, c))) for c in add_list]), \
                                     ' '.join(['({0})'.format(' '.join(map(str, c))) for c in del_list]), \

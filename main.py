@@ -27,7 +27,7 @@ if __name__ == '__main__':
 
     policy = Planner(args.domain, args.problem, args.planner, args.verbose)
 
-    policy.print_plan(verbose=args.verbose)
+    policy.print_plan(verbose=args.verbose,del_list_included=False)
 
     print('Planning time: %.3f s' % policy.planning_time)
     print('Number of replannings: %i' % policy.planning_call)

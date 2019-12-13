@@ -303,7 +303,7 @@ def call_planner(domain, problem, planner='ff', verbose=False):
 def to_str(output):
 
     ## bytes to string ##
-    if '3' in sys.version:
+    if sys.version_info[0] > 2:
         return ''.join(map(chr, output))
 
     ## already in string ##

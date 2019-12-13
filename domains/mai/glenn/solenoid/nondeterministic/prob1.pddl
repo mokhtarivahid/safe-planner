@@ -5,16 +5,11 @@
 (:init 
        (on sole1 hole1)
        (on sole2 hole2)
-       (no_human_at sole1)
-       (no_human_at sole2)
        (gripper_free)
-       (robot_at_base)
-       )
+       (robot_at_table)
+       (sense_on))
 (:goal 
   (and 
-        (removed sole1 hole1)
-        (removed sole2 hole2)
-        ; (ontable sole1)
-        ; (ontable sole2)
-  ))
+        (removed sole1)
+        (removed sole2)))
 )
