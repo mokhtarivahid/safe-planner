@@ -105,8 +105,8 @@ class Planner(object):
 
                     ## print out some info
                     if verbose:
-                        print(fg_yellow('@ domain:'), domain)
-                        print(fg_yellow('@ problem:'), problm_pddl)
+                        print(fg_yellow('@ domain:') + domain)
+                        print(fg_yellow('@ problem:') + problm_pddl)
 
                     plan = call_planner(domain, problm_pddl, self.planner, verbose)
 
@@ -170,7 +170,7 @@ class Planner(object):
 
                     try:
                         # new_state = self.apply_step(state, self.policy[state], domain_spec, verbose=verbose)
-                        new_state = self.apply_step(state, [action], domain_spec, verbose=verbose)
+                        new_state = self.apply_step(state, action, domain_spec, verbose=verbose)
                     except:
                         print(fg_red("@@ other outcome '{0}' is not applicable!!".format(str(self.policy[state]))))
                         exit()
@@ -207,8 +207,8 @@ class Planner(object):
 
                     ## print out some info
                     if verbose:
-                        print(fg_yellow('@ domain:'), domain)
-                        print(fg_yellow('@ problem:'), problm_pddl)
+                        print(fg_yellow('@ domain:') + domain)
+                        print(fg_yellow('@ problem:') + problm_pddl)
 
                     plan = call_planner(domain, problm_pddl, self.planner, verbose)
 
@@ -260,7 +260,7 @@ class Planner(object):
         for state, step in policy.items():
             if not step == None and state in self.deadend_list:
                 if Counter(step) in self.deadend_list[state]:
-                    if verbose: print(fg_red('@@ dead-end state by: ', str(step)))
+                    if verbose: print(fg_red('@@ dead-end state by: ' + str(step)))
                     return True
         return False
 
@@ -302,7 +302,8 @@ class Planner(object):
                 for action in step:
                     if action[0] in self.prob_actions:
                         if verbose: print(action)
-                        self.open_stack[state] = action
+                        self.open_stack[state] = step
+                        # self.open_stack[state] = action
 
 
     def apply_step(self, init, step, domain=None, verbose=False):
@@ -388,7 +389,8 @@ class Planner(object):
             step = self.policy[state]
             del self.policy[state]
             if state in self.open_stack and not self.open_stack[state] is None:
-                self.deadend_list[state].append(Counter([self.open_stack[state]]))
+                self.deadend_list[state].append(Counter(self.open_stack[state]))
+                # self.deadend_list[state].append(Counter([self.open_stack[state]]))
                 self.open_stack[state] = None
             if step == None: return
             for s in self.apply_step(state, step, verbose=verbose):

@@ -85,8 +85,8 @@ class Domain(object):
                         # if set(pred[1:]) == set(ex_action[1:]) and len(ex_action[1:]) > 1:
                         # if len([t for t in pred[1:] if t not in ex_action[1:]]) == 0:
                             ex_preconditions.append((-1, pred))
-                            print(pred[1:], ex_action[1:])
-                            print('>>pred', pred)
+                            print(pred[1:] + ex_action[1:])
+                            print('>>pred' + pred)
                     # for i in range(len(action.arg_names)):
                     #     ex_preconditions.append((-1, ('=', action.arg_names[i], ex_action[i+1])))
                     action.preconditions = tuple(ex_preconditions)

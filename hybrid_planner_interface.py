@@ -120,7 +120,7 @@ if __name__ == '__main__':
         problem_pddl = problem.pddl(state, goals)
 
         ## print out some info
-        if args.verbose: print(fg_yellow('@ problem:'), problem_pddl)
+        if args.verbose: print(fg_yellow('@ problem: ') + problem_pddl)
 
         ## call planner to make a plan given the domain, problem and planner
         policy = Planner(args.domain, problem_pddl, args.planner, args.verbose)
@@ -146,7 +146,7 @@ if __name__ == '__main__':
                 break                
 
             ## print out the policy
-            print(fg_green('@ step '+str(level)))
+            print(fg_green('@ step ' + str(level)))
 
             if step == None:
                 # normally shouldn't happen; otherwise, something is wrong (report it if happened)
