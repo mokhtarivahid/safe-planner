@@ -153,8 +153,6 @@ class Planner(object):
 
                 if verbose: print(fg_green("\n>> [expand probabilistic action '{0}']".format(str(action))))
 
-                # valid_plan_for_all = False
-
                 policy = OrderedDict()
 
                 try:

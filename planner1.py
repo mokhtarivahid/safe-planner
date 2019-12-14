@@ -157,16 +157,34 @@ class Planner(object):
 
                 policy = OrderedDict()
 
-                try:
-                    new_states = self.apply_step(state, action, verbose=verbose)
-                except:
-                    print(fg_red("@@ other outcome '{0}' is not applicable!!".format(str(self.policy[state]))))
-                    exit()
+                # try:
+                #     new_states = self.apply_step(state, action, verbose=verbose)
+                # except:
+                #     print(fg_red("@@ other outcome '{0}' is not applicable!!".format(str(self.policy[state]))))
+                #     exit()
 
-                ## !!! THIS FOR LOOP HAS TO BE IMPROVED AND UPGRADED TO CHECK 
-                ## !!! IF THERE IS A VALID PLAN FOR ALL OUTCOME IN 'NEW_STATES'
-                ## !!! CURRENTLTY IT ONLY CHECKS FOR THE FIRST POSSIBLE OUTCOME
-                for new_state in new_states:
+                # ## !!! THIS FOR LOOP HAS TO BE IMPROVED AND UPGRADED TO CHECK 
+                # ## !!! IF THERE IS A VALID PLAN FOR ALL OUTCOME IN 'NEW_STATES'
+                # ## !!! CURRENTLTY IT ONLY CHECKS FOR THE FIRST POSSIBLE OUTCOME
+                # for new_state in new_states:
+
+                ## for every other outcome of 'action' look for if there is a valid plan ##
+                for domain, domain_spec in self.domains.items():
+
+                    # ## if state is in deadend_list modify the domain and make inapplicable actions in deadend_list[state]
+                    # if state in self.deadend_list:
+                    #     domain, domain_spec = self.modify_domain(state, domain, domain_spec)
+
+                    ## generate a new state and then make plan ##
+                    ## update step by replacing 'other_outcome' action with an old outcome
+                    ## !! currently we only assume one probabilistic action in a state
+
+                    try:
+                        # new_state = self.apply_step(state, self.policy[state], domain_spec, verbose=verbose)
+                        new_state = self.apply_step(state, action, domain_spec, verbose=verbose)
+                    except:
+                        print(fg_red("@@ other outcome '{0}' is not applicable!!".format(str(self.policy[state]))))
+                        exit()
 
                     if new_state in self.policy:
                         if verbose: print(fg_red('@@ new state is already visited!'))
@@ -183,106 +201,45 @@ class Planner(object):
                         if verbose: print(fg_red('@@ new state becomes empty!'))
                         break
 
-                    ## for every other outcome of 'action' look for if there is a valid plan ##
-                    for domain, domain_spec in self.domains.items():
+                    # ## if state is in deadend_list create a domain with inapplicable actions in deadend_list[state]
+                    # if new_state in self.deadend_list:
+                    #     ## make a list of excluding action signatures (these actions become inapplicable in the current state)
+                    #     ex_actions = [list(act)[0] for act in self.deadend_list[new_state]] ## convert back the Counter to a list
+                    #     print(ex_actions)
+                    #     domain_spec_cp = copy.deepcopy(domain_spec)
+                    #     domain_spec_cp.make_inapplicable(ex_actions, state)
+                    #     domain = domain_spec_cp.pddl()
+                    #     # del domain_spec_cp
+                    #     # domain_spec.make_inapplicable(ex_actions)
+                    #     # domain = domain_spec.pddl()
 
-                        # ## if state is in deadend_list modify the domain and make inapplicable actions in deadend_list[state]
-                        # if state in self.deadend_list:
-                        #     domain, domain_spec = self.modify_domain(state, domain, domain_spec)
+                    ## create a pddl problem of 'new_state' as its initial state ##
+                    problm_pddl = self.problem.pddl(new_state)
 
-                        ## generate a new state and then make plan ##
-                        ## update step by replacing 'other_outcome' action with an old outcome
-                        ## !! currently we only assume one probabilistic action in a state
+                    ## print out some info
+                    if verbose:
+                        print(fg_yellow('@ domain:') + domain)
+                        print(fg_yellow('@ problem:') + problm_pddl)
 
-                        # try:
-                        #     # new_state = self.apply_step(state, self.policy[state], domain_spec, verbose=verbose)
-                        #     new_state = self.apply_step(state, action, domain_spec, verbose=verbose)
-                        # except:
-                        #     print(fg_red("@@ other outcome '{0}' is not applicable!!".format(str(self.policy[state]))))
-                        #     exit()
+                    plan = call_planner(domain, problm_pddl, self.planner, verbose)
 
-                        # if new_state in self.policy:
-                        #     if verbose: print(fg_red('@@ new state is already visited!'))
-                        #     continue
+                    self.planning_call += 1
 
-                        # # if new_state is itself a goal state (then the plan is empty)
-                        # if new_state.is_true(*(self.problem.goals, self.problem.num_goals)): 
-                        #     policy[new_state] = None
-                        #     if verbose: print(fg_yellow('@@ new state already contains the goal!'))
-                        #     continue
+                    ## if no plan exists :- dead ends ##
+                    if plan == None:
+                        if verbose: print(fg_red('@@ no plan exists'))
+                        break
 
-                        # # in some small problems, the state may become empty by the action application
-                        # if new_state.is_empty():
-                        #     if verbose: print(fg_red('@@ new state becomes empty!'))
-                        #     break
+                    policy.update(self.policy_image(domain_spec, new_state, plan, verbose))
 
-                        # ## if state is in deadend_list create a domain with inapplicable actions in deadend_list[state]
-                        # if new_state in self.deadend_list:
-                        #     ## make a list of excluding action signatures (these actions become inapplicable in the current state)
-                        #     ex_actions = [list(act)[0] for act in self.deadend_list[new_state]] ## convert back the Counter to a list
-                        #     print(ex_actions)
-                        #     domain_spec_cp = copy.deepcopy(domain_spec)
-                        #     domain_spec_cp.make_inapplicable(ex_actions, state)
-                        #     domain = domain_spec_cp.pddl()
-                        #     # del domain_spec_cp
-                        #     # domain_spec.make_inapplicable(ex_actions)
-                        #     # domain = domain_spec.pddl()
+                    ## check if the plan contains states and actions in the dead-ends list ##
+                    if self.has_deadend(policy, verbose):
+                        policy = OrderedDict()
+                        self.deadends_call += 1
+                        break
 
-                        ## create a pddl problem of 'new_state' as its initial state ##
-                        problm_pddl = self.problem.pddl(new_state)
-
-                        ## print out some info
-                        if verbose:
-                            print(fg_yellow('@ domain:') + domain)
-                            print(fg_yellow('@ problem:') + problm_pddl)
-
-                        plan = call_planner(domain, problm_pddl, self.planner, verbose)
-
-                        self.planning_call += 1
-
-                        ## if no plan exists :- dead ends ##
-                        if plan == None:
-                            if verbose: print(fg_red('@@ no plan exists'))
-                            break
-
-                        policy.update(self.policy_image(domain_spec, new_state, plan, verbose))
-
-                        ## check if the plan contains states and actions in the dead-ends list ##
-                        if self.has_deadend(policy, verbose):
-                            policy = OrderedDict()
-                            self.deadends_call += 1
-                            break
-
-                    else:
-                        ## continue if the loop works for all (the inner for-loop wasn't broken)
-                        continue
-                    ## inner loop was broken, break the outer too (either reach or blocking failure happened)
-                    break
-
-                    ## there exist a valid plan for all other outcomes (no break happened)
-                    # else:
-                    #     if verbose: print(fg_yellow('\n@@ valid plan for all outcomes'))
-
-                    #     ## push the state and probabilistic actions into the self.open_stack 
-                    #     ## if {(s, a) exist p | s !exist Sg, s !exist S_\pi, a is probabilistic}
-                    #     ## ! currently, we assume only one probabilistic action in each state
-                    #     self.push_prob_actions(policy, verbose)
-
-                    #     ## update global policy ##
-                    #     self.policy.update(policy)
-                    #     # valid_plan_for_all = True
-
-                    # ## no valid plan for other outcomes, remove path from state in policy 
-                    # ## and put state and action in dead ends list
-                    # if not valid_plan_for_all:
-                    #     if verbose: print(fg_red('\n@@ no valid plan for all outcomes'))
-                    #     self.deadend_list[state].append(Counter(self.policy[state]))
-                    #     self.open_stack[state] = None
-                    #     self.remove_path(state, verbose)
-
+                ## there exist a valid plan for all other outcomes (no break happened)
                 else:
-                    ## continue if there are valid plans at this branch of 'state' and 'step'
-                    ## (the inner for-loop wasn't broken)
                     if verbose: print(fg_yellow('\n@@ valid plan for all outcomes'))
 
                     ## push the state and probabilistic actions into the self.open_stack 
@@ -292,16 +249,16 @@ class Planner(object):
 
                     ## update global policy ##
                     self.policy.update(policy)
+                    # valid_plan_for_all = True
                     continue
 
-                ## inner loop was broken, break the outer too
                 ## no valid plan for other outcomes, remove path from state in policy 
                 ## and put state and action in dead ends list
+                # if not valid_plan_for_all:
                 if verbose: print(fg_red('\n@@ no valid plan for all outcomes'))
                 self.deadend_list[state].append(Counter(self.policy[state]))
                 self.open_stack[state] = None
                 self.remove_path(state, verbose)
-                # break
 
         self.planning_time = time() - self.planning_time
 
