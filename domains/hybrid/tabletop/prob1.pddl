@@ -4,7 +4,7 @@
           left-arm right-arm - arm
           table1 - table
           tray1 - tray
-          obj1 obj2 obj3 - object
+          object1 object2 object3 - object
           obj1_gpt obj1_gpl obj1_gpr 
           obj2_gpt obj2_gpl obj2_gpr 
           obj3_gpt obj3_gpl obj3_gpr  - grasp_pose)
@@ -13,23 +13,23 @@
           (free left-arm)
           (free right-arm)
 
-          (ontable obj1 table1)
-          (ontable obj2 table1)
-          (ontable obj3 table1)
+          (ontable object1 table1)
+          (ontable object2 table1)
+          (ontable object3 table1)
 
-          (filled obj1)
-          (filled obj2)
-          (empty obj3)
+          (filled object1)
+          (filled object2)
+          (empty object3)
 
-          (graspable obj1 obj1_gpt)
-          (graspable obj1 obj1_gpl)
-          (graspable obj1 obj1_gpr)
-          (graspable obj2 obj2_gpt)
-          (graspable obj2 obj2_gpl)
-          (graspable obj2 obj2_gpr)
-          (graspable obj3 obj3_gpt)
-          (graspable obj3 obj3_gpl)
-          (graspable obj3 obj3_gpr)
+          (graspable object1 obj1_gpt)
+          (graspable object1 obj1_gpl)
+          (graspable object1 obj1_gpr)
+          (graspable object2 obj2_gpt)
+          (graspable object2 obj2_gpl)
+          (graspable object2 obj2_gpr)
+          (graspable object3 obj3_gpt)
+          (graspable object3 obj3_gpl)
+          (graspable object3 obj3_gpr)
 
           (reachable left-arm obj1_gpt)
           (reachable left-arm obj1_gpl)
@@ -63,7 +63,7 @@
           )
 
 (:goal  (and
-          (ontray obj1 tray1)
-          (filled obj1)
+          (ontray object1 tray1)
+          (filled object1)
         ))
 )

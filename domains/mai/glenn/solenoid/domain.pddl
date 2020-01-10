@@ -1,66 +1,39 @@
-(define (domain solenoid)
-(:requirements :strips :typing :negative-preconditions :conditional-effects)
-(:types solenoid hole)
-
-(:predicates (on ?s - solenoid ?l - hole)
-             (ontable ?s - solenoid)
-             (robot_at ?s - solenoid)
-             (human_at ?s - solenoid)
-             (no_human_at ?s - solenoid)
-             (holding ?s - solenoid)
-             (removed ?s - solenoid ?l - hole)
-             (request_state_update)
-             (gripper_free)
-             (robot_at_base)
-             (empty_hole))
+(define (domain packaging)
+(:requirements :strips :typing)
+(:types location arm - object
+        graspable container table - location)
+(:predicates (location_free ?l - location)
+             (on ?o - graspable ?l - location)
+             (in ?o - graspable ?l - location)
+             (arm_holding ?a - arm ?o - graspable)
+             (arm_canreach ?a - arm ?l - location)
+             (arm_at ?a - arm ?l - location)
+             (arm_free ?a - arm))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; ABB actions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(:action update_state
- :parameters   (?s - solenoid ?h - hole)
- :precondition (and (request_state_update))
- :effect       (and (when (on ?s ?h) (and (on ?s ?h)(not(request_state_update))))
-                    (when (not(on ?s ?h)) (empty_hole))
-               )
- )
+(:action move_to_grasp
+ :parameters   (?a - arm ?o - graspable ?s ?d - location)
+ :precondition (and (arm_free ?a)(arm_at ?a ?s)(arm_canreach ?a ?d)
+                    (on ?o ?d)(location_free ?o))
+ :effect       (and (arm_at ?a ?o)(location_free ?s)(not(location_free ?o))(not(arm_at ?a ?s))))
 
-(:action observe_human
- :parameters   (?s - solenoid ?h - hole)
- :precondition (and (on ?s ?h))
- :effect       (and (no_human_at ?s))
- )
+(:action grasp
+ :parameters   (?a - arm ?o - graspable ?l - location)
+ :precondition (and (arm_free ?a)(arm_at ?a ?o)(on ?o ?l))
+ :effect       (and (arm_holding ?a ?o)(not(arm_free ?a))(not(on ?o ?l))
+                    (arm_at ?a ?l)(not(arm_at ?a ?o))))
 
-(:action move_forward
- :parameters (?s - solenoid ?h - hole)
- :precondition (and (on ?s ?h))
- :effect (when (and (robot_at_base)(no_human_at ?s)) (and (robot_at ?s)(not(robot_at_base)))))
+(:action carry_to_crate
+ :parameters   (?a - arm ?o - graspable ?s ?d - location)
+ :precondition (and (arm_holding ?a ?o)(arm_at ?a ?s)(arm_canreach ?a ?d))
+ :effect       (and (arm_at ?a ?d)(location_free ?s)(not(arm_at ?a ?s))))
 
-(:action move_back
- :parameters (?s - solenoid ?h - hole)
- :precondition (and (on ?s ?h))
- :effect (when (and (human_at ?s) (not(robot_at_base)))
-            (and(removed ?s ?h)(robot_at_base)(not(on ?s ?h)))))
-
-; (:action move_to_base
-;  :parameters ()
-;  :precondition (not(robot_at_base))
-;  :effect (robot_at_base))
-
-(:action pickup
- :parameters (?s - solenoid ?h - hole)
- :precondition (and (gripper_free)(robot_at ?s)(on ?s ?h))
- :effect (and (holding ?s)(removed ?s ?h)(not(gripper_free))(not(robot_at ?s))(not(on ?s ?h))))
-
-(:action carry_to_base
- :parameters (?s - solenoid)
- :precondition (holding ?s)
- :effect (and (robot_at_base)))
-
-(:action putdown
- :parameters (?s - solenoid)
- :precondition (and (holding ?s)(robot_at_base))
- :effect (and (gripper_free)(ontable ?s)(not(holding ?s))))
+(:action put_in_crate
+ :parameters   (?a - arm ?o - graspable ?l - location)
+ :precondition (and (arm_holding ?a ?o)(arm_at ?a ?l))
+ :effect       (and (arm_free ?a)(in ?o ?l)(location_free ?o)(not(arm_holding ?a ?o))))
 
 )
