@@ -12,10 +12,10 @@ from time import time
 from color import fg_green, bg_green, fg_red, fg_yellow, bg_red, bg_yellow, fg_blue, fg_voilet, fg_beige, bg_voilet, bg_beige
 from planner import Planner
 from pddlparser import PDDLParser
-# from pypddl import Domain, Problem, State, Action
+from pypddl import Domain, Problem, State, Action
 
 ## domains/hybrid/tabletop
-# from domains.hybrid.tabletop import create_problem, objects_mat
+from domains.hybrid.tabletop import create_problem, objects_mat
 # from domains.hybrid.robotic_arms import *
 # from domains.hybrid.packaging import create_problem, objects_mat
 
@@ -27,7 +27,7 @@ def parse():
     parser = argparse.ArgumentParser(usage=usage, description=description)
 
     parser.add_argument('domain',  type=str, help='path to PDDL domain file')
-    parser.add_argument('problem', type=str, help='path to PDDL problem file')
+    # parser.add_argument('problem', type=str, help='path to PDDL problem file')
     parser.add_argument('planner', type=str, nargs='?', const=1, 
         help="external planner: ff, m, optic, vhpop, ... (default=ff)", default="ff")
     parser.add_argument("-v", "--verbose", help="increase output verbosity", 
@@ -77,9 +77,9 @@ if __name__ == '__main__':
     # print(bg_yellow('@ objects\n'), objects)
 
     ## 2) create a problem object given the objects
-    # (problem_name, domain_name, objects, init, goal) = create_problem(objects)
-    # problem = Problem(problem_name, domain_name, objects, init, goal)
-    problem = PDDLParser.parse(args.problem)
+    (problem_name, domain_name, objects, init, goal) = create_problem(objects)
+    problem = Problem(problem_name, domain_name, objects, init, goal)
+    # problem = PDDLParser.parse(args.problem)
 
     ## keep track of the current state and the current goal to achieve
     ## in any geometric limitation, the goal is updated to recover from 
