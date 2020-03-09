@@ -2,7 +2,7 @@
 
   (:requirements :strips :typing)
 
-  (:types graspable container camera location arm object)
+  (:types arm object)
 
   (:predicates  
                 (arm ?o - arm)
@@ -29,8 +29,8 @@
                 (object_in ?o - object ?c - object)
                 (assembled ?o - object ?c - object)
                 (ungripped ?o - object)
-                (bottom_up ?o - object)
-                (top_up ?o - object)
+                (downward ?o - object)
+                (upward ?o - object)
                 (camera_checked ?o - object)
 
                 (packed ?o1 - object ?o2 - object ?d - object)
@@ -106,13 +106,13 @@
 
 (:action put_in_peg
  :parameters   (?a - arm ?o ?c - object)
- :precondition (and (arm_vacuumed ?a ?o) (arm_at ?a ?c) (bottom_up ?o) (base ?o) (peg ?c))
- :effect       (and (arm_free ?a) (object_in ?o ?c) (not (arm_vacuumed ?a ?o)) (not (bottom_up ?o))))
+ :precondition (and (arm_vacuumed ?a ?o) (arm_at ?a ?c) (downward ?o) (base ?o) (peg ?c))
+ :effect       (and (arm_free ?a) (object_in ?o ?c) (not (arm_vacuumed ?a ?o)) (not (downward ?o))))
 
 (:action put_in_hole
  :parameters   (?a - arm ?o ?c - object)
- :precondition (and (arm_vacuumed ?a ?o) (arm_at ?a ?c) (bottom_up ?o) (cap ?o) (hole ?c))
- :effect       (and (arm_free ?a) (object_in ?o ?c) (not (arm_vacuumed ?a ?o)) (not (bottom_up ?o))))
+ :precondition (and (arm_vacuumed ?a ?o) (arm_at ?a ?c) (downward ?o) (cap ?o) (hole ?c))
+ :effect       (and (arm_free ?a) (object_in ?o ?c) (not (arm_vacuumed ?a ?o)) (not (downward ?o))))
 
 (:action put_in_pack
  :parameters   (?a - arm ?o1 ?o2 ?s - object)
@@ -123,15 +123,15 @@
 ;; camera actions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(:action check_bottom_up
+(:action check_orientation
  :parameters   (?a - arm ?o ?c - object)
  :precondition (and (arm_vacuumed ?a ?o) (arm_at ?a ?c) (camera ?c))
- :effect       (and (bottom_up ?o) (camera_checked ?o)))
+ :effect       (and (upward ?o) (camera_checked ?o)))
 
 (:action rotate_object
  :parameters   (?a - arm ?o - object)
- :precondition (and (arm_vacuumed ?a ?o) (camera_checked ?o) (top_up ?o))
- :effect       (and (not (top_up ?o)) (bottom_up ?o)))
+ :precondition (and (arm_vacuumed ?a ?o) (camera_checked ?o) (upward ?o))
+ :effect       (and (not (upward ?o)) (downward ?o)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; assemble actions
