@@ -62,12 +62,12 @@ The number after each condition represents the next step for the execution.
 ```
 $ python3 main.py domains/pickit_seq/pickit.pddl domains/pickit_seq/prob0.pddl planners/ff
 
-@ plan
+@ PLAN
  0 : (move_to_grasp arm1 box1 cap1 box1) -- () 1
  1 : (move_to_grasp arm2 box2 base1 box2) -- () 2
  2 : (vacuum_object arm2 base1 box2) -- () 3
  3 : (carry_to_camera arm2 base1 box2 camera1) -- () 4
- 4 : (check_bottom_up arm2 base1 camera1) -- ((bottom_up base1) (camera_checked base1)) 5 -- ((top_up base1) (camera_checked base1)) 6
+ 4 : (check_orientation arm2 base1 camera1) -- ((downward base1) (camera_checked base1)) 5 -- ((upward base1) (camera_checked base1)) 6
  5 : (carry_to_peg arm2 base1 camera1 peg1) -- () 7
  6 : (rotate_object arm2 base1) -- () 5
  7 : (put_in_peg arm2 base1 peg1) -- () 8
@@ -76,7 +76,7 @@ $ python3 main.py domains/pickit_seq/pickit.pddl domains/pickit_seq/prob0.pddl p
 10 : (carry_to_assemble arm2 base1 peg1 assembly_pose2) -- () 11
 11 : (vacuum_object arm1 cap1 box1) -- () 12
 12 : (carry_to_camera arm1 cap1 box1 camera1) -- () 13
-13 : (check_bottom_up arm1 cap1 camera1) -- ((bottom_up cap1) (camera_checked cap1)) 14 -- ((top_up cap1) (camera_checked cap1)) 15
+13 : (check_orientation arm1 cap1 camera1) -- ((downward cap1) (camera_checked cap1)) 14 -- ((upward cap1) (camera_checked cap1)) 15
 14 : (carry_to_hole arm1 cap1 camera1 hole1) -- () 16
 15 : (rotate_object arm1 cap1) -- () 14
 16 : (put_in_hole arm1 cap1 hole1) -- () 17
@@ -98,12 +98,12 @@ $ python3 main.py domains/pickit_seq/pickit.pddl domains/pickit_seq/prob0.pddl p
  0 : (move_to_grasp arm1 box1 base1 box2) (move_to_grasp arm2 box2 cap1 box1) -- () 1
  1 : (vacuum_object arm2 cap1 box1) (vacuum_object arm1 base1 box2) -- () 2
  2 : (carry_to_camera arm2 cap1 box1 camera1) -- () 3
- 3 : (check_bottom_up arm2 cap1 camera1) -- ((bottom_up cap1) (camera_checked cap1)) 4 -- ((top_up cap1) (camera_checked cap1)) 5
+ 3 : (check_orientation arm2 cap1 camera1) -- ((downward cap1) (camera_checked cap1)) 4 -- ((upward cap1) (camera_checked cap1)) 5
  4 : (carry_to_hole arm2 cap1 camera1 hole1) -- () 6
- 5 : (rotate_object arm2 cap1) (carry_to_hole arm2 cap1 camera1 hole1) (carry_to_peg arm1 base1 box2 peg1) -- () 7
+ 5 : (rotate_object arm2 cap1) (carry_to_peg arm1 base1 box2 peg1) (carry_to_hole arm2 cap1 camera1 hole1) -- () 7
  6 : (put_in_hole arm2 cap1 hole1) (carry_to_camera arm1 base1 box2 camera1) -- () 8
  7 : (put_in_hole arm2 cap1 hole1) (carry_to_camera arm1 base1 peg1 camera1) -- () 8
- 8 : (check_bottom_up arm1 base1 camera1) -- ((bottom_up base1) (camera_checked base1)) 9 -- ((top_up base1) (camera_checked base1)) 10
+ 8 : (check_orientation arm1 base1 camera1) -- ((downward base1) (camera_checked base1)) 9 -- ((upward base1) (camera_checked base1)) 10
  9 : (carry_to_peg arm1 base1 camera1 peg1) -- () 11
 10 : (rotate_object arm1 base1) (carry_to_peg arm1 base1 camera1 peg1) -- () 11
 11 : (put_in_peg arm1 base1 peg1) -- () 12
