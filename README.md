@@ -32,19 +32,19 @@ $ python3 main.py <DOMAIN> <PROBLEM> [<PLANNER>] [-v | --verbose]
 for example following command runs the planner using the `FF` to solve a `pickit` problem:
 
 ```
-$ python3 main.py domains/pickit_seq/pickit.pddl domains/pickit_seq/prob0.pddl planners/ff
+$ python3 main.py domains/pickit/domain.pddl domains/pickit/prob0.pddl planners/ff
 ```
 
 or using `OPTIC` planner:
 
 ```
-$ python3 main.py domains/pickit_seq/pickit.pddl domains/pickit_seq/prob0.pddl planners/optic-clp
+$ python3 main.py domains/pickit/domain.pddl domains/pickit/prob0.pddl planners/optic-clp
 ```
 
 or using `MADAGASCAR` planner:
 
 ```
-$ python3 main.py domains/pickit_seq/pickit.pddl domains/pickit_seq/prob0.pddl planners/M
+$ python3 main.py domains/pickit/domain.pddl domains/pickit/prob0.pddl planners/M
 ```
 
 
@@ -60,7 +60,7 @@ The number after each condition represents the next step for the execution.
 
 
 ```
-$ python3 main.py domains/pickit_seq/pickit.pddl domains/pickit_seq/prob0.pddl planners/ff
+$ python3 main.py domains/pickit/domain.pddl domains/pickit/prob0.pddl planners/ff
 
 @ PLAN
  0 : (move_to_grasp arm1 box1 cap1 box1) -- () 1
@@ -91,8 +91,10 @@ $ python3 main.py domains/pickit_seq/pickit.pddl domains/pickit_seq/prob0.pddl p
 ```
 
 
+
+
 ```
-$ python3 main.py domains/pickit_seq/pickit.pddl domains/pickit_seq/prob0.pddl planners/optic-clp
+$ python3 main.py domains/pickit/domain.pddl domains/pickit/prob0.pddl planners/optic-clp
 
 @ plan
  0 : (move_to_grasp arm1 box1 base1 box2) (move_to_grasp arm2 box2 cap1 box1) -- () 1
