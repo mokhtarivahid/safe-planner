@@ -87,7 +87,7 @@ $ python3 main.py domains/pickit_seq/pickit.pddl domains/pickit_seq/prob0.pddl p
 21 : (ungrip_object arm2 cap1 base1) -- () 22
 22 : (carry_to_pack arm1 cap1 base1 assembly_pose1 package1) -- () 23
 23 : (put_in_pack arm1 cap1 base1 package1) -- () 24
-24 : Goal achieved!
+24 : (DONE)
 ```
 
 
@@ -116,7 +116,7 @@ $ python3 main.py domains/pickit_seq/pickit.pddl domains/pickit_seq/prob0.pddl p
 18 : (ungrip_object arm2 cap1 base1) -- () 19
 19 : (carry_to_pack arm1 cap1 base1 assembly_pose1 package1) -- () 20
 20 : (put_in_pack arm1 cap1 base1 package1) -- () 21
-21 : Goal achieved!
+21 : (DONE)
 ```
 
 ## Use the planner as a library

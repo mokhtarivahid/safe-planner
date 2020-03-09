@@ -1,4 +1,4 @@
-(define (domain packaging)
+(define (domain solenoid)
 (:requirements :strips :typing)
 (:types location arm - object
         graspable container table - location)

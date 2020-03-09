@@ -1,6 +1,7 @@
 
 import subprocess, os, sys, re, io
 from collections import OrderedDict
+from color import fg_green, fg_red, fg_yellow, fg_blue, fg_voilet, fg_beige, bg_green, bg_red, bg_yellow, bg_blue, bg_voilet
 
 
 ###############################################################################
@@ -135,7 +136,7 @@ def call_m(domain, problem, verbose=False):
                    e.g., [[('move-car', 'l1', 'l4')], [('changetire', 'l4')]]
     """
 
-    cmd = './planners/M -P 1 -t 5 {0} {1} -o {1}.soln'.format(domain, problem)
+    cmd = './planners/m -P 1 -t 5 {0} {1} -o {1}.soln'.format(domain, problem)
 
 
     ## call command ##
@@ -191,7 +192,7 @@ def call_vhpop(domain, problem, verbose=False):
                    e.g., [[('move-car', 'l1', 'l4')], [('changetire', 'l4')]]
     """
 
-    cmd = './planners/vhpop -f DSep-LIFO -s HC -w 5 -l 1000000 {0} {1}'.format(domain, problem)
+    cmd = './planners/vhpop -g -f DSep-LIFO -s HC -w 5 -l 1500000 {0} {1}'.format(domain, problem)
 
 
     ## call command ##
@@ -278,7 +279,7 @@ def call_planner(domain, problem, planner='ff', verbose=False):
     Planners = os.listdir('planners')
 
     if planner.lower().split('/')[-1] not in map(str.lower, Planners):
-        print("{0}' does not exist in 'planners/'".format(planner))
+        print("'{0}' does not exist in 'planners/'".format(planner))
         exit()
 
     ## FF planner ##
@@ -296,6 +297,11 @@ def call_planner(domain, problem, planner='ff', verbose=False):
     ## optic-clp planner ##
     elif 'vhpop' in planner.lower():
         return call_vhpop(domain, problem, verbose)
+
+    ## optic-clp planner ##
+    else:
+        print(fg_red("\nThere is not yet a function for parsing the outputs of '{0}'!\n".format(planner)))
+        exit()
 
 
 ## checks the output type and convert it to str

@@ -4,6 +4,7 @@ import os, sys
 from collections import OrderedDict, defaultdict, Counter
 from time import time
 import copy
+import itertools
 
 from color import fg_green, fg_red, fg_yellow, fg_blue, fg_voilet, fg_beige, bg_green, bg_red, bg_yellow, bg_blue, bg_voilet
 from pddlparser import PDDLParser
@@ -168,10 +169,6 @@ class Planner(object):
                 ## !!! CURRENTLTY IT ONLY CHECKS FOR THE FIRST POSSIBLE OUTCOME
                 for new_state in new_states:
 
-                    if new_state in self.policy:
-                        if verbose: print(fg_red('@@ new state is already visited!'))
-                        continue
-
                     # if new_state is itself a goal state (then the plan is empty)
                     if new_state.is_true(*(self.problem.goals, self.problem.num_goals)): 
                         policy[new_state] = None
@@ -183,6 +180,15 @@ class Planner(object):
                         if verbose: print(fg_red('@@ new state becomes empty!'))
                         break
 
+                    if new_state in self.policy:
+                        if verbose: print(fg_red('@@ new state is already visited!'))
+                        continue
+
+                    ## a state is dead end if all domains are not applicable in that state
+                    ## if a domain is not applicable, i.e., no plan is found, then 'valid_plan_for_some' increases, 
+                    ## finally if 'valid_plan_for_some' == len(self.domains) means no valid plan found for all domains
+                    valid_plan_for_some = 0
+
                     ## for every other outcome of 'action' look for if there is a valid plan ##
                     for domain, domain_spec in self.domains.items():
 
@@ -192,7 +198,8 @@ class Planner(object):
 
                         ## generate a new state and then make plan ##
                         ## update step by replacing 'other_outcome' action with an old outcome
-                        ## !! currently we only assume one probabilistic action in a state
+                        ## !! currently we only assume one probabilistic action in a state 
+
 
                         # try:
                         #     # new_state = self.apply_step(state, self.policy[state], domain_spec, verbose=verbose)
@@ -243,7 +250,9 @@ class Planner(object):
                         ## if no plan exists :- dead ends ##
                         if plan == None:
                             if verbose: print(fg_red('@@ no plan exists'))
-                            break
+                            valid_plan_for_some += 1
+                            continue
+                            # break
 
                         policy.update(self.policy_image(domain_spec, new_state, plan, verbose))
 
@@ -255,6 +264,10 @@ class Planner(object):
 
                     else:
                         ## continue if the loop works for all (the inner for-loop wasn't broken)
+                        if valid_plan_for_some == len(self.domains):
+                            if verbose: print(fg_red('@@ no valid plan for all domains'))
+                            break
+                        if verbose: print(fg_red('@@ valid plan for some domain'))
                         continue
                     ## inner loop was broken, break the outer too (either reach or blocking failure happened)
                     break
@@ -287,7 +300,7 @@ class Planner(object):
 
                     ## push the state and probabilistic actions into the self.open_stack 
                     ## if {(s, a) exist p | s !exist Sg, s !exist S_\pi, a is probabilistic}
-                    ## ! currently, we assume only one probabilistic action in each state
+                    ## ! currently, we assume only one probabilistic action in each state 
                     self.push_prob_actions(policy, verbose)
 
                     ## update global policy ##
@@ -392,8 +405,16 @@ class Planner(object):
         grounded_steps = list()
         # if there is a probabilistic action in step, make ground all possible combination of actions on all domains
         if len([action for action in step if action[0] in self.prob_actions]) > 0:
-            for domain, domain_spec in self.domains.items():
-                grounded_steps.append([domain_spec.ground(action) for action in step])
+            # for domain, domain_spec in self.domains.items():
+            #     grounded_steps.append([domain_spec.ground(action) for action in step])
+            grounded_actions = list()
+            for action in step:
+                grounded_action = list()
+                for domain, domain_spec in self.domains.items():
+                    grounded_action.append(domain_spec.ground(action))
+                grounded_actions.append(grounded_action)
+            ## generate all possible combination of actions
+            grounded_steps = list(itertools.product(*grounded_actions))
         # otherwise, making ground on the first domain is sufficient
         else:
             # pick up the first domain object
@@ -404,13 +425,15 @@ class Planner(object):
         states = OrderedDict()
         for grounded_step in grounded_steps:
             state = init
-            effects = list()
+            del_effects = list()
+            add_effects = list()
             for action in grounded_step:
                 if action is not None:
                     if action.name in self.prob_actions:
-                        effects = (action.add_effects, action.del_effects)
+                        add_effects.extend(action.add_effects)
+                        del_effects.extend(action.del_effects)
                     state = state.apply(action)
-            states[state] = effects
+            states[state] = (tuple(add_effects), tuple(del_effects))
 
         return states
 
@@ -519,12 +542,12 @@ class Planner(object):
                             jumpto[s] = level
                             next_steps.append((c, level))
 
-                    plan[i] = ([self.domain.ground(action) for action in step], next_steps)
+                    plan[i] = (tuple([self.domain.ground(action) for action in step]), tuple(next_steps))
 
         return plan
 
 
-    def print_plan(self, plan=None, verbose=True, del_list_included=True):
+    def print_plan(self, plan=None, verbose=True, del_list_included=False):
         """
         print the plan in a more readable form
         """
@@ -532,13 +555,13 @@ class Planner(object):
         if plan == None:
             plan = self.plan(verbose)
 
-        print(bg_yellow('@ plan'))
+        print(bg_yellow('@ PLAN'))
 
         plan_str = str()
         for level, step in plan.items():
             plan_str+= '{:2} : '.format(level)
             if step == 'goal': 
-                plan_str+= fg_beige('Goal achieved!')
+                plan_str+= fg_beige('(DONE)')
             elif step == None: 
                 plan_str+= fg_voilet('None!')
             else:
@@ -564,6 +587,142 @@ class Planner(object):
                         plan_str+= fg_yellow(' -- () {}'.format(fg_voilet(str(jump))))
             plan_str+= '\n'
         print(plan_str)
+
+
+    def get_paths(self, plan=None, verbose=True):
+        '''
+            the first path starts from the root to a leaf in (pre-order),
+            !HOWEVER! the next paths start from the branches in the policy
+
+            e.g., 
+            if a policy looks like this:
+            0
+            |
+            1
+           / \
+          G   2
+             / \
+            3   4
+            |   |
+            G   G
+            then the paths generated are:
+            1) 0, 1, G
+            2) 1, 2, 3, G
+            3) 2, 4, G
+        '''
+
+
+        if plan == None:
+            plan = self.plan(verbose)
+
+        if plan[0] == None: return list()
+
+        paths = list()
+
+        ## store nodes and outcomes to visit
+        stack = list() # each element is: (level, step)
+        visited = list()
+
+        ## push outcomes of the root into the stack in reverse order
+        for i in range( len(list(plan.items())[0][1][1])-1, -1, -1 ):
+            stack.append([0, list(plan.items())[0][1][1][i][1]])
+
+        ## simulate the plan
+        while True:
+
+            if not stack: 
+                break
+
+            (level, outcome) = stack.pop()
+            visited.append((level, outcome))
+
+            if plan[level] == 'goal' or plan[level] == None:
+                continue
+
+            path = list()
+
+            ## add the current step into the path (as its root)
+            (actions, outcomes) = plan[level]
+            ## include only the target outcome as requested in 'outcome'
+            for (cnd, jmp) in outcomes:
+                if outcome == jmp:
+                    path.append((level, (actions, (cnd, jmp))))
+                    break
+            ## start from the next outcome of this step
+            level = outcome
+
+            ## extract a path
+            while True:
+
+                step = plan[level]
+
+                if step == 'goal' or step == None:
+                    break
+                else:
+                    ## unfold step into a tuple of actions and outcomes
+                    (actions, outcomes) = step
+
+                    path.append((level, (actions, outcomes[0])))
+
+                    ## push other outcomes (except the first one) of 'step' into the stack in reverse order
+                    for i in range( len(outcomes)-1, 0, -1):
+                        if not (level, outcomes[i][1]) in visited:
+                            stack.append([level, outcomes[i][1]])
+
+                    ## update 'level' by the first outcome (move forward in pre-order)
+                    level = outcomes[0][1]
+
+            paths.append(path)
+
+        return paths
+
+
+    def print_paths(self, paths=None, verbose=True, del_list_included=False):
+        """
+        print the paths of plan in a more readable form
+        """
+
+        if paths == None:
+            paths = self.get_paths(verbose=verbose)
+
+        if paths == list(): return
+
+        print(bg_yellow('@ subpaths'))
+
+        p = 1
+        for path in paths:
+            print(fg_yellow('path{0}'.format(str(p))))
+            p += 1
+            plan_str = str()
+            for (level, step) in path:
+                plan_str+= '{:2} : '.format(level)
+                if step == 'goal': 
+                    plan_str+= fg_beige('(DONE)')
+                elif step == None: 
+                    plan_str+= fg_voilet('None!')
+                else:
+                    (actions, outcomes) = step
+                    plan_str+= '{}'.format(' '.join(map(str, actions)))
+                    (conditions, jump) = outcomes
+                    # unfold conditions as add and delete lists
+                    # if there is non-deterministic outcomes
+                    if len(conditions) > 0: 
+                        (add_list, del_list) = conditions
+                        # if there is non-deterministic delete list in outcomes
+                        if del_list_included and len(del_list) > 0:
+                            plan_str+= fg_yellow(' -- ({})({}) {}'.format( \
+                                    ' '.join(['({0})'.format(' '.join(map(str, c))) for c in add_list]), \
+                                    ' '.join(['({0})'.format(' '.join(map(str, c))) for c in del_list]), \
+                                    fg_voilet(str(jump))))
+                        # otherwise, exclude delete list in the representation of the plan
+                        else:
+                            plan_str+= fg_yellow(' -- ({}) {}'.format( \
+                                    ' '.join(['({0})'.format(' '.join(map(str, c))) for c in add_list]), \
+                                    fg_voilet(str(jump))))
+                    else:
+                        plan_str+= fg_yellow(' -- () {}'.format(fg_voilet(str(jump))))
+                plan_str+= '\n'
+            print(plan_str)
 
 
 def listdir_fullpath(d):

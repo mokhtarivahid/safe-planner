@@ -27,7 +27,7 @@ def parse_plan(plan):
 
     # a sample code to parse the output plan
     for level, step in plan.items():
-        print('@ level ' + level)
+        print(fg_green('@ step ' + str(level)))
         if step == 'goal':
             # goal state is achieved
             print(fg_voilet('@ goal'))
@@ -38,14 +38,14 @@ def parse_plan(plan):
             print(bg_voilet('None!'))
             pass
         else:
-            # unfold step into a tuple of actoins and outcomes
+            # unfold step into a tuple of actions and outcomes
             (actions, outcomes) = step
             # execute action at each step and produce the results
             for action in actions:
                 # you can access to the properties of the action:
-                print(fg_yellow('>> action: ') + action.sig)
-                print(fg_yellow('   preconditions:' ) + action.preconditions)
-                print(fg_yellow('   effects: ') + action.add_effects)
+                print(fg_yellow('>> action: ') + str(action.sig))
+                print(fg_yellow('   preconditions:' ) + str(action.preconditions))
+                print(fg_yellow('   effects: ') + str(action.add_effects))
                 pass
             # each outcome is a tuple of conditions and jump to a next level
             # check the outcome of the actions for jumping to the next step
@@ -57,7 +57,7 @@ def parse_plan(plan):
                     if add_list: print(fg_yellow('   effect+: ') + ' '.join(map(str,add_list)))
                     if del_list: print(fg_yellow('   effect-: ') + ' '.join(map(str,del_list)))
                 # jump to the next step if the conditions met
-                print(fg_beige('   jump to: ') + jump)
+                print(fg_beige('   jump to: ') + str(jump))
                 pass
 ###############################################################################
 

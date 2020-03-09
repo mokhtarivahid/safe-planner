@@ -1,4 +1,5 @@
 from time import time
+from collections import defaultdict
 
 objects_mat = [
     ## table
@@ -125,7 +126,16 @@ objects_mat = [
 ###############################################################################
 ## create a problem object for 'crate' domain given a dictionary of objects
 ###############################################################################
-def create_problem(objects):
+def create_problem(objects, objects_mat=None):
+
+    filled_objects = defaultdict(list)
+    for obj in objects_mat:
+        if 'filled' in obj:
+            object_name = str(obj['object_type'])+str(int(obj['index']))
+            if obj['filled'] == True:
+                filled_objects['filled'].append(object_name)
+            else:
+                filled_objects['empty'].append(object_name)
 
     ## domain name
     domain = "tabletop"
@@ -146,8 +156,12 @@ def create_problem(objects):
             init.append(tuple(['ontable',o,t]))
 
     # '(filled ?object)'
-    for o in objects['object']:
+    # for o in objects['object']:
+    #     init.append(tuple(['filled',o]))
+    for o in filled_objects['filled']:
         init.append(tuple(['filled',o]))
+    for o in filled_objects['empty']:
+        init.append(tuple(['empty',o]))
 
     # '(graspable ?object ?grasp_pose)'
     for i in range(len(objects['object'])):
@@ -157,19 +171,31 @@ def create_problem(objects):
     # '(reachable ?arm ?grasp_pose)'
     for a in objects['arm']:
         for g in objects['grasp_pose']:
-            init.append(tuple(['reachable',a,g]))
+            if 'left' in g and 'arm1' in a: continue
+            elif 'right' in g and 'arm2' in a: continue
+            else: init.append(tuple(['reachable',a,g]))
 
     # '(unobstructed ?grasp_pose)'
     for g in objects['grasp_pose']:
         init.append(tuple(['unobstructed',g]))
 
-
     ## create the goal
     goal = list()
 
     # '(ontray ?object ?tray)'
-    goal.append(tuple(['ontray','object1','tray1']))
-    goal.append(tuple(['filled','object1']))
+    # goal.append(tuple(['ontray','object1','tray1']))
+    # goal.append(tuple(['filled','object1']))
+    # goal.append(tuple(['filled','object2']))
+    # goal.append(tuple(['filled','object3']))
+    # for o in objects['object']:
+    #     goal.append(tuple(['filled',o]))
+    for o in filled_objects['filled']:
+        goal.append(tuple(['filled',o]))
+    for o in filled_objects['empty']:
+        goal.append(tuple(['empty',o]))
+
+    # '(co_lifted ?object)''
+    goal.append(tuple(['co_lifted','object1']))
 
     return (problem, domain, dict(objects), init, goal)
 
