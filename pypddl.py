@@ -19,12 +19,13 @@ NUM_OPS = {
 ###############################################################################
 class Domain(object):
 
-    def __init__(self, name=None, requirements=(), types=(), predicates=(), actions=()):
+    def __init__(self, name=None, requirements=(), types=(), constants={}, predicates=(), actions=()):
         """
         Represents a PDDL-like Problem Domain
         @arg name : string name of the given domain
         @arg requirements : tuple of the requirements in the given domain
         @arg types : tuple of the types in the given domain
+        @arg constants : dictionary of constant tuples keyed by type
         @arg predicates : tuple of the predicates in the given domain
         @arg actions : list of Action objects
         """
@@ -33,6 +34,7 @@ class Domain(object):
         self.requirements = tuple(requirements)
         self.types = tuple(types)
         self.predicates = tuple(predicates)
+        self.constants = constants
         self.actions = tuple(actions)
 
     def ground_actions(self, objects):
@@ -47,10 +49,6 @@ class Domain(object):
             param_combos = set()
             for params in product(*param_lists):
                 param_set = frozenset(params)
-                if action.unique and len(param_set) != len(params):
-                    continue
-                if action.no_permute and param_set in param_combos:
-                    continue
                 param_combos.add(param_set)
                 grounded_actions.append(action.ground(*params, deterministic=deterministic))
         return grounded_actions
@@ -66,48 +64,6 @@ class Domain(object):
                 return action.ground(*tuple(action_sig[1:]), deterministic=deterministic)
         return None
 
-    def make_inapplicable(self, ex_actions, state):
-        """
-        modify the domain such that the given ex_actions become inapplicable in the given state
-        @arg ex_actions : a list of ground action signatures that should become inapplicable in @state
-        @arg state : a state that @ex_actions should become inapplicable in that state 
-        """
-
-        for ex_action in ex_actions:
-            # print(ex_action)
-            for action in self.actions:
-                if action.name == ex_action[0]:
-                    print(action.preconditions)
-                    ex_preconditions = list(action.preconditions)
-                    for pred in state.predicates:
-                        if set(pred[1:]) == set(ex_action[1:]):
-                        # if all(t in ex_action[1:] for t in pred[1:]):
-                        # if set(pred[1:]) == set(ex_action[1:]) and len(ex_action[1:]) > 1:
-                        # if len([t for t in pred[1:] if t not in ex_action[1:]]) == 0:
-                            ex_preconditions.append((-1, pred))
-                            print(pred[1:] + ex_action[1:])
-                            print('>>pred' + pred)
-                    # for i in range(len(action.arg_names)):
-                    #     ex_preconditions.append((-1, ('=', action.arg_names[i], ex_action[i+1])))
-                    action.preconditions = tuple(ex_preconditions)
-                    print(action.preconditions)
-
-    # def make_inapplicable(self, ex_actions=[]):
-    #     """
-    #     modify the domain such that the given ground actions become inapplicable 
-    #     @arg ex_actions : a list of ground action signatures (list of tuples) that should become inapplicable 
-    #     """
-
-    #     for ex_action in ex_actions:
-    #         # print(ex_action)
-    #         for action in self.actions:
-    #             if action.name == ex_action[0]:
-    #                 ex_preconditions = list(action.preconditions)
-    #                 for i in range(len(action.arg_names)):
-    #                     ex_preconditions.append((-1, ('=', action.arg_names[i], ex_action[i+1])))
-    #                 action.preconditions = tuple(ex_preconditions)
-    #                 # print(action.preconditions)
-
 
     def pddl(self, ex_actions=[]):
         """
@@ -122,12 +78,17 @@ class Domain(object):
             f.close()
         return pddl
 
+
     def __str__(self, pddl=False, ex_actions=[]):
         if not pddl:
             domain_str  = '@ Domain: {0}\n'.format(self.name)
             domain_str += '>> requirements: {0}\n'.format(self.requirements)
             if len(self.types) > 0:
                 domain_str += '>> types: {0}\n'.format(self.types)
+            if len(self.constants) > 0:
+                domain_str += '>> constants:\n'
+                for type, constants in self.constants.items():
+                    domain_str += '   {0} -> {1}\n'.format(type, ', '.join(sorted(constants)))
             domain_str += '>> predicates: \n   {0}\n'.format('\n   '.join(map(str, self.predicates)))
             domain_str += '>> operators:\n   {0}\n'.format(
                 '\n   '.join(str(op).replace('\n', '\n   ') for op in self.actions if op.name not in ex_actions))
@@ -137,9 +98,15 @@ class Domain(object):
             pddl_str += '  (:requirements {0})\n\n'.format(' '.join(self.requirements))
             if len(self.types) > 0:
                 pddl_str += '  (:types {0})\n\n'.format(' '.join(self.types))
+            if len(self.constants) > 0:
+                pddl_str += '  (:constants\n'
+                for type in sorted(self.constants.keys())[:-1]:
+                    pddl_str += '        {0} - {1}\n'.format(' '.join(sorted(self.constants[type])), type)
+                type = sorted(self.constants.keys())[-1]
+                pddl_str += '        {0} - {1})\n\n'.format(' '.join(sorted(self.constants[type])), type)
             pddl_str += '  (:predicates'
             for predicate in self.predicates:
-                pddl_str += '\n\t({0} {1})'.format(predicate[0],
+                pddl_str += '\n        ({0} {1})'.format(predicate[0],
                     ' '.join(' - '.join(reversed(p)) for p in predicate[1:]))
             pddl_str += ')\n'
             for action in self.actions:
@@ -342,24 +309,181 @@ class State(object):
         return hash(self) < hash(other)
 
 ###############################################################################
+## PRECONDITION CLASS
+###############################################################################
+class Precondition(object):
+
+    def __init__(self, literals=(), universals=(), existentials=()):
+        """
+        A precondition schema
+        @arg literals : preconditions as literals
+        @arg universals : tuple of universal-preconditions
+        @arg existentials : tuple of existential-preconditions
+        """
+        self.literals = literals
+        self.universals = universals
+        self.existentials = existentials
+
+    def __str__(self, pddl=False):
+        """
+        Return the precondition as a string
+        """
+        precond_str = str()
+        if not pddl:
+            if self.literals:
+                precond_str += '  >> literals: {}\n'.format(', '.join(map(str, self.literals)))
+            for p in self.universals:
+                precond_str += '  >> forall: {} {}\n'.format(p[0],p[1])
+            for p in self.existentials:
+                precond_str += '  >> exists: {} {}\n'.format(p[0],p[1])
+        else:
+            precond_str += '(and'
+            for pre in self.literals:
+                if pre[0] == -1:
+                    precond_str += ' (not ({0}))'.format(' '.join(map(str, pre[1:][0])))
+                else:
+                    precond_str += ' ({0})'.format(' '.join(map(str, pre)))
+            ## universal-preconditions
+            for uni in self.universals:
+                types, variables = zip(*uni[0])
+                varlist = ' '.join(['%s - %s' % pair for pair in zip(variables, types)])
+                uni_str = str()
+                for pre in uni[1]:
+                    if pre[0] == -1:
+                        uni_str += '(not ({0}))'.format(' '.join(map(str, pre[1:][0])))
+                    else:
+                        uni_str += '({0})'.format(' '.join(map(str, pre)))
+                precond_str += '\n             (forall ({}) (and {}))'.format(varlist,uni_str)
+            ## existential-preconditions
+            for ext in self.existentials:
+                types, variables = zip(*ext[0])
+                varlist = ' '.join(['%s - %s' % pair for pair in zip(variables, types)])
+                ext_str = str()
+                for pre in ext[1]:
+                    if pre[0] == -1:
+                        ext_str += '(not ({0}))'.format(' '.join(map(str, pre[1:][0])))
+                    else:
+                        ext_str += '({0})'.format(' '.join(map(str, pre)))
+                precond_str += '\n             (exists ({}) (and {}))'.format(varlist,ext_str)
+            precond_str += ')'
+
+        return precond_str
+
+###############################################################################
+## EFFECT CLASS
+###############################################################################
+class Effect(object):
+
+    def __init__(self, literals=(), forall=(), when=(), probabilistic=(), oneof=()):
+        """
+        An Effect  schema
+        @arg literals : effects as literals
+        @arg forall : tuple of conditional-effects forall
+        @arg when : tuple of conditional-effects when
+        @arg probabilistic : tuple of probabilistic effects
+        @arg oneof : tuple of oneof effects
+        """
+        self.literals = literals
+        self.forall = forall
+        self.when = when
+        self.probabilistic = probabilistic
+        self.oneof = oneof
+
+    def __str__(self, pddl=False):
+        """
+        Return the effect as a string
+        """
+
+        ## a function to convert a conditional effect into a string
+        def cnd_effects_str(eff):
+            eff_str = str()
+            for e in eff: eff_str += cnd_effect_str(e)
+            return eff_str
+
+        def cnd_effect_str(eff):
+            if 'WHEN_KEY' in eff: return "(when %s %s)" % (eff[1], cnd_effects_str(eff[2]))
+            elif 'FORALL_KEY' in eff: return "(forall %s %s)" % (eff[1], cnd_effects_str(eff[2]))
+            return str(eff)
+
+        ## a function to convert a conditional effect into a pddl string
+        def pddl_cnd_effects_str(eff):
+            if len(eff) > 1:
+                eff_str = '(and '
+                for e in eff: eff_str += pddl_cnd_effect_str(e)
+                return eff_str + ')'
+            return pddl_cnd_effect_str(eff[0])
+
+        def pddl_cnd_effect_str(eff):
+            if 'WHEN_KEY' in eff: return "(when %s %s)" % (pddl_cnd_effects_str(eff[1]), pddl_cnd_effects_str(eff[2]))
+            elif 'FORALL_KEY' in eff: return "(forall %s %s)" % (pddl_cnd_effects_str(eff[1]), pddl_cnd_effects_str(eff[2]))
+            return pddl_pred_str(eff)
+
+        def pddl_pred_str(pred):
+            if pred[0] == -1:
+                return '(not ({0}))'.format(' '.join(map(str, pred[1:][0])))
+            return '({0})'.format(' '.join(map(str, pred)))
+
+
+        eff_str = str()
+        if not pddl:
+            if self.literals:
+                eff_str += '  >> literals: {}\n'.format(', '.join(map(str, self.literals)))
+            for p in self.forall:
+                eff_str += '  >> forall: {}{}\n'.format(p[1],cnd_effects_str(p[2]))
+            for p in self.when:
+                eff_str += '  >> when: {}{}\n'.format(p[1],cnd_effects_str(p[2]))
+            for prob in self.probabilistic:
+                eff_str += '  >> probabilistic:\n'
+                for p in prob[1]:
+                    eff_str += '        ({}) {}\n'.format(p[0],cnd_effects_str(p[1]))
+            for prob in self.oneof:
+                eff_str += '  >> oneof:\n'
+                for p in prob[1]:
+                    eff_str += '        {}\n'.format(cnd_effects_str(p))
+        else:
+            eff_str += '(and'
+            for pre in self.literals:
+                if pre[0] == -1:
+                    eff_str += ' (not ({0}))'.format(' '.join(map(str, pre[1:][0])))
+                else:
+                    eff_str += ' ({0})'.format(' '.join(map(str, pre)))
+            for uni in self.forall:
+                types, variables = zip(*uni[1])
+                varlist = ' '.join(['%s - %s' % pair for pair in zip(variables, types)])
+                eff_str += '\n             (forall ({}) {})'.format(varlist,pddl_cnd_effects_str(uni[2]))
+            for uni in self.when:
+                eff_str += '\n             (when {} {})'.format(pddl_cnd_effects_str(uni[1]),pddl_cnd_effects_str(uni[2]))
+            for prob in self.probabilistic:
+                eff_str += '\n             (probabilistic '
+                for p in prob[1]:
+                    eff_str += '\n                     {} {}'.format(p[0],pddl_cnd_effects_str(p[1]))
+                eff_str += ')'
+            for prob in self.oneof:
+                eff_str += '\n             (oneof '
+                for p in prob[1]:
+                    eff_str += '\n                     {}'.format(pddl_cnd_effects_str(p))
+                eff_str += ')'
+            eff_str += ')'
+
+        return eff_str
+
+
+###############################################################################
 ## ACTION CLASS
 ###############################################################################
 class Action(object):
     """
     An action schema
     """
-    def __init__(self, name, parameters=(), preconditions=(), effects=(),
-                 unique=False, no_permute=False):
+    def __init__(self, name, parameters=(), preconditions=(), effects=()):
         """
         A PDDL-like action schema
         @arg name : action name for display purposes
         @arg parameters : tuple of ('type', 'param_name') tuples indicating
                           action parameters
-        @arg preconditions : tuple of preconditions for the action
+        @arg preconditions : tuple of preconditions for the action in the following format:
+                             preconditions = (tuple of literals, tuple of universals, tuple of existentials)
         @arg effects : tuple of effects of the action
-        @arg unique : if True, only ground with unique arguments (no duplicates)
-        @arg no_permute : if True, do not ground an action twice with the same
-                          set of (permuted) arguments
         """
         self.name = name
         if len(parameters) > 0:
@@ -367,10 +491,9 @@ class Action(object):
         else:
             self.types = tuple()
             self.arg_names = tuple()
+        ## preconditions = (tuple(literals), tuple(universals), tuple(existentials))
         self.preconditions = preconditions
         self.effects = effects
-        self.unique = unique
-        self.no_permute = no_permute
 
     # def ground(self, *args, deterministic=True):
     #     return _GroundedAction(self, *args, deterministic=deterministic)
@@ -383,36 +506,15 @@ class Action(object):
             arglist = ', '.join(['%s - %s' % pair for pair in zip(self.arg_names, self.types)])
             operator_str  = '{0}({1})\n'.format(self.name, arglist)
             if body:
-                operator_str += '>> precond: {0}\n'.format(', '.join(map(str, self.preconditions)))
-                operator_str += '>> effects: {0}\n'.format(', '.join(map(str, self.effects)))
+                operator_str += '>> precond:\n{}\n'.format(self.preconditions.__str__(pddl))
+                operator_str += '>> effects:\n{}\n'.format(self.effects.__str__(pddl))
             return operator_str
         else:
-            arglist   = ', '.join(['%s - %s' % pair for pair in zip(self.arg_names, self.types)])
-            pddl_str  = '\n  (:action {0}\n   :parameters ({1})\n'.format(self.name, arglist)
-            pddl_str += '   :precondition (and'
-            for precondition in self.preconditions:
-                if precondition[0] == -1:
-                    pddl_str += ' (not ({0}))'.format(' '.join(map(str, precondition[1:][0])))
-                else:
-                    pddl_str += ' ({0})'.format(' '.join(map(str, precondition)))
+            arglist   = ' '.join(['%s - %s' % pair for pair in zip(self.arg_names, self.types)])
+            pddl_str  = '\n  (:action {0}\n   :parameters ({1})'.format(self.name, arglist)
+            pddl_str += '\n   :precondition\n        {}'.format(self.preconditions.__str__(pddl))
+            pddl_str += '\n   :effect\n        {}'.format(self.effects.__str__(pddl))
             pddl_str += ')\n'
-            pddl_str += '   :effect (and'
-            for effect in self.effects:
-                if type(effect[0]) == float:
-                    pddl_str += ' (probabilistic {}'.format(effect[0])
-                    for eff in effect[1]:
-                        if eff[0] == -1:
-                            pddl_str += ' (not ({})))'.format(' '.join(map(str, eff[1])))
-                        else:
-                            pddl_str += ' ({}))'.format(' '.join(map(str, eff)))
-                    pddl_str += ')'
-                else:
-                    if effect[0] == -1:
-                        pddl_str += ' (not ({0}))'.format(' '.join(map(str, effect[1])))
-                    else:
-                        pddl_str += ' ({0})'.format(' '.join(map(str, effect)))
-
-            pddl_str += '))\n'
             return pddl_str
 
 def _grounder(arg_names, args):
