@@ -100,7 +100,7 @@ def call_optic_clp(domain, problem, verbose=False):
     if "problem has been deemed unsolvable" in shell or "Problem unsolvable" in shell:
         return None
 
-    ## if solution already exists in the problem ##
+    ## if not supported some PDDL features by planner ##
     if ("; Plan empty" in shell and "; Plan found" in shell) \
         or "The empty plan is optimal" is shell:
         return list()

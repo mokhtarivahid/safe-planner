@@ -5,6 +5,7 @@ from collections import OrderedDict, defaultdict, Counter
 from time import time
 import copy
 import itertools
+from inspect import currentframe, getframeinfo
 
 from color import fg_green, fg_red, fg_yellow, fg_blue, fg_voilet, fg_beige, bg_green, bg_red, bg_yellow, bg_blue, bg_voilet
 from pddlparser import PDDLParser
@@ -58,6 +59,11 @@ class Planner(object):
         ## parse pddl problem
         self.problem = PDDLParser.parse(problem)
 
+        ## merge constants and objects
+        if self.domain.constants:
+            self.problem.objects = mergeDict(self.problem.objects, self.domain.constants)
+            self.problem.initial_state.objects = self.problem.objects
+
         ## stores the external planner
         self.planner = planner
 
@@ -76,7 +82,7 @@ class Planner(object):
         self.planning_time = time()
 
         # if new_state is itself a goal state (then the plan is empty)
-        if self.problem.initial_state.is_true(*(self.problem.goals, self.problem.num_goals)):
+        if self.problem.initial_state.is_true(self.problem.goals):
             self.policy[self.problem.initial_state] = None
             if verbose: print(fg_yellow('@@ initial state already contains the goal!'))
             return
@@ -98,11 +104,16 @@ class Planner(object):
 
                 policy = OrderedDict()
 
+                ## in case of dead-end, store the domain leading to a dead end state
+                deadend_domain = str()
+
                 for domain, domain_spec in self.domains.items():
 
                     # ## if state is in deadend_list modify the domain and make inapplicable actions in deadend_list[state]
                     # if state in self.deadend_list:
                     #     domain, domain_spec = self.modify_domain(state, domain, domain_spec)
+
+                    deadend_domain = domain
 
                     ## print out some info
                     if verbose:
@@ -158,11 +169,12 @@ class Planner(object):
 
                 policy = OrderedDict()
 
-                try:
-                    new_states = self.apply_step(state, action, verbose=verbose)
-                except:
-                    print(fg_red("@@ other outcome '{0}' is not applicable!!".format(str(self.policy[state]))))
-                    exit()
+                new_states = self.apply_step(state, action, verbose=verbose)
+                # try:
+                #     new_states = self.apply_step(state, action, verbose=verbose)
+                # except:
+                #     print(fg_red("@@ other outcome '{0}' is not applicable!!".format(str(self.policy[state]))))
+                #     exit()
 
                 ## !!! THIS FOR LOOP HAS TO BE IMPROVED AND UPGRADED TO CHECK 
                 ## !!! IF THERE IS A VALID PLAN FOR ALL OUTCOME IN 'NEW_STATES'
@@ -170,7 +182,7 @@ class Planner(object):
                 for new_state in new_states:
 
                     # if new_state is itself a goal state (then the plan is empty)
-                    if new_state.is_true(*(self.problem.goals, self.problem.num_goals)): 
+                    if new_state.is_true(self.problem.goals): 
                         policy[new_state] = None
                         if verbose: print(fg_yellow('@@ new state already contains the goal!'))
                         continue
@@ -395,7 +407,6 @@ class Planner(object):
         if domain is not None:
             for action in step:
                 init = init.apply(domain.ground(action))
-
             return init
 
         # else:
@@ -412,7 +423,7 @@ class Planner(object):
                 grounded_action = list()
                 for domain, domain_spec in self.domains.items():
                     grounded_action.append(domain_spec.ground(action))
-                grounded_actions.append(grounded_action)
+                grounded_actions.append(tuple(set(grounded_action)))
             ## generate all possible combination of actions
             grounded_steps = list(itertools.product(*grounded_actions))
         # otherwise, making ground on the first domain is sufficient
@@ -433,6 +444,8 @@ class Planner(object):
                         add_effects.extend(action.add_effects)
                         del_effects.extend(action.del_effects)
                     state = state.apply(action)
+            if state in states:
+                if verbose: print(fg_red('non-deterministic effects generate a similar state'), get_linenumber())
             states[state] = (tuple(add_effects), tuple(del_effects))
 
         return states
@@ -512,7 +525,7 @@ class Planner(object):
                 visited[state] = i
 
                 if state not in self.policy:
-                    if state.is_true(*(self.problem.goals, self.problem.num_goals)): 
+                    if state.is_true(self.problem.goals): 
                         plan[i] = 'goal'
                     else:
                         plan[i] = None
@@ -521,7 +534,7 @@ class Planner(object):
                 step = self.policy[state]
 
                 if step == None: 
-                    if state.is_true(*(self.problem.goals, self.problem.num_goals)):
+                    if state.is_true(self.problem.goals):
                         if verbose: print(bg_green('@ Goal is achieved'))
                         plan[i] = 'goal'
                     else:
@@ -726,5 +739,17 @@ class Planner(object):
 
 
 def listdir_fullpath(d):
+    '''create and return a list of paths to all files in d'''
     return [os.path.join(d, f) for f in os.listdir(d)]
 
+def mergeDict(dict1, dict2):
+    ''' Merge dictionaries and keep values of common keys'''
+    dict3 = dict1
+    for key in dict3:
+        if key in dict2:
+            dict3[key] = tuple(list(set(dict3[key]) | set(dict2[key])))
+    return dict3
+
+def get_linenumber():
+    frameinfo = getframeinfo(currentframe())
+    return (frameinfo.filename.split('/')[-1], frameinfo.lineno)

@@ -20,8 +20,7 @@ import re
 from fractions import Fraction
 import io
 
-from pypddl import Domain, Problem, Action, Precondition, Effect, neg
-
+from pypddl import Domain, Problem, Action, Precondition, Effect
 
 tokens = (
     'NAME',
@@ -38,6 +37,7 @@ tokens = (
     'EQUALITY_KEY',
     'TYPING_KEY',
     'PROBABILISTIC_EFFECTS_KEY',
+    'CONDITIONAL_EFFECTS_KEY',
     'EXISTENTIAL_PRECONDITIONS_KEY',
     'NEGATIVE_PRECONDITIONS_KEY',
     'UNIVERSAL_PRECONDITIONS_KEY',
@@ -76,10 +76,11 @@ reserved = {
     ':strips'                   : 'STRIPS_KEY',
     ':equality'                 : 'EQUALITY_KEY',
     ':typing'                   : 'TYPING_KEY',
-    ':probabilistic-effects'    : 'PROBABILISTIC_EFFECTS_KEY',
     ':existential-preconditions': 'EXISTENTIAL_PRECONDITIONS_KEY',
     ':negative-preconditions'   : 'NEGATIVE_PRECONDITIONS_KEY',
     ':universal-preconditions'  : 'UNIVERSAL_PRECONDITIONS_KEY',
+    ':conditional-effects'      : 'CONDITIONAL_EFFECTS_KEY',
+    ':probabilistic-effects'    : 'PROBABILISTIC_EFFECTS_KEY',
     ':types'                    : 'TYPES_KEY',
     ':predicates'               : 'PREDICATES_KEY',
     ':action'                   : 'ACTION_KEY',
@@ -153,8 +154,9 @@ def p_pddl(p):
 
 
 def p_domain(p):
-    '''domain : LPAREN DEFINE_KEY structure_def_lst RPAREN'''
-    name = requirements = types = constants = predicates = actions = tuple()
+    '''domain : LPAREN DEFINE_KEY domain_structure_def_lst RPAREN'''
+    name = requirements = types = predicates = actions = tuple()
+    constants = dict()
     for d in p[3]:
       if 'DOMAIN_KEY' in d:
         name = d[1]
@@ -169,21 +171,20 @@ def p_domain(p):
       else:
         actions = d
 
-    # p[0] = (name, requirements, types, constants, predicates, actions)
     p[0] = Domain(name, requirements, types, constants, predicates, actions)
 
 
-def p_structure_def_lst(p):
-    '''structure_def_lst : structure_def structure_def_lst
-                         | structure_def'''
+def p_domain_structure_def_lst(p):
+    '''domain_structure_def_lst : domain_structure_def domain_structure_def_lst
+                         | domain_structure_def'''
     if len(p) == 2:
         p[0] = tuple([p[1]])
     elif len(p) == 3:
         p[0] = tuple([p[1]]) + p[2]
 
 
-def p_structure_def(p):
-    '''structure_def : domain_def
+def p_domain_structure_def(p):
+    '''domain_structure_def : domain_def
                      | require_def 
                      | types_def 
                      | constants_def 
@@ -216,6 +217,7 @@ def p_require_key(p):
                    | EQUALITY_KEY
                    | TYPING_KEY
                    | PROBABILISTIC_EFFECTS_KEY
+                   | CONDITIONAL_EFFECTS_KEY
                    | EXISTENTIAL_PRECONDITIONS_KEY
                    | NEGATIVE_PRECONDITIONS_KEY
                    | UNIVERSAL_PRECONDITIONS_KEY'''
@@ -223,8 +225,9 @@ def p_require_key(p):
 
 
 def p_types_def(p):
-    '''types_def : LPAREN TYPES_KEY names_lst RPAREN'''
-    p[0] = (['TYPES_KEY', p[3]])
+    '''types_def : LPAREN TYPES_KEY typed_names_lst RPAREN'''
+    # '''types_def : LPAREN TYPES_KEY names_lst RPAREN'''
+    p[0] = (['TYPES_KEY', dict(zip(p[3][::2], p[3][1::2]))])
 
 
 def p_constants_def(p):
@@ -268,8 +271,7 @@ def p_action_def_lst(p):
 
 def p_action_def(p):
     '''action_def : LPAREN ACTION_KEY NAME parameters_def action_def_body RPAREN'''
-    # p[0] = (p[3], p[4], p[5][0], p[5][1])
-    p[0] = Action(p[3], p[4], p[5][0], p[5][1])
+    p[0] = Action(p[3], p[4], p[5][0], p[5][1][0], p[5][1][1], p[5][1][2])
 
 
 def p_parameters_def(p):
@@ -294,16 +296,16 @@ def p_precond_def(p):
     elif len(p) == 3:
       prec = [p[2]]
 
-    (literals, universals, existentials) = ([],[],[])
+    (literals, universal, existential) = ([],[],[])
     for d in prec:
       if 'FORALL_KEY' in d:
-        universals.append((d[1],d[2]))
+        universal.append((d[1],d[2]))
       elif 'EXISTS_KEY' in d:
-        existentials.append((d[1],d[2]))
+        existential.append((d[1],d[2]))
       else:
         literals.append(d)
 
-    p[0] = Precondition(tuple(literals), tuple(universals), tuple(existentials))
+    p[0] = Precondition(tuple(literals), tuple(universal), tuple(existential))
 
 
 def p_preconds_lst(p):
@@ -346,27 +348,40 @@ def p_effect_def(p):
     '''effect_def : EFFECT_KEY LPAREN AND_KEY effect_lst RPAREN
                   | EFFECT_KEY effect'''
     if len(p) == 6:
-      eff = p[4]
+      effects = p[4]
     elif len(p) == 3:
-      eff = [p[2]]
+      effects = [p[2]]
 
     (literals, forall, when, probabilistic, oneof) = ([],[],[],[],[])
-    for e in eff:
-      if 'FORALL_KEY' in e:
-        forall.append(e)
-        # forall.append((e[1],e[2]))
-      elif 'WHEN_KEY' in e:
-        when.append(e)
-        # when.append((e[1],e[2]))
-      elif 'PROBABILITY' in e:
-        probabilistic.append(e)
-      elif 'ONEOF' in e:
-        oneof.append(e)
+    for effect in effects:
+      if 'FORALL_KEY' in effect:
+        forall.append((effect[1],effect[2]))
+      elif 'WHEN_KEY' in effect:
+        when.append((effect[1],effect[2]))
+      elif 'PROBABILITY' in effect:
+        prob_lst = list()
+        for eff in effect[1]:
+          lit_lst, for_lst, whn_lst = ([],[],[])
+          for e in eff[1]:
+            if 'FORALL_KEY' in e: for_lst.append((e[1],e[2]))
+            elif 'WHEN_KEY' in e: whn_lst.append((e[1],e[2]))
+            else: lit_lst.append(e)
+          prob_lst.append((eff[0], Effect(tuple(lit_lst), tuple(for_lst), tuple(whn_lst))))
+        probabilistic.append(tuple(prob_lst))
+      elif 'ONEOF' in effect:
+        nd_lst = list()
+        for eff in effect[1]:
+          lit_lst, for_lst, whn_lst = ([],[],[])
+          for e in eff:
+            if 'FORALL_KEY' in e: for_lst.append((e[1],e[2]))
+            elif 'WHEN_KEY' in e: whn_lst.append((e[1],e[2]))
+            else: lit_lst.append(e)
+          nd_lst.append(Effect(tuple(lit_lst), tuple(for_lst), tuple(whn_lst)))
+        oneof.append(tuple(nd_lst))
       else:
-        literals.append(e)
+        literals.append(effect)
 
-    # p[0] = (tuple(literals), tuple(forall), tuple(when), tuple(probabilistic), tuple(oneof))
-    p[0] = Effect(tuple(literals), tuple(forall), tuple(when), tuple(probabilistic), tuple(oneof))
+    p[0] = (Effect(tuple(literals), tuple(forall), tuple(when)), tuple(probabilistic), tuple(oneof))
 
 
 def p_effect_lst(p):
@@ -430,8 +445,8 @@ def p_prob_effect(p):
 
 def p_conditional_for_eff(p):
     '''conditional_for_eff :
-               | LPAREN FORALL_KEY LPAREN typed_variables_lst RPAREN effect RPAREN
-               | LPAREN FORALL_KEY LPAREN typed_variables_lst RPAREN LPAREN AND_KEY effect_lst RPAREN RPAREN'''
+               | LPAREN FORALL_KEY LPAREN typed_variables_lst RPAREN literal RPAREN
+               | LPAREN FORALL_KEY LPAREN typed_variables_lst RPAREN LPAREN AND_KEY literals_lst RPAREN RPAREN'''
     if len(p) == 8:
         p[0] = ('FORALL_KEY', tuple(p[4]), tuple([p[6]]))
     elif len(p) == 11:
@@ -440,10 +455,10 @@ def p_conditional_for_eff(p):
 
 def p_conditional_when_eff(p):
     '''conditional_when_eff :
-               | LPAREN WHEN_KEY literal effect RPAREN
-               | LPAREN WHEN_KEY LPAREN AND_KEY literals_lst RPAREN effect RPAREN
-               | LPAREN WHEN_KEY literal LPAREN AND_KEY effect_lst RPAREN RPAREN
-               | LPAREN WHEN_KEY LPAREN AND_KEY literals_lst RPAREN LPAREN AND_KEY effect_lst RPAREN RPAREN
+               | LPAREN WHEN_KEY literal literal RPAREN
+               | LPAREN WHEN_KEY LPAREN AND_KEY literals_lst RPAREN literal RPAREN
+               | LPAREN WHEN_KEY literal LPAREN AND_KEY literals_lst RPAREN RPAREN
+               | LPAREN WHEN_KEY LPAREN AND_KEY literals_lst RPAREN LPAREN AND_KEY literals_lst RPAREN RPAREN
                '''
     if len(p) == 6:
         p[0] = ('WHEN_KEY', tuple([p[3]]), tuple([p[4]]))
@@ -471,7 +486,7 @@ def p_literal(p):
     if len(p) == 2:
         p[0] = (p[1])
     elif len(p) == 5:
-        p[0] = neg(p[3])
+        p[0] = (-1, p[3])
 
 
 def p_ground_predicates_lst(p):
@@ -485,6 +500,7 @@ def p_ground_predicates_lst(p):
 
 def p_predicate(p):
     '''predicate : LPAREN NAME variables_lst RPAREN
+                 | LPAREN NAME constants_lst RPAREN
                  | LPAREN EQUALS VARIABLE VARIABLE RPAREN
                  | LPAREN NAME RPAREN'''
     if len(p) == 4:
@@ -540,6 +556,18 @@ def p_variables_lst(p):
         p[0] = [p[1]] + p[2]
 
 
+def p_typed_names_lst(p):
+    '''typed_names_lst : names_lst HYPHEN type typed_names_lst
+                       | names_lst HYPHEN type
+                       | names_lst'''
+    if len(p) == 2:
+        p[0] = tuple([t for pair in zip(p[1], [()]*len(p[1])) for t in pair])
+    elif len(p) == 4:
+        p[0] = (p[3], p[1])
+    elif len(p) == 5:
+        p[0] = (p[3], p[1]) + p[4]
+
+
 def p_names_lst(p):
     '''names_lst : NAME names_lst
                  | NAME'''
@@ -552,41 +580,70 @@ def p_names_lst(p):
 
 
 def p_problem(p):
-    '''problem : LPAREN DEFINE_KEY problem_def domain_def objects_def init_def goal_def RPAREN
-               | LPAREN DEFINE_KEY problem_def domain_def init_def goal_def RPAREN'''
-    if len(p) == 9:
-        p[0] = (p[3], p[4], p[5], p[6], p[7])
-    elif len(p) == 8:
-        p[0] = (p[3], p[4], {}, p[5], p[6])
+    '''problem : LPAREN DEFINE_KEY problem_structure_def_lst RPAREN'''
+    problem = domain = str()
+    init = goal = tuple()
+    objects = dict()
+    for d in p[3]:
+      if 'PROBLEM_KEY' in d:
+        problem = d[1]
+      elif 'DOMAIN_KEY' in d:
+        domain = d[1]
+      elif 'OBJECTS_KEY' in d:
+        objects = d[1]
+      elif 'INIT_KEY' in d:
+        init = d[1]
+      elif 'GOAL_KEY' in d:
+        goal = d[1]
+
+    p[0] = Problem(problem, domain, objects, init, goal)
+
+
+def p_problem_structure_def_lst(p):
+    '''problem_structure_def_lst : problem_structure_def problem_structure_def_lst
+                                 | problem_structure_def'''
+    if len(p) == 2:
+        p[0] = tuple([p[1]])
+    elif len(p) == 3:
+        p[0] = tuple([p[1]]) + p[2]
+
+
+def p_problem_structure_def(p):
+    '''problem_structure_def : problem_def
+                             | domain_def
+                             | objects_def
+                             | init_def
+                             | goal_def'''
+    p[0] = p[1]
 
 
 def p_problem_def(p):
     '''problem_def : LPAREN PROBLEM_KEY NAME RPAREN'''
-    p[0] = p[3]
+    p[0] = ('PROBLEM_KEY', p[3])
 
 
 def p_objects_def(p):
     '''objects_def : LPAREN OBJECTS_KEY typed_constants_lst RPAREN'''
-    # conver the tuple into a dictionary: odd indices as keys and even indices as values
-    p[0] = dict(zip(p[3][::2], p[3][1::2]))
+    # convert the tuple into a dictionary: odd indices as keys and even indices as values
+    p[0] = ('OBJECTS_KEY', dict(zip(p[3][::2], p[3][1::2])))
 
 
 def p_init_def(p):
     '''init_def : LPAREN INIT_KEY LPAREN AND_KEY ground_predicates_lst RPAREN RPAREN
                 | LPAREN INIT_KEY ground_predicates_lst RPAREN'''
     if len(p) == 5:
-        p[0] = p[3]
+        p[0] = ('INIT_KEY', p[3])
     elif len(p) == 8:
-        p[0] = p[5]
+        p[0] = ('INIT_KEY', p[5])
 
 
 def p_goal_def(p):
     '''goal_def : LPAREN GOAL_KEY LPAREN AND_KEY ground_predicates_lst RPAREN RPAREN
                 | LPAREN GOAL_KEY ground_predicates_lst RPAREN'''
     if len(p) == 5:
-        p[0] = p[3]
+        p[0] = ('GOAL_KEY', p[3])
     elif len(p) == 8:
-        p[0] = p[5]
+        p[0] = ('GOAL_KEY', p[5])
 
 
 def p_type(p):
