@@ -27,10 +27,10 @@ if __name__ == '__main__':
 
     policy = Planner(args.domain, args.problem, args.planner, args.verbose)
 
-    policy.print_plan(verbose=args.verbose, del_list_included=False)
-    
-    # if args.verbose: policy.print_paths(verbose=args.verbose)
+    policy.print_plan(verbose=args.verbose, del_effects_included=True)
+
+    if args.verbose: policy.print_paths(del_effects_included=True, verbose=args.verbose)
 
     print('Planning time: %.3f s' % policy.planning_time)
-    print('Number of replannings: %i' % policy.planning_call)
-    print('Number of replannings leading to deadends: %i' % policy.deadends_call)
+    print('Total number of replannings: %i' % policy.planning_call)
+    print('Total number of calls to unsolvable states: %i' % policy.unsolvable_call)

@@ -14,13 +14,12 @@
 # along with pypddl-parser.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from ply import lex
-from ply import yacc
-import re
+from ply import lex, yacc
 from fractions import Fraction
-import io
+import re, io
 
-from pypddl import Domain, Problem, Action, Precondition, Effect
+from domain import Domain, Action, Precondition, Effect
+from problem import Problem, State
 
 tokens = (
     'NAME',

@@ -31,6 +31,7 @@
                 (ungripped ?o - object)
                 (downward ?o - object)
                 (upward ?o - object)
+                (unknown_pos ?o - object)
                 (camera_checked ?o - object)
 
                 (packed ?o1 - object ?o2 - object ?d - object)
@@ -125,8 +126,8 @@
 
 (:action check_orientation
  :parameters   (?a - arm ?o ?c - object)
- :precondition (and (arm_vacuumed ?a ?o) (arm_at ?a ?c) (camera ?c))
- :effect       (and (downward ?o) (camera_checked ?o)))
+ :precondition (and (arm_vacuumed ?a ?o) (arm_at ?a ?c) (camera ?c) (unknown_pos ?o))
+ :effect       (and (downward ?o) (camera_checked ?o) (not (unknown_pos ?o))))
 
 (:action rotate_object
  :parameters   (?a - arm ?o - object)

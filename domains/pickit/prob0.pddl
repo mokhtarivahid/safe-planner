@@ -20,6 +20,8 @@
             (camera camera1)
             (cap cap1)
             (base base1)
+            (unknown_pos cap1)
+            (unknown_pos base1)
             (pose assembly_pose1)
             (pose assembly_pose2)
             

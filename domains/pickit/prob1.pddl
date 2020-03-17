@@ -21,6 +21,10 @@
             (cap cap2)
             (base base1)
             (base base2)
+            (unknown_pos cap1)
+            (unknown_pos cap2)
+            (unknown_pos base1)
+            (unknown_pos base2)
             (pose assembly_pose1)
             (pose assembly_pose2)
             
