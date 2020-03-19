@@ -28,7 +28,7 @@ def parse_plan(plan):
     # a sample code to parse the output plan
     for level, step in plan.items():
         print(fg_green('@ step ' + str(level)))
-        if step == 'goal':
+        if step == 'GOAL':
             # goal state is achieved
             print(fg_voilet('@ goal'))
             pass

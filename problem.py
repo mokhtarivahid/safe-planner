@@ -34,9 +34,7 @@ class Problem(object):
         problem_str  = '@ Problem: {0}\n'.format(self.problem)
         problem_str += '>> domain: {0}\n'.format(self.domain)
         if len(self.objects) > 0:
-            problem_str += '>> objects:\n'
-            for type, objects in self.objects.items():
-                problem_str += '   {0} -> {1}\n'.format(type, ', '.join(sorted(objects)))
+            problem_str += '>> objects: {}\n'.format(self.objects)
         problem_str += '>> init:\n   {0}\n'.format('\n   '.join(map(str, state.predicates)))
         problem_str += '>> goal:\n   {0}\n'.format('\n   '.join(map(str, goals)))
         return problem_str

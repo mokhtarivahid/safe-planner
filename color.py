@@ -52,8 +52,14 @@ def fg_green(*str):
 def fg_red(*str):
     return (CRED + ' '.join(str) + CEND)
 
+def fg_red2(*str):
+    return (CRED2 + ' '.join(str) + CEND)
+
 def fg_yellow(*str):
     return (CYELLOW + ' '.join(str) + CEND)
+
+def fg_yellow2(*str):
+    return (CYELLOW2 + ' '.join(str) + CEND)
 
 def fg_blue(*str):
     return (CBLUE + ' '.join(str) + CEND)

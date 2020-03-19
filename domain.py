@@ -34,6 +34,7 @@ class Domain(object):
         grounded_actions = list()
         for action in self.actions:
             param_lists = [objects[t] for t in action.types]
+            print(param_lists)
             for params in product(*param_lists):
                 grounded_actions.append(action.ground(*params))
         return grounded_actions
@@ -197,8 +198,6 @@ class _GroundedAction(object):
         ground = _grounder(action.arg_names, args)
 
         # Ground Action Signature
-        # print()
-        # print(action.arg_names, args)
         self.sig = ground((self.name,) + action.arg_names)
 
         # Ground Preconditions
@@ -285,7 +284,7 @@ class _GroundedAction(object):
         """
         return str(self.sig[0]+'('+', '.join(self.sig[1:])+')')
 
-    def __str__(self, body = False):
+    def __str__(self, body=False):
         if self == None:
             return None 
         operator_str = '({})'.format(' '.join(self.sig))

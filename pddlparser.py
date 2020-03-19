@@ -154,8 +154,8 @@ def p_pddl(p):
 
 def p_domain(p):
     '''domain : LPAREN DEFINE_KEY domain_structure_def_lst RPAREN'''
-    name = requirements = types = predicates = actions = tuple()
-    constants = dict()
+    name = requirements = predicates = actions = tuple()
+    types = constants = dict()
     for d in p[3]:
       if 'DOMAIN_KEY' in d:
         name = d[1]

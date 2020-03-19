@@ -7,7 +7,7 @@ from color import fg_green, fg_red, fg_yellow, fg_blue, fg_voilet, fg_beige, bg_
 ###############################################################################
 ###############################################################################
 ## call ff planner
-def call_ff(domain, problem, verbose=False):
+def call_ff(domain, problem, verbose=0):
     """
     Call an external planner
     @arg domain : path to a given domain 
@@ -33,7 +33,7 @@ def call_ff(domain, problem, verbose=False):
     # shell = ''.join(map(chr, output))
     shell = to_str(output)
 
-    if verbose: print(shell)
+    if verbose == 2: print(shell)
 
     ## if no solution exists try the next domain ##
     if "goal can be simplified to FALSE" in shell or "problem proven unsolvable" in shell:
@@ -57,7 +57,7 @@ def call_ff(domain, problem, verbose=False):
 ###############################################################################
 ###############################################################################
 ## call optic-clp planner
-def call_optic_clp(domain, problem, verbose=False):
+def call_optic_clp(domain, problem, verbose=0):
     """
     Call an external planner
     @arg domain : path to a given domain 
@@ -94,7 +94,7 @@ def call_optic_clp(domain, problem, verbose=False):
         # shell = ''.join(map(chr, output))
         shell = to_str(output)
 
-    if verbose: print(shell)
+    if verbose == 2: print(shell)
 
     ## if no solution exists try the next domain ##
     if "problem has been deemed unsolvable" in shell or "Problem unsolvable" in shell:
@@ -125,7 +125,7 @@ def call_optic_clp(domain, problem, verbose=False):
 ###############################################################################
 ###############################################################################
 ## call madagascar (M) planner
-def call_m(domain, problem, verbose=False):
+def call_m(domain, problem, verbose=0):
     """
     Call an external planner
     @arg domain : path to a given domain 
@@ -172,8 +172,9 @@ def call_m(domain, problem, verbose=False):
         print(shell)
         exit()
 
-    if verbose: print('\n'+open(problem+'.soln').read())
-    if verbose: print(shell)
+    if verbose == 2: 
+        print('\n'+open(problem+'.soln').read())
+        print(shell)
 
     return plan
 
@@ -181,7 +182,7 @@ def call_m(domain, problem, verbose=False):
 ###############################################################################
 ###############################################################################
 ## call vhpop planner
-def call_vhpop(domain, problem, verbose=False):
+def call_vhpop(domain, problem, verbose=0):
     """
     Call an external planner
     @arg domain : path to a given domain 
@@ -212,7 +213,7 @@ def call_vhpop(domain, problem, verbose=False):
     # shell = ''.join(map(chr, output))
     shell = to_str(output)
 
-    if verbose: print(shell)
+    if verbose == 2: print(shell)
 
     # extract plan
     shell = shell[shell.find(';'):shell.find('Time')].strip()
@@ -266,7 +267,7 @@ def run(command):
 
 ###############################################################################
 ###############################################################################
-def call_planner(domain, problem, planner='ff', verbose=False):
+def call_planner(domain, problem, planner='ff', verbose=0):
     """
     Call an external deterministic planner.
     Arguments:
@@ -300,7 +301,7 @@ def call_planner(domain, problem, planner='ff', verbose=False):
 
     ## optic-clp planner ##
     else:
-        print(fg_red("\nThere is not yet a function for parsing the outputs of '{0}'!\n".format(planner)))
+        print(fg_red("\n[There is not yet a function for parsing the outputs of '{0}'!]\n".format(planner)))
         exit()
 
 

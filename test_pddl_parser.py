@@ -28,8 +28,9 @@ if __name__ == '__main__':
     problem = PDDLParser.parse(args.problem)
     problem.objects = mergeDict(problem.objects, domain.constants)
 
+    print(problem)
+    print(domain)
     print(to_pddl(problem))
     print(to_pddl(domain))
     print(pddl(problem))
     print(pddl(domain))
-

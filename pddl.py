@@ -82,10 +82,10 @@ def to_pddl(object, state=None, goals=None):
             pddl_str += '  (:types {} {})\n\n'.format(typed_str,untyped_str)
         if len(object.constants) > 0:
             pddl_str += '  (:constants\n'
-            for _type in sorted(object.constants.keys())[:-1]:
-                pddl_str += '        {0} - {1}\n'.format(' '.join(sorted(object.constants[_type])), _type)
-            _type = sorted(object.constants.keys())[-1]
-            pddl_str += '        {0} - {1})\n\n'.format(' '.join(sorted(object.constants[_type])), _type)
+            for tp in sorted(object.constants.keys())[:-1]:
+                pddl_str += '        {0} - {1}\n'.format(' '.join(sorted(object.constants[tp])), tp)
+            tp = sorted(object.constants.keys())[-1]
+            pddl_str += '        {0} - {1})\n\n'.format(' '.join(sorted(object.constants[tp])), tp)
         pddl_str += '  (:predicates'
         for predicate in object.predicates:
             pddl_str += '\n        ({0} {1})'.format(predicate[0],
@@ -108,10 +108,10 @@ def to_pddl(object, state=None, goals=None):
         pddl_str += '  (:domain {0})\n'.format(object.domain)
         if len(object.objects) > 0:
             pddl_str += '  (:objects \n'
-            for _type in sorted(object.objects.keys())[:-1]:
-                pddl_str += '\t\t{0} - {1}\n'.format(' '.join(sorted(object.objects[_type])), _type)
-            _type = sorted(object.objects.keys())[-1]
-            pddl_str += '\t\t{0} - {1})\n'.format(' '.join(sorted(object.objects[_type])), _type)
+            for tp in sorted(object.objects.keys())[:-1]:
+                pddl_str += '\t\t{0} - {1}\n'.format(' '.join(sorted(object.objects[tp])), tp)
+            tp = sorted(object.objects.keys())[-1]
+            pddl_str += '\t\t{0} - {1})\n'.format(' '.join(sorted(object.objects[tp])), tp)
         pddl_str += '  (:init'
         for predicate in state.predicates:
             pddl_str += '\n\t\t({0})'.format(' '.join(map(str, predicate)))
