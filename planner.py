@@ -466,7 +466,7 @@ class Planner(object):
         return plan
 
 
-    def print_plan(self, plan=None, verbose=True, del_effects_included=False):
+    def print_plan(self, plan=None, del_effects_included=False, verbose=True):
         """
         print the plan in a more readable form
         """

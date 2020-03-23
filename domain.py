@@ -203,7 +203,7 @@ class _GroundedAction(object):
         # Ground Preconditions
         self.pos_preconditions = list()
         self.neg_preconditions = list()
-        ## not yet supported universal precondition
+        ## not yet supported universal precondition when applied in a state 
         self.universal_preconditions = list()
         self.existential_preconditions = list()
 

@@ -61,12 +61,15 @@ class State(object):
         new_preds = set(self.predicates)
         new_preds |= set(action.add_effects)
         new_preds -= set(action.del_effects)
+        ## apply conditional when effect
         for effect in action.when_effects:
             (pos_cnd_lst, neg_cnd_lst, pos_eff_lst, neg_eff_lst) = effect
             if self.is_true(pos_cnd_lst, neg_cnd_lst):
                 new_preds |= set(pos_eff_lst)
                 new_preds -= set(neg_eff_lst)
+        ## apply conditional forall effect
         for effect in action.forall_effects:
+            ## first ground var_list in the state
             (var_lst, pos_eff_lst, neg_eff_lst) = effect
             (types, arg_names) = zip(*var_lst)
             param_lists = [self.objects[t] for t in types]
