@@ -72,7 +72,7 @@ def gen_dot_plan(plan, dot_file=None):
             os.makedirs("/tmp/pyddl/")
         dot_file = "/tmp/pyddl/prob"+str(int(time.time()*1000000))+".dot"
     else:
-        dot_file = '{}.dot'.format(os.path.splitext(os.path.abspath(dot_file))[0])
+        dot_file = '{}.dot'.format(os.path.splitext(dot_file)[0])
     with open(dot_file, 'w') as f:
         f.write(dot_str)
         f.close()

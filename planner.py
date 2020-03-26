@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 
-import os
 from collections import OrderedDict, defaultdict, Counter
-from time import time
+import os, time
 from inspect import currentframe, getframeinfo
 
 from color import fg_green, fg_red, fg_red2, fg_yellow, fg_yellow2, fg_blue, fg_voilet, fg_beige, bg_green, bg_red, bg_yellow, bg_blue, bg_voilet
 from pddlparser import PDDLParser
 from external_planner import call_planner
 from pddl import pddl, to_pddl
+from compilation import compile
 
 class Planner(object):
 
@@ -27,10 +27,6 @@ class Planner(object):
         except:
             print(fg_red("\n[pddl parser does not support '{0}'!]\n".format(domain)))
 
-        ## extract the base name of the given domain: 
-        ## the path to the deterministic domains 
-        base = os.path.splitext(domain)[0]
-
         ## a dictionary of deterministic domains: keys as paths to pddl 
         ## domains and values as domain objects -- dict({pddl:object})
         self.domains = OrderedDict()
@@ -38,18 +34,23 @@ class Planner(object):
         ## list of the probabilistic actions names
         self.prob_actions = list()
 
+        ## the working directory if the domain is probabilistic
+        self.working_dir = None
+
         ## if the domain is probabilistic
         if ":probabilistic-effects" in self.domain.requirements:
-            ## read the probabilistic actions names
-            try:
-                with open(base+'.prob') as f:
-                    self.prob_actions = f.read().splitlines()
-            except FileNotFoundError as fnf_error:
-                    print(fg_red("\n'"+base+".prob' containing the name of probabilistic actions should exist!\n"))
-                    exit()
+
+            ## compile and records the given non-deterministic domain into a list of deterministic domains
+            if verbose: print(fg_green('\n[Compilation to non-deterministic domains]'))
+            self.working_dir = compile(domain, verbose=verbose)
 
             ## parse deterministic pddl domains
-            for domain in sorted(listdir_fullpath(base)):
+            for domain in sorted(listdir_fullpath(self.working_dir)):
+                ## read the probabilistic actions names
+                if domain.endswith('.prob'):
+                    with open(domain) as f:
+                        self.prob_actions = f.read().splitlines()
+                ## read the deterministic domains
                 if domain.endswith('.pddl'):
                     self.domains[domain] = PDDLParser.parse(domain)
         else:
@@ -79,7 +80,7 @@ class Planner(object):
         self.deadends_call = 0
         self.unsolvable_call = 0
 
-        self.planning_time = time()
+        self.planning_time = time.time()
 
         # if new_state is itself a goal state (then the plan is empty)
         if self.problem.initial_state.is_true(self.problem.goals):
@@ -194,8 +195,8 @@ class Planner(object):
                 self.remove_path(state, verbose=False)
                 self.open_terminal_states[state] = None
 
-        self.planning_time = time() - self.planning_time
-        print()
+        self.planning_time = time.time() - self.planning_time
+        print('')
 
         ###################################################################
 
@@ -210,7 +211,7 @@ class Planner(object):
         '''
 
         ## create a pddl problem given retrieved 'state' as its initial state ##
-        problm_pddl = pddl(self.problem, state=state)
+        problm_pddl = pddl(self.problem, state=state, path=self.working_dir)
 
         if verbose: print(fg_yellow2('    -- problem:') + problm_pddl)
 
@@ -273,11 +274,11 @@ class Planner(object):
             if step is not None:
                 new_states = self.apply_step(state, step[0], verbose=verbose)
                 for new_state in new_states:
-                    if not new_state in self.policy:
+                    if not new_state in self.policy and not new_state.is_true(self.problem.goals):
                         self.open_terminal_states[state] = step[0]
                         break
         if verbose and self.open_terminal_states.values():
-            print(fg_yellow('  -- non-deterministic actions to expand: ')+\
+            print(fg_yellow('  -- non-deterministic steps to expand: ')+\
                 '{}'.format((' '.join([' '.join([str('('+' '.join(s)+')') for s in step]) \
                     for step in self.open_terminal_states.values() if step is not None]))))
 
@@ -334,7 +335,11 @@ class Planner(object):
             del self.policy[state]
             if step == None: return
             for s in self.apply_step(state, step[0], verbose=verbose):
-                self.remove_path(s, verbose)
+                ## exclude states that in some domains a non-deterministic action 
+                ## leads to the previous state (before action application)
+                if s in self.policy and self.policy[s] is not None and \
+                    not state in self.apply_step(s, self.policy[s][0], verbose=verbose):
+                    self.remove_path(s, verbose)
 
 
     def apply_step(self, init, step, domain=None, verbose=False):
@@ -608,7 +613,7 @@ class Planner(object):
 
         p = 1
         for path in paths:
-            print(fg_yellow('path{0}'.format(str(p))))
+            print(fg_yellow('-- path{} ({})'.format(str(p), len(path))))
             p += 1
             plan_str = str()
             for (level, step) in path:

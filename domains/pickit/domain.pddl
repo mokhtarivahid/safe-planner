@@ -1,9 +1,9 @@
 (define (domain pickit)
 
-  (:requirements :strips :typing :probabilistic-effects :typing)
+  (:requirements :strips :typing :conditional-effects :probabilistic-effects)
 
-  ; (:types graspable container camera location arm object)
-  (:types arm object)
+  (:types graspable container camera object location arm)
+  ; (:types arm object)
 
   (:predicates  
                 (arm ?o - arm)
@@ -17,7 +17,7 @@
                 (graspable ?o - object)
                 (pose ?o - object)
 
-                (occupied ?o - object)
+                (in_use ?o - object)
                 (free ?o - object)
 
                 (arm_canreach ?a - arm ?o - object)
@@ -50,38 +50,38 @@
 (:action move_to_grasp
  :parameters   (?a - arm ?o ?c ?d - object)
  :precondition (and (arm_free ?a) (arm_at ?a ?o) (arm_canreach ?a ?c) (object_in ?c ?d) (graspable ?c) (free ?c))
- :effect       (and (arm_at ?a ?c) (free ?o) (not (occupied ?o)) (occupied ?c) (not (free ?c)) (not (arm_at ?a ?o))))
+ :effect       (and (arm_at ?a ?c) (free ?o) (not (in_use ?o)) (in_use ?c) (not (free ?c)) (not (arm_at ?a ?o))))
 
 ; (:action carry_object
 ;  :parameters   (?a - arm ?o ?c ?d - object)
 ;  :precondition (and (arm_vacuumed ?a ?o) (arm_at ?a ?c) (arm_canreach ?a ?d) (free ?d))
-;  :effect       (and (arm_at ?a ?d) (free ?c) (not (occupied ?c)) (occupied ?d) (not (free ?d)) (not (arm_at ?a ?c))))
+;  :effect       (and (arm_at ?a ?d) (free ?c) (not (in_use ?c)) (in_use ?d) (not (free ?d)) (not (arm_at ?a ?c))))
 
 (:action carry_to_peg
  :parameters   (?a - arm ?o ?c ?d - object)
  :precondition (and (arm_vacuumed ?a ?o) (arm_at ?a ?c) (arm_canreach ?a ?d) (peg ?d) (free ?d))
- :effect       (and (arm_at ?a ?d) (free ?c) (not (occupied ?c)) (occupied ?d) (not (free ?d)) (not (arm_at ?a ?c))))
+ :effect       (and (arm_at ?a ?d) (free ?c) (not (in_use ?c)) (in_use ?d) (not (free ?d)) (not (arm_at ?a ?c))))
 
 (:action carry_to_hole
  :parameters   (?a - arm ?o ?c ?d - object)
  :precondition (and (arm_vacuumed ?a ?o) (arm_at ?a ?c) (arm_canreach ?a ?d) (hole ?d) (free ?d))
- :effect       (and (arm_at ?a ?d) (free ?c) (not (occupied ?c)) (occupied ?d) (not (free ?d)) (not (arm_at ?a ?c))))
+ :effect       (and (arm_at ?a ?d) (free ?c) (not (in_use ?c)) (in_use ?d) (not (free ?d)) (not (arm_at ?a ?c))))
 
 (:action carry_to_camera
  :parameters   (?a - arm ?o ?c ?d - object)
  :precondition (and (arm_vacuumed ?a ?o) (arm_at ?a ?c) (arm_canreach ?a ?d) (camera ?d) (free ?d))
- :effect       (and (arm_at ?a ?d) (free ?c) (not (occupied ?c)) (occupied ?d) (not (free ?d)) (not (arm_at ?a ?c))))
+ :effect       (and (arm_at ?a ?d) (free ?c) (not (in_use ?c)) (in_use ?d) (not (free ?d)) (not (arm_at ?a ?c))))
 
 (:action carry_to_assemble
  :parameters   (?a - arm ?o ?c ?d - object)
  :precondition (and (arm_gripped ?a ?o) (arm_at ?a ?c) (arm_canreach ?a ?d) (pose ?d) (free ?d))
- :effect       (and (arm_at ?a ?d) (free ?c) (not (occupied ?c)) (occupied ?d) (not (free ?d)) (not (arm_at ?a ?c))))
+ :effect       (and (arm_at ?a ?d) (free ?c) (not (in_use ?c)) (in_use ?d) (not (free ?d)) (not (arm_at ?a ?c))))
 
 (:action carry_to_pack
  :parameters   (?a - arm ?o1 ?o2 ?s ?d - object)
  :precondition (and (assembled ?o1 ?o2) (arm_gripped ?a ?o1) ;(can_packed ?o1) 
                     (arm_at ?a ?s) (arm_canreach ?a ?d) (package ?d) (free ?d) (ungripped ?o2))
- :effect       (and (arm_at ?a ?d) (free ?s) (not (occupied ?s)) (occupied ?d) (not (free ?d)) (not (arm_at ?a ?s))))
+ :effect       (and (arm_at ?a ?d) (free ?s) (not (in_use ?s)) (in_use ?d) (not (free ?d)) (not (arm_at ?a ?s))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; vacuum/grip actions
@@ -90,12 +90,12 @@
 (:action vacuum_object
  :parameters   (?a - arm ?o ?c - object)
  :precondition (and (arm_free ?a) (arm_at ?a ?o) (object_in ?o ?c))
- :effect       (and (arm_vacuumed ?a ?o) (arm_at ?a ?c) (occupied ?c) (not (free ?c)) (free ?o) (not (occupied ?o)) (not (arm_at ?a ?o)) (not (arm_free ?a)) (not (object_in ?o ?c))))
+ :effect       (and (arm_vacuumed ?a ?o) (arm_at ?a ?c) (in_use ?c) (not (free ?c)) (free ?o) (not (in_use ?o)) (not (arm_at ?a ?o)) (not (arm_free ?a)) (not (object_in ?o ?c))))
 
 (:action grip_object
  :parameters   (?a - arm ?o ?c - object)
  :precondition (and (arm_free ?a) (arm_at ?a ?o) (object_in ?o ?c))
- :effect       (and (arm_gripped ?a ?o) (arm_at ?a ?c) (occupied ?c) (not (free ?c)) (free ?o) (not (occupied ?o)) (not (arm_at ?a ?o)) (not (arm_free ?a)) (not (object_in ?o ?c))))
+ :effect       (and (arm_gripped ?a ?o) (arm_at ?a ?c) (in_use ?c) (not (free ?c)) (free ?o) (not (in_use ?o)) (not (arm_at ?a ?o)) (not (arm_free ?a)) (not (object_in ?o ?c))))
 
 (:action ungrip_object
  :parameters   (?a - arm ?o1 ?o2 - object)
@@ -118,7 +118,7 @@
 
 (:action put_in_pack
  :parameters   (?a - arm ?o1 ?o2 ?s - object)
- :precondition (and (assembled ?o1 ?o2) (arm_gripped ?a ?o1) (arm_at ?a ?s) (package ?s))
+ :precondition (and (assembled ?o1 ?o2) (arm_gripped ?a ?o1) (ungripped ?o2) (arm_at ?a ?s) (package ?s))
  :effect       (and (packed ?o1 ?o2 ?s) (arm_free ?a) (not (arm_gripped ?a ?o1))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -129,18 +129,25 @@
  :parameters   (?a - arm ?o ?c - object)
  :precondition (and (arm_vacuumed ?a ?o) (arm_at ?a ?c) (camera ?c) (unknown_pos ?o))
  :effect (and (camera_checked ?o)
-              (probabilistic 0.5 (and (downward ?o) (not (unknown_pos ?o))))
-              (probabilistic 0.5 (and (upward ?o) (not (unknown_pos ?o))))))
+              (oneof (and (downward ?o) (not (unknown_pos ?o)))
+                     (and (upward ?o) (not (unknown_pos ?o))))))
+
+; (:action rotate_object
+;  :parameters   (?a - arm ?o - object)
+;  :precondition (and (arm_vacuumed ?a ?o) (camera_checked ?o))
+;  :effect (and (when (downward ?o) (and (not (downward ?o)) (upward ?o)))
+;               (when (upward ?o) (and (not (upward ?o)) (downward ?o)))))
 
 (:action rotate_object
  :parameters   (?a - arm ?o - object)
  :precondition (and (arm_vacuumed ?a ?o) (camera_checked ?o) (upward ?o))
  :effect       (and (not (upward ?o)) (downward ?o)))
 
-; (:action rotate_object
-;  :parameters   (?a - arm ?o - object)
-;  :precondition (and (arm_vacuumed ?a ?o) (camera_checked ?o))
-;  :effect       (and (when (not (downward ?o))(downward ?o))))
+(:action rotate_object
+ :parameters   (?a - arm ?o - object)
+ :precondition (and (arm_vacuumed ?a ?o) (camera_checked ?o) (downward ?o))
+ :effect       (and (not (downward ?o)) (upward ?o)))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; assemble actions

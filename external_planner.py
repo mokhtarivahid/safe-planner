@@ -1,5 +1,6 @@
 
 import subprocess, os, sys, re, io
+from subprocess import check_output
 from collections import OrderedDict
 from color import fg_green, fg_red, fg_yellow, fg_blue, fg_voilet, fg_beige, bg_green, bg_red, bg_yellow, bg_blue, bg_voilet
 
@@ -21,7 +22,7 @@ def call_ff(domain, problem, verbose=0):
     cmd = './planners/ff -o {0} -f {1}'.format(domain, problem)
 
     ## call command ##
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
      
     (output, err) = process.communicate()
      
@@ -33,7 +34,12 @@ def call_ff(domain, problem, verbose=0):
     # shell = ''.join(map(chr, output))
     shell = to_str(output)
 
-    if verbose == 2: print(shell)
+    if verbose == 2: 
+        print(fg_voilet('\n-- planner stdout'))
+        print(shell)
+        if to_str(err):
+            print(fg_voilet('-- planner stderr'))
+            print(to_str(err))
 
     ## if no solution exists try the next domain ##
     if "goal can be simplified to FALSE" in shell or "problem proven unsolvable" in shell:
@@ -73,9 +79,11 @@ def call_optic_clp(domain, problem, verbose=0):
     cmd = './planners/optic-clp -b -N {0} {1}'.format(domain, problem)
 
     ## call command ##
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
      
     (output, err) = process.communicate()
+
+    # output = check_output(["./planners/optic-clp", "-b", "-N", domain, problem])
      
     ## Wait for cmd to terminate. Get return returncode ##
     # p_status = process.wait()
@@ -89,12 +97,17 @@ def call_optic_clp(domain, problem, verbose=0):
     if "Problem unsolvable by EHC, and best-first search has been disabled":
         ## calling 'optic-clp' again removing '-b' option ##
         cmd = './planners/optic-clp -N {0} {1}'.format(domain, problem)
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         (output, err) = process.communicate()
         # shell = ''.join(map(chr, output))
         shell = to_str(output)
 
-    if verbose == 2: print(shell)
+    if verbose == 2: 
+        print(fg_voilet('\n-- planner stdout'))
+        print(shell)
+        if to_str(err):
+            print(fg_voilet('-- planner stderr'))
+            print(to_str(err))
 
     ## if no solution exists try the next domain ##
     if "problem has been deemed unsolvable" in shell or "Problem unsolvable" in shell:
@@ -140,7 +153,7 @@ def call_m(domain, problem, verbose=0):
 
 
     ## call command ##
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 
     (output, err) = process.communicate()
 
@@ -173,8 +186,12 @@ def call_m(domain, problem, verbose=0):
         exit()
 
     if verbose == 2: 
+        print(fg_voilet('\n-- planner stdout'))
         print('\n'+open(problem+'.soln').read())
         print(shell)
+        if to_str(err):
+            print(fg_voilet('-- planner stderr'))
+            print(to_str(err))
 
     return plan
 
@@ -197,7 +214,7 @@ def call_vhpop(domain, problem, verbose=0):
 
 
     ## call command ##
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
 
     (output, err) = process.communicate()
 
@@ -213,7 +230,12 @@ def call_vhpop(domain, problem, verbose=0):
     # shell = ''.join(map(chr, output))
     shell = to_str(output)
 
-    if verbose == 2: print(shell)
+    if verbose == 2: 
+        print(fg_voilet('\n-- planner stdout'))
+        print(shell)
+        if to_str(err):
+            print(fg_voilet('-- planner stderr'))
+            print(to_str(err))
 
     # extract plan
     shell = shell[shell.find(';'):shell.find('Time')].strip()
@@ -280,7 +302,8 @@ def call_planner(domain, problem, planner='ff', verbose=0):
     Planners = os.listdir('planners')
 
     if planner.lower().split('/')[-1] not in map(str.lower, Planners):
-        print("'{0}' does not exist in 'planners/'".format(planner))
+        print(fg_red("\n'{0}' does not exist in 'planners/' directory!".format(planner)))
+        print(fg_yellow("currently these planners are available: ") + str(Planners))
         exit()
 
     ## FF planner ##
@@ -292,7 +315,7 @@ def call_planner(domain, problem, planner='ff', verbose=0):
         return call_m(domain, problem, verbose)
 
     ## optic-clp planner ##
-    elif 'optic-clp' in planner.lower():
+    elif 'optic-clp' in planner.lower() or 'optic' in planner.lower():
         return call_optic_clp(domain, problem, verbose)
 
     ## optic-clp planner ##
@@ -314,4 +337,4 @@ def to_str(output):
         return ''.join(map(chr, output))
 
     ## already in string ##
-    return output
+    return str(output)

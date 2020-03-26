@@ -28,8 +28,7 @@ class Domain(object):
 
     def ground_actions(self, objects):
         """
-        Ground all action schemas given a dictionary
-        of objects keyed by type
+        Ground all action schemas given a dictionary of objects keyed by type
         """
         grounded_actions = list()
         for action in self.actions:
@@ -82,9 +81,7 @@ class Precondition(object):
         self.existential = existential
 
     def __str__(self):
-        """
-        Return the precondition as a string
-        """
+        """Return the precondition as a string"""
         precond_str = str()
         if self.literals:
             precond_str += '\n       -- literals: {}'.format(self.literals)
@@ -112,9 +109,7 @@ class Effect(object):
         self.when = when
 
     def __str__(self):
-        """
-        Return the effect as a string
-        """
+        """Return the effect as a string"""
         eff_str = str()
         if self.literals:
             eff_str += '\n       -- literals: {}'.format(self.literals)
@@ -124,14 +119,15 @@ class Effect(object):
             eff_str += '\n       -- when: {} {}'.format(p[0],p[1])
         return eff_str
 
+    def __bool__(self):
+        """Return false if effect is empty, otherwise true"""
+        return not (not self.literals and not self.forall and not self.when)
 
 ###############################################################################
 ## ACTION CLASS
 ###############################################################################
 class Action(object):
-    """
-    An action schema
-    """
+    """An action schema"""
     def __init__(self, name, parameters=(), preconditions=(), effects=(), \
                  probabilistic=(), oneof=()):
         """
@@ -174,9 +170,7 @@ class Action(object):
         return operator_str
 
 def _grounder(arg_names, args):
-    """
-    Returns a function for grounding predicates and function symbols
-    """
+    """Returns a function for grounding predicates and function symbols"""
     namemap = dict()
     for arg_name, arg in zip(arg_names, args):
         namemap[arg_name] = arg
@@ -189,9 +183,7 @@ def _grounder(arg_names, args):
 ## GROUNDEDACTION CLASS
 ###############################################################################
 class _GroundedAction(object):
-    """
-    An action schema that has been grounded with objects
-    """
+    """An action schema that has been grounded with objects"""
     def __init__(self, action, *args):
     # def __init__(self, action, *args, **kwargs):
         self.name = action.name

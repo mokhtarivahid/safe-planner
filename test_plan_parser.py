@@ -7,18 +7,19 @@ from planner import Planner
 
 
 def parse():
-    usage = 'python3 main.py <DOMAIN> <PROBLEM> [<PLANNER>] [-v | --verbose N] [-h | --help]'
+    usage = 'python3 main.py <DOMAIN> <PROBLEM> [<PLANNER>] [-v N] [-h]'
     description = "Safe-Planner is a non-deterministic planner for PPDDL."
     parser = argparse.ArgumentParser(usage=usage, description=description)
 
-    parser.add_argument('domain',  type=str, help='path to PDDL domain file')
-    parser.add_argument('problem', type=str, help='path to PDDL problem file')
+    parser.add_argument('domain',  type=str, help='path to a PDDL domain file')
+    parser.add_argument('problem', type=str, help='path to a PDDL problem file')
     parser.add_argument("planner", type=str, nargs='?', const=1, 
         help="external planner: ff, m, optic, vhpop, ... (default=ff)", default="ff")
     # parser.add_argument("-v", "--verbose", help="increase output verbosity", 
     #     action="store_true")
     parser.add_argument("-v", "--verbose", default=0, type=int, 
-        help="increase output verbosity: 0 (nothing), 1 (high-level), 2 (external planners outputs) (default=0)", )
+        help="increase output verbosity: 0 (nothing), 1 (high-level), \
+        2 (external planners outputs) (default=0)", )
 
     return parser.parse_args()
 

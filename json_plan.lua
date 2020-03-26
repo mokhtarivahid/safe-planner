@@ -5,9 +5,12 @@ json = require "json"
 
 -------- PRINT USAGE  -----------------------------
 local function print_usage(arg)
-    print('\nuse as:')
-    print('lua json_plan.lua <JSON_PLAN_FILE> [-v] [-h | --help]')
-    print('-v\tfor verbosity (default=off)')
+    print('\nusage: lua json_plan.lua <JSON_PLAN_FILE> [-v] [-h]')
+    print('\npositional arguments')
+    print('  JSON_PLAN_FILE\tpath to the json plan file')
+    print('\noptional arguments')
+    print('  -h, --help\t\tshow this help message and exit')
+    print('  -v, --verbose\t\tincrease verbosity (default=off)')
     os.exit()
 end
 
@@ -16,7 +19,7 @@ local function parse_args(arg)
     file = ''
     verbose = false
     for key,value in ipairs(arg) do
-        if value == '-v' then
+        if value == '-v' or value == '--verbose' then
             verbose = true
         elseif value == '-h' or value == '--help' then
             print_usage(arg)

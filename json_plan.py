@@ -66,13 +66,13 @@ def gen_json_plan(plan, json_file=None):
     plan_json_str = json.dumps(plan_json, indent=4)
     # print(plan_json_str)
 
-    # create a dot file
+    # create a json file
     if json_file == None:
         if not os.path.exists("/tmp/pyddl/"):
             os.makedirs("/tmp/pyddl/")
         json_file = "/tmp/pyddl/prob"+str(int(time.time()*1000000))+".json"
     else:
-        json_file = '{}.json'.format(os.path.splitext(os.path.abspath(json_file))[0])
+        json_file = '{}.json'.format(os.path.splitext(json_file)[0])
 
     with open(json_file, 'w') as outfile:
         json.dump(json.loads(plan_json_str, object_pairs_hook=OrderedDict), outfile, sort_keys=False, indent=4)
@@ -92,8 +92,8 @@ if __name__ == '__main__':
 
     json_file_path, plan_json = gen_json_plan(plan, args.problem)
 
-    print(fg_yellow('-- json plan object\n'), plan_json)
-    print(fg_yellow('-- json file\n'), json_file_path)
+    print(fg_yellow('-- json plan object\n') + str(plan_json))
+    print(fg_yellow('-- json file\n') +str(json_file_path))
 
     # with open(json_file_path) as json_file:
     #     plan_json = json.load(json_file)

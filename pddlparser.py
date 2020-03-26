@@ -148,8 +148,12 @@ lex.lex()
 
 def p_pddl(p):
     '''pddl : domain
-            | problem'''
-    p[0] = p[1]
+            | problem
+            | domain problem'''
+    if len(p) == 2:
+      p[0] = p[1]
+    elif len(p) == 3:
+      p[0] = (p[1], p[2])
 
 
 def p_domain(p):
@@ -498,9 +502,10 @@ def p_ground_predicates_lst(p):
 
 
 def p_predicate(p):
-    '''predicate : LPAREN NAME variables_lst RPAREN
-                 | LPAREN NAME constants_lst RPAREN
+    '''predicate : LPAREN NAME arguments_lst RPAREN
                  | LPAREN EQUALS VARIABLE VARIABLE RPAREN
+                 | LPAREN EQUALS VARIABLE constant RPAREN
+                 | LPAREN EQUALS constant VARIABLE RPAREN
                  | LPAREN NAME RPAREN'''
     if len(p) == 4:
         p[0] = tuple([p[2],''])
@@ -508,6 +513,17 @@ def p_predicate(p):
         p[0] = tuple([p[2]]) + tuple(p[3])
     elif len(p) == 6:
         p[0] = tuple(['=', p[3], p[4]])
+
+
+def p_arguments_lst(p):
+    '''arguments_lst : constant arguments_lst
+                     | VARIABLE arguments_lst
+                     | constant
+                     | VARIABLE'''
+    if len(p) == 2:
+        p[0] = tuple([p[1]])
+    elif len(p) == 3:
+        p[0] = tuple([p[1]]) + p[2]
 
 
 def p_ground_predicate(p):

@@ -59,14 +59,22 @@ def to_pddl(object, state=None, goals=None):
         for probabilistic in object.probabilistic:
             prob_lst = list()
             for prob in probabilistic:
-                prob_str = to_pddl(prob[1])
-                prob_lst.append('{} (and {}{}{})'.format(str(prob[0]), prob_str[0], prob_str[1], prob_str[2]))
+                if (len(prob[1].literals) + len(prob[1].forall) + len(prob[1].when)) > 1:
+                    prob_str = to_pddl(prob[1])
+                    prob_lst.append('{} (and {}{}{})'.format(str(prob[0]), prob_str[0], prob_str[1], prob_str[2]))
+                elif prob[1].literals: prob_lst.append('{} {})'.format(str(prob[0]), to_pddl(prob[1])[0]))
+                elif prob[1].forall: prob_lst.append('{} {})'.format(str(prob[0]), to_pddl(prob[1])[1]))
+                else: prob_lst.append('{} {})'.format(str(prob[0]), to_pddl(prob[1])[2]))
             pddl_str += '\n             (probabilistic {})'.format('\n                            '.join(map(str, prob_lst)))
         for oneof in object.oneof:
             oneof_lst = list()
             for one in oneof:
-                oneof_str = to_pddl(one)
-                oneof_lst.append('(and {}{}{})'.format(oneof_str[0], oneof_str[1], oneof_str[2]))
+                if (len(one.literals) + len(one.forall) + len(one.when)) > 1:
+                    oneof_str = to_pddl(one)
+                    oneof_lst.append('(and {}{}{})'.format(oneof_str[0], oneof_str[1], oneof_str[2]))
+                elif one.literals: oneof_lst.append('{}'.format(to_pddl(one)[0]))
+                elif one.forall: oneof_lst.append('{}'.format(to_pddl(one)[1]))
+                else: oneof_lst.append('{}'.format(to_pddl(one)[2]))
             pddl_str += '\n             (oneof {})'.format('\n                    '.join(map(str, oneof_lst)))
         pddl_str += ')'
         pddl_str += ')\n'
@@ -123,16 +131,19 @@ def to_pddl(object, state=None, goals=None):
         return pddl_str
 
 
-def pddl(object, state=None, goals=None):
+def pddl(object, state=None, goals=None, path=None):
     """
     create a pddl file of the given object and return its path as a string
     @arg object : a given object (Precondition/Effect/Action/Domain/Problem)
     @arg state : a given initial state (default is the problem initial state)
     @arg goal : a given problem goal (default is the problem goal)
     """
-    if not os.path.exists("/tmp/pyddl/"):
-        os.makedirs("/tmp/pyddl/")
-    pddl = "/tmp/pyddl/prob"+str(int(time.time()*1000000))+".pddl"
+    if path is None:
+        path = "/tmp/pyppddl/"
+        if not os.path.exists(path): os.makedirs(path)
+    
+    pddl = "{}prob{}.pddl".format(path, str(int(time.time()*1000000)))
+
     with open(pddl, 'w') as f:
         f.write(to_pddl(object, state=state, goals=goals))
         f.close()

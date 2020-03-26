@@ -13,6 +13,7 @@
              (gripped ?a - arm ?o - location)
              (upward ?o - location)
              (downward ?o - location)
+             (unknown_pos ?o - location)
              (camera_checked ?o - location)
              (arm_canreach ?a - arm ?l - location)
              (arm_at ?a - arm ?l - location)
@@ -81,12 +82,13 @@
 ;; camera actions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+
 (:action check_direction
  :parameters   (?a - arm ?o - location ?l - location)
- :precondition (and (gripped ?a ?o)(arm_at ?a ?l)(camera ?l))
+ :precondition (and (gripped ?a ?o)(arm_at ?a ?l)(camera ?l)(unknown_pos ?o))
  :effect       (and (camera_checked ?o)
-                    (probabilistic 0.5 (downward ?o))
-                    (probabilistic 0.5 (upward ?o))))
+                    (probabilistic 0.5 (and (downward ?o) (not (unknown_pos ?o))))
+                    (probabilistic 0.5 (and (upward ?o) (not (unknown_pos ?o))))))
 
 ; (:action check_direction
 ;  :parameters   (?a - arm ?o - location ?l - location)

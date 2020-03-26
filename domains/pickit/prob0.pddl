@@ -59,8 +59,8 @@
             (arm_at arm1 box1)
             (arm_at arm2 box2)
 
-            (occupied box1)
-            (occupied box2)
+            (in_use box1)
+            (in_use box2)
 
             (free package1)
             (free hole1)
