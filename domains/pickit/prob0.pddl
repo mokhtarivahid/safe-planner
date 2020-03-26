@@ -48,7 +48,7 @@
             (arm_canreach arm2 assembly_pose2)
             (arm_canreach arm2 package1)
 
-            (co_arms arm1 arm2)
+            ; (co_arms arm1 arm2)
 
             (arm_free arm1)
             (arm_free arm2)

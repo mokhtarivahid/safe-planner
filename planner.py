@@ -399,7 +399,7 @@ class Planner(object):
         return states
 
 
-    def plan(self, verbose=False):
+    def plan(self, tree=False, verbose=False):
         """
         return an ordered dict as the final plan:
         the keys represent the steps of actions in the plan,
@@ -407,6 +407,7 @@ class Planner(object):
         every sequence of actions in each step is followed by pairs of 
         conditions and a level to jump. the conditions are the outcome of 
         the actions that should be achieved after their execution.
+        @arg tree : if True, plan is tree like. it will include goal states as a jump point in the plan
         the plan is dictionary as: 
             plan = { level : step, ...}
             step is a tuple as:
@@ -462,9 +463,13 @@ class Planner(object):
                                 next_steps.append((c[0], visited[s]))
                                 jumpto[s] = visited[s]
                             else:
-                                level += 1
-                                jumpto[s] = level
-                                next_steps.append((c[0], level))
+                                if not tree and s.is_true(self.problem.goals): 
+                                    jumpto[s] = 'GOAL'
+                                    next_steps.append((c[0], 'GOAL'))
+                                else:
+                                    level += 1
+                                    jumpto[s] = level
+                                    next_steps.append((c[0], level))
 
                     plan[i] = (tuple([self.domain.ground(action) for action in step[0]]), tuple(next_steps))
 
@@ -482,15 +487,20 @@ class Planner(object):
 
         plan_str = str()
         for level, step in plan.items():
+            if level == 'GOAL': continue
             plan_str+= '{:2} : '.format(level)
             if step == 'GOAL': 
-                plan_str+= fg_beige('(DONE)')
+                plan_str+= fg_beige('GOAL')
             elif step == None: 
                 plan_str+= fg_voilet('None!')
             else:
                 (actions, outcomes) = step
                 plan_str+= '{}'.format(' '.join(map(str, actions)))
                 for (conditions, jump) in outcomes:
+                    ## represent jump in different color
+                    jump_str = fg_voilet(str(jump))  # voile if there is a jump
+                    if jump == 'GOAL': jump_str =fg_beige(str(jump))  # beige if it is a goal
+
                     # unfold conditions as add and delete lists
                     # if there is non-deterministic outcomes
                     if len(conditions) > 0: 
@@ -500,14 +510,14 @@ class Planner(object):
                             plan_str+= fg_yellow(' -- ({})({}) {}'.format( \
                                     ' '.join(['({0})'.format(' '.join(map(str, c))) for c in add_list]), \
                                     ' '.join(['({0})'.format(' '.join(map(str, c))) for c in del_list]), \
-                                    fg_voilet(str(jump))))
+                                    jump_str))
                         # otherwise, exclude delete list in the representation of the plan
                         else:
                             plan_str+= fg_yellow(' -- ({}) {}'.format( \
                                     ' '.join(['({0})'.format(' '.join(map(str, c))) for c in add_list]), \
-                                    fg_voilet(str(jump))))
+                                    jump_str))
                     else:
-                        plan_str+= fg_yellow(' -- () {}'.format(fg_voilet(str(jump))))
+                        plan_str+= fg_yellow(' -- () {}'.format(jump_str))
             plan_str+= '\n'
         print(plan_str)
 

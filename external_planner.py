@@ -113,7 +113,7 @@ def call_optic_clp(domain, problem, verbose=0):
     if "problem has been deemed unsolvable" in shell or "Problem unsolvable" in shell:
         return None
 
-    ## if not supported some PDDL features by planner ##
+    ## if solution already exists in the problem ##
     if ("; Plan empty" in shell and "; Plan found" in shell) \
         or "The empty plan is optimal" is shell:
         return list()
@@ -125,7 +125,6 @@ def call_optic_clp(domain, problem, verbose=0):
 
     # split shell into a list of actions and ignore ';<problem_name>'
     shell = shell.split('\n')[1:]
-
     plan = OrderedDict()
 
     for action in shell:
@@ -172,6 +171,10 @@ def call_m(domain, problem, verbose=0):
     ## if no solution exists try the next domain ##
     if "Timeout after" in shell:
         return None
+
+    ## if solution already exists in the problem ##
+    if "PLAN FOUND: 0 steps" in shell:
+        return list()
 
     ## read the probabilistic actions names
     plan = list()
@@ -259,6 +262,80 @@ def call_vhpop(domain, problem, verbose=0):
 
 ###############################################################################
 ###############################################################################
+## call lpg-td planner
+def call_lpg_td(domain, problem, verbose=0):
+    """
+    Call an external planner
+    @arg domain : path to a given domain 
+    @arg problem : path to a given problem 
+    @arg verbose : if True, prints statistics before returning
+
+    @return plan : the output plan is a list of actions as tuples, 
+                   e.g., [[('move_to_grasp', 'arm1', 'box1', 'base1', 'box2'), ('move_to_grasp', 'arm2', 'box2', 'cap1', 'box1')], 
+                          [('vacuum_object', 'arm2', 'cap1', 'box1'), ('vacuum_object', 'arm1', 'base1', 'box2')],
+                          ...]
+    """
+
+    cmd = './planners/lpg-td -o {0} -f {1} -speed -noout'.format(domain, problem)
+
+    ## call command ##
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+     
+    (output, err) = process.communicate()
+
+    # output = check_output(["./planners/optic-clp", "-b", "-N", domain, problem])
+     
+    ## Wait for cmd to terminate. Get return returncode ##
+    # p_status = process.wait()
+    # print("Command exit status/return code : ", p_status)
+
+    ## bytes to string ##
+    # shell = ''.join(map(chr, output))
+    shell = to_str(output)
+
+    if verbose == 2: 
+        print(fg_voilet('\n-- planner stdout'))
+        print(shell)
+        if to_str(err):
+            print(fg_voilet('-- planner stderr'))
+            print(to_str(err))
+
+    ## if no solution exists try the next domain ##
+    if "Goals of the planning problem can not be reached." in shell \
+        or "goal can be simplified to FALSE" in shell \
+        or "No plan will solve it" in shell:
+        return None
+
+    ## if not supported some PDDL features by planner ##
+    if "not supported by this exp version" in to_str(err):
+        if not verbose == 2: 
+            print('\nSome PDDL features not supported by this planner.')
+            print('Please try to run with \'-v 2\' to see the planners output.\n')
+        exit()
+
+    ## if solution already exists in the problem ##
+    if "No action in solution" in shell and "Plan computed:" in shell:
+        return list()
+
+    ## refine the output screen and build a plan of actions' signatures ##
+
+    # extract plan from ';<problem_name>' to 'Time:<value>'
+    shell = shell[shell.find('Time: (ACTION) [action Duration; action Cost]'):shell.rfind('Solution found:')].strip()
+
+    # split shell into a list of actions and ignore ';<problem_name>'
+    shell = shell.lower().split('\n')[1:]
+
+    plan = OrderedDict()
+
+    for action in shell:
+        action = re.split('[, ) (]+', action)[1:-2]
+        plan.setdefault(action[0], []).append(tuple(action[1:]))
+
+    # print(list(plan.values()))
+    return list(plan.values())
+
+###############################################################################
+###############################################################################
 ## capture realtime output from a shell command
 def run(command):
     process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
@@ -321,6 +398,10 @@ def call_planner(domain, problem, planner='ff', verbose=0):
     ## optic-clp planner ##
     elif 'vhpop' in planner.lower():
         return call_vhpop(domain, problem, verbose)
+
+    ## lpg-td planner ##
+    elif 'lpg-td' in planner.lower():
+        return call_lpg_td(domain, problem, verbose)
 
     ## optic-clp planner ##
     else:

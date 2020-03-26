@@ -19,6 +19,8 @@ def parse():
         help="external planner: ff, m, optic-clp, vhpop, ... (default=ff)", default="ff")
     # parser.add_argument("-v", "--verbose", help="increase output verbosity", 
     #     action="store_true")
+    parser.add_argument("-t", "--tree", help="include goal states as individual steps (combine with \'-d\' to see the difference)", 
+        action="store_true")
     parser.add_argument("-p", "--path", help="print out possible paths of the produced policy", 
         action="store_true")
     parser.add_argument("-d", "--dot", help="draw a graph of the produced policy into a dot file", 
@@ -39,7 +41,7 @@ if __name__ == '__main__':
     policy = Planner(args.domain, args.problem, args.planner, args.verbose)
 
     ## transform the produced policy into a contingency plan
-    plan = policy.plan(args.verbose)
+    plan = policy.plan(tree=args.tree, verbose=args.verbose)
 
     ## print out the plan in a readable form
     policy.print_plan(plan, verbose=args.verbose, del_effects_included=True)

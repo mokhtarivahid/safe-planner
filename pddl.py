@@ -121,11 +121,11 @@ def to_pddl(object, state=None, goals=None):
             tp = sorted(object.objects.keys())[-1]
             pddl_str += '\t\t{0} - {1})\n'.format(' '.join(sorted(object.objects[tp])), tp)
         pddl_str += '  (:init'
-        for predicate in state.predicates:
+        for predicate in sorted(state.predicates):
             pddl_str += '\n\t\t({0})'.format(' '.join(map(str, predicate)))
         pddl_str += ')\n'
         pddl_str += '  (:goal (and'
-        for predicate in goals:
+        for predicate in sorted(goals):
             pddl_str += '\n\t\t({0})'.format(' '.join(map(str, predicate)))
         pddl_str += ')))\n'
         return pddl_str

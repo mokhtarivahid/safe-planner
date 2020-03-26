@@ -86,7 +86,7 @@ if __name__ == '__main__':
 
     policy = Planner(args.domain, args.problem, args.planner, args.verbose)
 
-    plan = policy.plan()
+    plan = policy.plan(tree=True)
     policy.print_plan(plan)
 
     dot_file = gen_dot_plan(plan=plan, dot_file=args.problem)

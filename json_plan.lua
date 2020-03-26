@@ -40,25 +40,43 @@ local function execute(step)
     -- unfold action and execute it
     for key, action in pairs(step.actions) do
         -- here the eTaSl has to be called to execute 'action'
-        print(colors.yellow .. '\n' .. action .. colors.reset)
+
+        -- action name and arguments
+        name = action.name
+        arguments = action.arguments
+
+        -- print action name
+        print(colors.yellow .. '\n' .. name .. colors.reset)
+
+        -- print action arguments
+        for k, arg in pairs(arguments) do
+            print(arg)
+        end
     end
 
-    -- here you have to collect the action execution results
-    -- together with human-intension estimation and return
-    -- an outcome depending on the result
-    -- the outcome is either successfully action executed or
-    -- a human intention interference
+    ---------------------------------------------------------------------------
+    -- this is the main space you have to develop your code
+    -- you should specify the action and its arguments and set eTaSL parameters
+    -- then execute the skill and collect the result together with human-intension estimation
 
-
-    -- ignore this, it is a dummy code to simulate the outcome
-    -- randomly generate an outcome
-    math.randomseed(os.time())
-    n = math.random(1, #step.outcomes)
+    -- result = execute_skill(action)
 
     -- unfold outcome conditions
-    for key, cnd in pairs(step.outcomes[n].condition) do
-        print('    -- ' .. cnd)
+    for key, cnd in pairs(step.outcomes) do
+        print(colors.yellow .. 'condition' .. colors.reset)
+        for key, c in pairs(cnd.condition) do
+            print(c)
+            -- if c == result.condition then
+            --     return cnd.next
+            -- end
+        end
     end
+    ---------------------------------------------------------------------------
+
+    -- IGNORE THIS, IT IS A DUMMY CODE TO SIMULATE THE OUTCOME
+    -- RANDOMLY GENERATE AN OUTCOME
+    math.randomseed(os.time())
+    n = math.random(1, #step.outcomes)
 
     return step.outcomes[n]
 end
@@ -98,6 +116,5 @@ while true do
 
     -- execute actions and continue for the next action
     step = execute(table[step]).next
-
 end
 

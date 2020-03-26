@@ -158,7 +158,7 @@
 ;;; the assembled objects.
 (:action assemble
  :parameters   (?a1 ?a2 - arm ?o1 ?o2 ?p1 ?p2 - object)
- :precondition (and (arm_gripped ?a1 ?o1) (arm_at ?a1 ?p1) (pose ?p1) (co_arms ?a1 ?a2) ;(arm_canreach ?a1 ?p) (package ?p) 
+ :precondition (and (arm_gripped ?a1 ?o1) (arm_at ?a1 ?p1) (pose ?p1) ;(co_arms ?a1 ?a2) ;(arm_canreach ?a1 ?p) (package ?p) 
                     (arm_gripped ?a2 ?o2) (arm_at ?a2 ?p2) (pose ?p2) (cap ?o1) (base ?o2) (camera_checked ?o1) (camera_checked ?o2))
  :effect       (and (assembled ?o1 ?o2)))
 
