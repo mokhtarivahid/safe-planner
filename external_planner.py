@@ -279,7 +279,8 @@ def call_lpg_td(domain, problem, verbose=0):
     cmd = './planners/lpg-td -o {0} -f {1} -speed -noout'.format(domain, problem)
 
     ## call command ##
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+    # process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
      
     (output, err) = process.communicate()
 
@@ -309,7 +310,7 @@ def call_lpg_td(domain, problem, verbose=0):
     ## if not supported some PDDL features by planner ##
     if "not supported by this exp version" in to_str(err):
         if not verbose == 2: 
-            print('\nSome PDDL features not supported by this planner.')
+            print('\nSome PDDL features not supported by this \'lpg-td\' planner.')
             print('Please try to run with \'-v 2\' to see the planners output.\n')
         exit()
 
@@ -412,6 +413,8 @@ def call_planner(domain, problem, planner='ff', verbose=0):
 ## checks the output type and convert it to str
 ## in python 3 is of type 'byte' and in 2 is of type 'str' already
 def to_str(output):
+
+    if output is None: return str()
 
     ## bytes to string ##
     if sys.version_info[0] > 2:

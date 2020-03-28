@@ -119,7 +119,7 @@ def t_VARIABLE(t):
 
 
 def t_PROBABILITY(t):
-    r'[0-9]+/0*[1-9][0-9]*|[0-1]\.\d+'
+    r'[0-9]+/0*[1-9][0-9]*|\d+\.\d+|\.\d+'
     if is_fraction(t.value):
         t.value = round(float(sum(Fraction(s) for s in t.value.split())), 2)
     else:
@@ -128,17 +128,17 @@ def t_PROBABILITY(t):
 
 
 def is_fraction(string):
-    """Return True iff the string represents a valid fraction."""
+    """Return True if the string is a valid fraction"""
     return bool(re.search(r'^-?[0-9]+/0*[1-9][0-9]*$', string))
 
 
 def t_newline(t):
     r'\n+'
-    t.lineno += len(t.value)
+    t.lexer.lineno += len(t.value)
 
 
 def t_error(t):
-    print("Error: illegal character '{0}'".format(t.value[0]))
+    print("Error: illegal character '{}' in line '{}'".format(t.value[0], t.lexer.lineno-1))
     t.lexer.skip(1)
 
 
@@ -230,13 +230,21 @@ def p_require_key(p):
 def p_types_def(p):
     '''types_def : LPAREN TYPES_KEY typed_names_lst RPAREN'''
     # '''types_def : LPAREN TYPES_KEY names_lst RPAREN'''
-    p[0] = (['TYPES_KEY', dict(zip(p[3][::2], p[3][1::2]))])
+    d = dict() 
+    for t, v in list(zip(p[3][::2], p[3][1::2])): 
+        d.setdefault(t, []).extend(v) 
+    p[0] = (['TYPES_KEY', d])
+    # p[0] = (['TYPES_KEY', dict(zip(p[3][::2], p[3][1::2]))])
 
 
 def p_constants_def(p):
     '''constants_def : LPAREN CONSTANTS_KEY typed_constants_lst RPAREN'''
     # convert the tuple into a dictionary: odd indices as keys and even indices as values
-    p[0] = (['CONSTANTS_KEY', dict(zip(p[3][::2], p[3][1::2]))])
+    d = dict() 
+    for t, v in list(zip(p[3][::2], p[3][1::2])): 
+        d.setdefault(t, []).extend(v) 
+    p[0] = (['CONSTANTS_KEY', d])
+    # p[0] = (['CONSTANTS_KEY', dict(zip(p[3][::2], p[3][1::2]))])
 
 
 def p_predicates_def(p):
@@ -273,22 +281,45 @@ def p_action_def_lst(p):
 
 
 def p_action_def(p):
-    '''action_def : LPAREN ACTION_KEY NAME parameters_def action_def_body RPAREN'''
-    p[0] = Action(p[3], p[4], p[5][0], p[5][1][0], p[5][1][1], p[5][1][2])
+    '''action_def : LPAREN ACTION_KEY NAME action_def_body_list RPAREN'''
+    parameters = precondition = probabilistic = oneof = tuple()
+    effect = Effect()
+    for d in p[4]:
+      if 'PARAMETERS_KEY' in d:
+        parameters = d[1]
+      elif 'PRECONDITION_KEY' in d:
+        precondition = d[1]
+      elif 'EFFECT_KEY' in d:
+        effect = d[1][0]
+        probabilistic = d[1][1]
+        oneof = d[1][2]
+
+    p[0] = Action(p[3], parameters, precondition, effect, probabilistic, oneof)
+
+
+def p_action_def_body_list(p):
+    '''action_def_body_list : action_def_body action_def_body_list
+                         | action_def_body'''
+    if len(p) == 2:
+        p[0] = tuple([p[1]])
+    elif len(p) == 3:
+        p[0] = tuple([p[1]]) + p[2]
+
+
+def p_action_def_body(p):
+    '''action_def_body : parameters_def
+                       | precond_def
+                       | effect_def'''
+    p[0] = p[1]
 
 
 def p_parameters_def(p):
     '''parameters_def : PARAMETERS_KEY LPAREN typed_variables_lst RPAREN
                       | PARAMETERS_KEY LPAREN RPAREN'''
     if len(p) == 4:
-        p[0] = ()
+        p[0] = ['PARAMETERS_KEY', ()]
     elif len(p) == 5:
-        p[0] = tuple(p[3])
-
-
-def p_action_def_body(p):
-    '''action_def_body : precond_def effect_def'''
-    p[0] = (p[1], p[2])
+        p[0] = ['PARAMETERS_KEY', tuple(p[3])]
 
 
 def p_precond_def(p):
@@ -308,7 +339,7 @@ def p_precond_def(p):
       else:
         literals.append(d)
 
-    p[0] = Precondition(tuple(literals), tuple(universal), tuple(existential))
+    p[0] = ['PRECONDITION_KEY', Precondition(tuple(literals), tuple(universal), tuple(existential))]
 
 
 def p_preconds_lst(p):
@@ -384,7 +415,7 @@ def p_effect_def(p):
       else:
         literals.append(effect)
 
-    p[0] = (Effect(tuple(literals), tuple(forall), tuple(when)), tuple(probabilistic), tuple(oneof))
+    p[0] = ['EFFECT_KEY', (Effect(tuple(literals), tuple(forall), tuple(when)), tuple(probabilistic), tuple(oneof))]
 
 
 def p_effect_lst(p):
@@ -640,7 +671,11 @@ def p_problem_def(p):
 def p_objects_def(p):
     '''objects_def : LPAREN OBJECTS_KEY typed_constants_lst RPAREN'''
     # convert the tuple into a dictionary: odd indices as keys and even indices as values
-    p[0] = ('OBJECTS_KEY', dict(zip(p[3][::2], p[3][1::2])))
+    d = dict() 
+    for t, v in list(zip(p[3][::2], p[3][1::2])): 
+        d.setdefault(t, []).extend(v) 
+    p[0] = ('OBJECTS_KEY', d)
+    # p[0] = ('OBJECTS_KEY', dict(zip(p[3][::2], p[3][1::2])))
 
 
 def p_init_def(p):
@@ -673,6 +708,7 @@ def p_constant(p):
 
 def p_error(p):
     print("Error: syntax error when parsing '{}'".format(p))
+    exit()
 
 
 # build parser
@@ -684,7 +720,7 @@ class PDDLParser(object):
     @classmethod
     def parse(cls, filename):
         data = cls.__read_input(filename)
-        return yacc.parse(data)
+        return yacc.parse(data, tracking=True)
 
     @classmethod
     def __read_input(cls, filename):

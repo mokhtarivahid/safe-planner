@@ -13,8 +13,8 @@ def parse():
     description = "TEST THE PDDL PARSER."
     parser = argparse.ArgumentParser(usage=usage, description=description)
 
-    parser.add_argument('domain',  type=str, help='path to a PDDL domain file')
-    parser.add_argument('problem', type=str, help='path to a PDDL problem file')
+    parser.add_argument('domain',  nargs='?', type=str, help='path to a PDDL domain file')
+    parser.add_argument('problem', nargs='?', type=str, help='path to a PDDL problem file')
 
     return parser.parse_args()
 
@@ -23,13 +23,19 @@ if __name__ == '__main__':
 
     args = parse()
 
-    domain = PDDLParser.parse(args.domain)
-    problem = PDDLParser.parse(args.problem)
+    if args.problem is None:
+        domain, problem = PDDLParser.parse(args.domain)
+    else:
+        domain = PDDLParser.parse(args.domain)
+        problem = PDDLParser.parse(args.problem)
+
+    # domain = PDDLParser.parse(args.domain)
+
     problem.objects = mergeDict(problem.objects, domain.constants)
 
-    print(problem)
-    print(domain)
-    print(to_pddl(problem))
+    # print(domain)
+    # print(problem)
     print(to_pddl(domain))
-    print(pddl(problem))
-    print(pddl(domain))
+    print(to_pddl(problem))
+    # print(pddl(domain))
+    # print(pddl(problem))

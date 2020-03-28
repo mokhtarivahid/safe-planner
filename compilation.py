@@ -6,6 +6,7 @@
 import argparse
 from itertools import product
 import os, time
+from collections import OrderedDict
 
 # from color import fg_green, fg_red, fg_yellow, fg_blue, fg_voilet, fg_beige, bg_voilet, bg_beige
 from color import *
@@ -67,6 +68,7 @@ def compilation(domain):
         ## i.e., we add the action preconditions (literals only) as an action effect
         elif not action.effects and len(deterministic_effects) == 1:
             deterministic_effects.extend([Effect(literals=action.preconditions.literals)])
+            # deterministic_effects.extend([Effect()])
 
         ## add compiled action effects into deterministic_actions
         deterministic_actions.append(\
@@ -89,18 +91,16 @@ def compilation(domain):
 
 
 ###############################################################################
-def compile(domain_file, verbose=False):
+def compile(domain, verbose=False):
     """
     given the path to a non-deterministic domain, compiles it 
     into a set of deterministic domains and creates pddl files 
     as well as a file containing probabilistic actions names
     """
 
-    domain = PDDLParser.parse(domain_file)
-
     if not ':probabilistic-effects' in domain.requirements:
         if verbose:
-            print('\'{}\' is not non-deterministic'.format(domain_file))
+            print('\'{}\' is not non-deterministic'.format(domain.name))
         return ((),())
 
     (deterministic_domains, nd_actions) = compilation(domain)
@@ -111,7 +111,7 @@ def compile(domain_file, verbose=False):
 
     ## create deterministic domains files
     for i, domain in enumerate(deterministic_domains):
-        pddl_file = '{}/{}{}.pddl'.format(domains_dir,domain.name,str(i+1))
+        pddl_file = '%s/%s%03d.pddl' % (domains_dir,domain.name,i+1)
         with open(pddl_file, 'w') as f:
             f.write(to_pddl(domain))
             f.close()
@@ -135,11 +135,30 @@ if __name__ == '__main__':
 
     domain = PDDLParser.parse(args.domain)
 
-    deterministic_domains, nd_actions = compilation(domain)
+    domains_dir = compile(domain)
 
-    for domain in deterministic_domains:
-        print(fg_yellow('-------------------------'))
-        print(to_pddl(domain))
+    deterministic_domains = OrderedDict()
+    nd_actions = list()
+
+    ## parse deterministic pddl domains
+    for domain in sorted([os.path.join(domains_dir, file) for file in os.listdir(domains_dir)]):
+        ## read the probabilistic actions names
+        if domain.endswith('.prob'):
+            with open(domain) as f:
+                nd_actions = f.read().splitlines()
+        ## read the deterministic domains
+        if domain.endswith('.pddl'):
+            deterministic_domains[domain] = PDDLParser.parse(domain)
+            print(fg_yellow('-- successfully parsed: ') + domain)
 
     print(fg_yellow('-- total number of non-deterministic domains: ') +str(len(deterministic_domains)))
     print(fg_yellow('-- non-deterministic actions: ') + str(nd_actions))
+
+    # deterministic_domains, nd_actions = compilation(domain)
+
+    # for domain in deterministic_domains:
+    #     print(fg_yellow('-------------------------'))
+    #     print(to_pddl(domain))
+
+    # print(fg_yellow('-- total number of non-deterministic domains: ') +str(len(deterministic_domains)))
+    # print(fg_yellow('-- non-deterministic actions: ') + str(nd_actions))

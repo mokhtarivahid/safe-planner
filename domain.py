@@ -123,6 +123,10 @@ class Effect(object):
         """Return false if effect is empty, otherwise true"""
         return not (not self.literals and not self.forall and not self.when)
 
+    def __len__(self):
+        """Return length of effects (total length of literals + forall + when)"""
+        return len(self.literals) + len(self.forall) + len(self.when)
+
 ###############################################################################
 ## ACTION CLASS
 ###############################################################################

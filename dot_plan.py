@@ -40,12 +40,11 @@ def gen_dot_plan(plan, dot_file=None):
         if step == 'GOAL':
             # goal state is achieved
             dot_str+= ' n{} [shape=circle,label="",peripheries=2];\n'.format(str(level))
-            pass
+            continue
         elif step == None:
-            # normally shouldn't happen; unless, something went wrong (report it if happened)
+            # normally should not happen; unless, something went wrong
             # anyway, it makes the plan a weak solution
             dot_str+= ' n{} [shape=circle,label="",peripheries=1];\n'.format(str(level))
-            pass
         else:
             # unfold step into a tuple of actions and outcomes
             (actions, outcomes) = step
@@ -61,9 +60,8 @@ def gen_dot_plan(plan, dot_file=None):
                 del_str = '\\n- {}'.format(str(' '.join(map(str,[str('('+' '.join(eff)+')') for eff in del_list]))))\
                             if del_list else ''
                 dot_str+= ' n{}->n{} [label="{}{}"];\n'.format(str(level), str(jump), (add_str), (del_str))
-                # dot_str+= ' n{}->n{} [label=" + {}\\n- {} "];\n'.format(str(level), str(jump), \
-                #     str(' '.join(map(str,[str('('+' '.join(eff)+')') for eff in add_list]))), \
-                #     str(' '.join(map(str,[str('('+' '.join(eff)+')') for eff in del_list]))))
+                # check if goal is achieved at the next step
+                # if jump == 'GOAL': dot_str+= ' n{} [shape=circle,label="",peripheries=2];\n'.format(str(jump))
     dot_str+= '}'
 
     # create a dot file

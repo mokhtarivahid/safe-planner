@@ -21,11 +21,15 @@ class Planner(object):
         @arg verbose : if True, prints out statistics 
         """
 
-        ## the main probabilistic domain object ##
-        try:
+        if problem is None:
+            ## parse pddl domain and problem together in a single file
+            self.domain, self.problem = PDDLParser.parse(domain)
+        else:
+            ## the main probabilistic domain object ##
             self.domain = PDDLParser.parse(domain)
-        except:
-            print(fg_red("\n[pddl parser does not support '{0}'!]\n".format(domain)))
+
+            ## parse pddl problem
+            self.problem = PDDLParser.parse(problem)
 
         ## a dictionary of deterministic domains: keys as paths to pddl 
         ## domains and values as domain objects -- dict({pddl:object})
@@ -42,7 +46,7 @@ class Planner(object):
 
             ## compile and records the given non-deterministic domain into a list of deterministic domains
             if verbose: print(fg_green('\n[Compilation to non-deterministic domains]'))
-            self.working_dir = compile(domain, verbose=verbose)
+            self.working_dir = compile(self.domain, verbose=verbose)
 
             ## parse deterministic pddl domains
             for domain in sorted(listdir_fullpath(self.working_dir)):
@@ -55,9 +59,6 @@ class Planner(object):
                     self.domains[domain] = PDDLParser.parse(domain)
         else:
             self.domains[domain] = self.domain
-
-        ## parse pddl problem
-        self.problem = PDDLParser.parse(problem)
 
         ## merge constants and objects
         if self.domain.constants:
@@ -99,7 +100,7 @@ class Planner(object):
             ###################################################################
             if step == None:
                 if verbose: print(fg_green('\n[Make initial plan at state {}]').format(\
-                            list(self.policy).index(state) if state in self.policy else 0))
+                            list(self.open_terminal_states).index(state) if state in self.open_terminal_states else 0))
 
                 policy = self.explore_plan(state, verbose=verbose)
 
@@ -140,9 +141,9 @@ class Planner(object):
 
                 # if verbose: print(fg_yellow('[{} states to expand]'.format(len(new_states))))
 
-                for (new_state, res) in new_states.items():
+                for i, (new_state, res) in enumerate(new_states.items()):
 
-                    if verbose: print(fg_yellow2('  -- state {}'.format((list(new_states).index(new_state)))))
+                    if verbose: print(fg_yellow2('  -- state {}'.format(str(i))))
 
                     # if new_state is itself a goal state (then the plan is empty)
                     if new_state.is_true(self.problem.goals): 
@@ -554,7 +555,7 @@ class Planner(object):
 
         ## store nodes and outcomes to visit
         stack = list() # each element is: (level, step)
-        visited = list()
+        visited = set()
 
         ## push outcomes of the root into the stack in reverse order
         for i in range( len(list(plan.items())[0][1][1])-1, -1, -1 ):
@@ -564,19 +565,19 @@ class Planner(object):
         while stack:
 
             (level, outcome) = stack.pop()
-            visited.append((level, outcome))
+            visited.add((level, outcome))
 
             if plan[level] == 'GOAL' or plan[level] == None:
                 continue
 
-            path = list()
+            path = OrderedDict()
 
             ## add the current step into the path (as its root)
             (actions, outcomes) = plan[level]
             ## include only the target outcome as requested in 'outcome'
             for (cnd, jmp) in outcomes:
                 if outcome == jmp:
-                    path.append((level, (actions, (cnd, jmp))))
+                    path[level] = (actions, [(cnd, jmp)])
                     break
             ## start from the next outcome of this step
             level = outcome
@@ -592,13 +593,17 @@ class Planner(object):
                     ## unfold step into a tuple of actions and outcomes
                     (actions, outcomes) = step
 
-                    if not (level, (actions, outcomes[0])) in path:
-                        path.append((level, (actions, outcomes[0])))
+                    if not (level, (actions, [outcomes[0]])) in path.items() and \
+                       not (level, outcomes[0][1]) in visited:
+                        path[level] = (actions, [outcomes[0]])
                     else:
                         break
 
+                    ## add current node (current step and its first outcome) to visited
+                    visited.add((level, outcomes[0][1]))
+
                     ## push other outcomes (except the first one) of 'step' into the stack in reverse order
-                    for i in range( len(outcomes)-1, 0, -1):
+                    for i in range(len(outcomes)-1, 0, -1):
                         if not (level, outcomes[i][1]) in visited:
                             stack.append([level, outcomes[i][1]])
 
@@ -626,7 +631,7 @@ class Planner(object):
             print(fg_yellow('-- path{} ({})'.format(str(p), len(path))))
             p += 1
             plan_str = str()
-            for (level, step) in path:
+            for (level, step) in path.items():
                 plan_str+= '{:2} : '.format(level)
                 if step == 'GOAL': 
                     plan_str+= fg_beige('(DONE)')
@@ -635,7 +640,11 @@ class Planner(object):
                 else:
                     (actions, outcomes) = step
                     plan_str+= '{}'.format(' '.join(map(str, actions)))
-                    (conditions, jump) = outcomes
+                    (conditions, jump) = outcomes[0]
+                    ## represent jump in different color
+                    jump_str = fg_voilet(str(jump))  # voile if there is a jump
+                    if jump == 'GOAL': jump_str =fg_beige(str(jump))  # beige if it is a goal
+
                     # unfold conditions as add and delete lists
                     # if there is non-deterministic outcomes
                     if len(conditions) > 0: 
@@ -645,14 +654,14 @@ class Planner(object):
                             plan_str+= fg_yellow(' -- ({})({}) {}'.format( \
                                     ' '.join(['({0})'.format(' '.join(map(str, c))) for c in add_list]), \
                                     ' '.join(['({0})'.format(' '.join(map(str, c))) for c in del_list]), \
-                                    fg_voilet(str(jump))))
+                                    jump_str))
                         # otherwise, exclude delete list in the representation of the plan
                         else:
                             plan_str+= fg_yellow(' -- ({}) {}'.format( \
                                     ' '.join(['({0})'.format(' '.join(map(str, c))) for c in add_list]), \
-                                    fg_voilet(str(jump))))
+                                    jump_str))
                     else:
-                        plan_str+= fg_yellow(' -- () {}'.format(fg_voilet(str(jump))))
+                        plan_str+= fg_yellow(' -- () {}'.format(jump_str))
                 plan_str+= '\n'
             print(plan_str)
 

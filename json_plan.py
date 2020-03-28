@@ -48,10 +48,7 @@ def gen_json_plan(plan, json_file=None):
           (actions, outcomes) = step
 
           for i, action in enumerate(actions):
-              # step_json.setdefault('actions',[]).append(str(action))
               step_json.setdefault('actions',[]).append( {'name' : action.sig[0], 'arguments' : action.sig[1:]} )
-              # step_json['actions'] = {'name' : action.sig[0], 'arguments' : action.sig[1:]}
-              # step_json.setdefault('actions',[]).append('a{}{}'.format(str(level), i))
 
           for (conditions, jump) in outcomes:
               if len(conditions) > 0:

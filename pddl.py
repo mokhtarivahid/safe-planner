@@ -25,12 +25,12 @@ def to_pddl(object, state=None, goals=None):
         for uni in object.universal:
             types, variables = zip(*uni[0])
             varlist = ' '.join(['%s - %s' % pair for pair in zip(variables, types)])
-            precond_str += '\n             (forall ({}) {})'.format(varlist,literals_to_pddl(uni[1]))
+            precond_str += '\n                 (forall ({}) {})'.format(varlist,literals_to_pddl(uni[1]))
         ## existential-preconditions
         for ext in object.existential:
             types, variables = zip(*ext[0])
             varlist = ' '.join(['%s - %s' % pair for pair in zip(variables, types)])
-            precond_str += '\n             (exists ({}) {})'.format(varlist,literals_to_pddl(uni[1]))
+            precond_str += '\n                 (exists ({}) {})'.format(varlist,literals_to_pddl(uni[1]))
         precond_str += ')'
         return precond_str
 
@@ -53,30 +53,33 @@ def to_pddl(object, state=None, goals=None):
     ## translate a Action object into a pddl string
     elif type(object) is Action:
         arglist   = ' '.join(['%s - %s' % pair for pair in zip(object.arg_names, object.types)])
-        pddl_str  = '\n  (:action {0}\n   :parameters ({1})'.format(object.name, arglist)
-        pddl_str += '\n   :precondition\n        {}'.format(to_pddl(object.preconditions))
-        pddl_str += '\n   :effect\n        (and {}'.format('\n             '.join(filter(None,to_pddl(object.effects))))
-        for probabilistic in object.probabilistic:
-            prob_lst = list()
-            for prob in probabilistic:
-                if (len(prob[1].literals) + len(prob[1].forall) + len(prob[1].when)) > 1:
-                    prob_str = to_pddl(prob[1])
-                    prob_lst.append('{} (and {}{}{})'.format(str(prob[0]), prob_str[0], prob_str[1], prob_str[2]))
-                elif prob[1].literals: prob_lst.append('{} {})'.format(str(prob[0]), to_pddl(prob[1])[0]))
-                elif prob[1].forall: prob_lst.append('{} {})'.format(str(prob[0]), to_pddl(prob[1])[1]))
-                else: prob_lst.append('{} {})'.format(str(prob[0]), to_pddl(prob[1])[2]))
-            pddl_str += '\n             (probabilistic {})'.format('\n                            '.join(map(str, prob_lst)))
-        for oneof in object.oneof:
-            oneof_lst = list()
-            for one in oneof:
-                if (len(one.literals) + len(one.forall) + len(one.when)) > 1:
-                    oneof_str = to_pddl(one)
-                    oneof_lst.append('(and {}{}{})'.format(oneof_str[0], oneof_str[1], oneof_str[2]))
-                elif one.literals: oneof_lst.append('{}'.format(to_pddl(one)[0]))
-                elif one.forall: oneof_lst.append('{}'.format(to_pddl(one)[1]))
-                else: oneof_lst.append('{}'.format(to_pddl(one)[2]))
-            pddl_str += '\n             (oneof {})'.format('\n                    '.join(map(str, oneof_lst)))
-        pddl_str += ')'
+        pddl_str  = '\n  (:action {}'.format(object.name)
+        pddl_str += '\n   :parameters ({})'.format(arglist)
+        if object.preconditions:
+            pddl_str += '\n   :precondition {}'.format(to_pddl(object.preconditions))
+        if object.effects:
+            pddl_str += '\n   :effect (and {}'.format('\n           '.join(filter(None,to_pddl(object.effects))))
+            for probabilistic in object.probabilistic:
+                prob_lst = list()
+                for prob in probabilistic:
+                    if (len(prob[1].literals) + len(prob[1].forall) + len(prob[1].when)) > 1:
+                        prob_str = to_pddl(prob[1])
+                        prob_lst.append('{} (and {}{}{})'.format(str(prob[0]), prob_str[0], prob_str[1], prob_str[2]))
+                    elif prob[1].literals: prob_lst.append('{} {})'.format(str(prob[0]), to_pddl(prob[1])[0]))
+                    elif prob[1].forall: prob_lst.append('{} {})'.format(str(prob[0]), to_pddl(prob[1])[1]))
+                    else: prob_lst.append('{} {})'.format(str(prob[0]), to_pddl(prob[1])[2]))
+                pddl_str += '\n           (probabilistic {})'.format('\n                          '.join(map(str, prob_lst)))
+            for oneof in object.oneof:
+                oneof_lst = list()
+                for one in oneof:
+                    if (len(one.literals) + len(one.forall) + len(one.when)) > 1:
+                        oneof_str = to_pddl(one)
+                        oneof_lst.append('(and {}{}{})'.format(oneof_str[0], oneof_str[1], oneof_str[2]))
+                    elif one.literals: oneof_lst.append('{}'.format(to_pddl(one)[0]))
+                    elif one.forall: oneof_lst.append('{}'.format(to_pddl(one)[1]))
+                    else: oneof_lst.append('{}'.format(to_pddl(one)[2]))
+                pddl_str += '\n           (oneof {})'.format('\n                  '.join(map(str, oneof_lst)))
+            pddl_str += ')'
         pddl_str += ')\n'
         return pddl_str
 
