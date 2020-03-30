@@ -37,7 +37,7 @@
                 (and (human_towards ?s ?h)(certainty_high ?s))
                 (and (removed ?s)(not(sensed_on ?s ?h))(state_observation_needed)))))
 
-(:action slow_move
+(:action move_slow
  :parameters (?s - solenoid ?h - hole)
  :precondition (and (sensed_on ?s ?h)(human_towards ?s ?h)(certainty_low ?s))
  :effect (and (not(certainty_low ?s))
@@ -46,7 +46,7 @@
                 (and (certainty_high ?s))
                 (and (removed ?s)(not(sensed_on ?s ?h))(state_observation_needed)(not(human_towards ?s ?h))))))
 
-(:action stop_move
+(:action move_stop
  :parameters (?s - solenoid ?h - hole)
  :precondition (and (sensed_on ?s ?h)(human_towards ?s ?h)(certainty_high ?s))
  :effect (and (not(certainty_high ?s))
