@@ -333,9 +333,9 @@ def p_precond_def(p):
     (literals, universal, existential) = ([],[],[])
     for d in prec:
       if 'FORALL_KEY' in d:
-        universal.append((d[1],d[2]))
+        universal.append(tuple(d[1:]))
       elif 'EXISTS_KEY' in d:
-        existential.append((d[1],d[2]))
+        existential.append(tuple(d[1:]))
       else:
         literals.append(d)
 
@@ -389,16 +389,16 @@ def p_effect_def(p):
     (literals, forall, when, probabilistic, oneof) = ([],[],[],[],[])
     for effect in effects:
       if 'FORALL_KEY' in effect:
-        forall.append((effect[1],effect[2]))
+        forall.append(tuple(effect[1:]))
       elif 'WHEN_KEY' in effect:
-        when.append((effect[1],effect[2]))
+        when.append(tuple(effect[1:]))
       elif 'PROBABILITY' in effect:
         prob_lst = list()
         for eff in effect[1]:
           lit_lst, for_lst, whn_lst = ([],[],[])
           for e in eff[1]:
-            if 'FORALL_KEY' in e: for_lst.append((e[1],e[2]))
-            elif 'WHEN_KEY' in e: whn_lst.append((e[1],e[2]))
+            if 'FORALL_KEY' in e: for_lst.append(tuple(e[1:]))
+            elif 'WHEN_KEY' in e: whn_lst.append(tuple(e[1:]))
             else: lit_lst.append(e)
           prob_lst.append((eff[0], Effect(tuple(lit_lst), tuple(for_lst), tuple(whn_lst))))
         probabilistic.append(tuple(prob_lst))
@@ -407,8 +407,8 @@ def p_effect_def(p):
         for eff in effect[1]:
           lit_lst, for_lst, whn_lst = ([],[],[])
           for e in eff:
-            if 'FORALL_KEY' in e: for_lst.append((e[1],e[2]))
-            elif 'WHEN_KEY' in e: whn_lst.append((e[1],e[2]))
+            if 'FORALL_KEY' in e: for_lst.append(tuple(e[1:]))
+            elif 'WHEN_KEY' in e: whn_lst.append(tuple(e[1:]))
             else: lit_lst.append(e)
           nd_lst.append(Effect(tuple(lit_lst), tuple(for_lst), tuple(whn_lst)))
         oneof.append(tuple(nd_lst))
@@ -479,9 +479,13 @@ def p_prob_effect(p):
 
 def p_conditional_for_eff(p):
     '''conditional_for_eff :
+               | LPAREN FORALL_KEY LPAREN typed_variables_lst RPAREN conditional_when_eff RPAREN
                | LPAREN FORALL_KEY LPAREN typed_variables_lst RPAREN literal RPAREN
                | LPAREN FORALL_KEY LPAREN typed_variables_lst RPAREN LPAREN AND_KEY literals_lst RPAREN RPAREN'''
     if len(p) == 8:
+      if 'WHEN_KEY' in p[6]:
+        p[0] = ('FORALL_KEY', tuple(p[4]), tuple(p[6][1]), tuple(p[6][2]))
+      else:
         p[0] = ('FORALL_KEY', tuple(p[4]), tuple([p[6]]))
     elif len(p) == 11:
         p[0] = ('FORALL_KEY', tuple(p[4]), tuple(p[8]))

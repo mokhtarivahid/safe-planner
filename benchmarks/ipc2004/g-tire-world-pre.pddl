@@ -2,7 +2,7 @@
 
 (define (domain g-tire-world-pre)
 	(:requirements :typing :strips :negative-preconditions
-			:probabilistic-effects :disjunctive-preconditions
+			:probabilistic-effects ;:disjunctive-preconditions
 			:conditional-effects)
 	(:types location)
 	(:predicates	(vehicle-at ?loc - location)

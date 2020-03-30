@@ -8,7 +8,7 @@ from color import fg_green, fg_red, fg_yellow, fg_blue, fg_voilet, fg_beige, bg_
 ###############################################################################
 ###############################################################################
 ## call ff planner
-def call_ff(domain, problem, verbose=0):
+def call_ff(domain, problem, args='', verbose=0):
     """
     Call an external planner
     @arg domain : path to a given domain 
@@ -19,7 +19,7 @@ def call_ff(domain, problem, verbose=0):
                    e.g., [[('move-car', 'l1', 'l4')], [('changetire', 'l4')]]
     """
 
-    cmd = './planners/ff -o {0} -f {1}'.format(domain, problem)
+    cmd = './planners/ff -o {} -f {} {}'.format(domain, problem, args)
 
     ## call command ##
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
@@ -51,8 +51,12 @@ def call_ff(domain, problem, verbose=0):
 
     ## if solution already exists in the problem ##
     if "undeclared predicate" in shell:
-        print("[planning failed due to some errors in the domain description (see below)]\n")
+        print("[planning failed due to some errors in the domain description]\n")
+        print(fg_voilet('\n-- planner stdout'))
         print(shell)
+        if to_str(err):
+            print(fg_voilet('-- planner stderr'))
+            print(to_str(err))
         exit()
 
     ## refine the output screen and build a plan of actions' signatures ##
@@ -63,7 +67,7 @@ def call_ff(domain, problem, verbose=0):
 ###############################################################################
 ###############################################################################
 ## call optic-clp planner
-def call_optic_clp(domain, problem, verbose=0):
+def call_optic_clp(domain, problem, args='-b -N', verbose=0):
     """
     Call an external planner
     @arg domain : path to a given domain 
@@ -76,7 +80,7 @@ def call_optic_clp(domain, problem, verbose=0):
                           ...]
     """
 
-    cmd = './planners/optic-clp -b -N {0} {1}'.format(domain, problem)
+    cmd = './planners/optic-clp {} {} {}'.format(args, domain, problem)
 
     ## call command ##
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
@@ -137,7 +141,7 @@ def call_optic_clp(domain, problem, verbose=0):
 ###############################################################################
 ###############################################################################
 ## call madagascar (M) planner
-def call_m(domain, problem, verbose=0):
+def call_m(domain, problem, args='-P 1 -t 5', verbose=0):
     """
     Call an external planner
     @arg domain : path to a given domain 
@@ -148,7 +152,7 @@ def call_m(domain, problem, verbose=0):
                    e.g., [[('move-car', 'l1', 'l4')], [('changetire', 'l4')]]
     """
 
-    cmd = './planners/m -P 1 -t 5 {0} {1} -o {1}.soln'.format(domain, problem)
+    cmd = './planners/m {0} {1} {2} -o {2}.soln'.format(args, domain, problem)
 
 
     ## call command ##
@@ -176,7 +180,7 @@ def call_m(domain, problem, verbose=0):
     if "PLAN FOUND: 0 steps" in shell:
         return list()
 
-    ## read the probabilistic actions names
+    ## read the solution file
     plan = list()
     try:
         with open(problem+'.soln') as f:
@@ -202,7 +206,7 @@ def call_m(domain, problem, verbose=0):
 ###############################################################################
 ###############################################################################
 ## call vhpop planner
-def call_vhpop(domain, problem, verbose=0):
+def call_vhpop(domain, problem, args='-g -f DSep-LIFO -s HC -w 5 -l 1500000', verbose=0):
     """
     Call an external planner
     @arg domain : path to a given domain 
@@ -213,7 +217,7 @@ def call_vhpop(domain, problem, verbose=0):
                    e.g., [[('move-car', 'l1', 'l4')], [('changetire', 'l4')]]
     """
 
-    cmd = './planners/vhpop -g -f DSep-LIFO -s HC -w 5 -l 1500000 {0} {1}'.format(domain, problem)
+    cmd = './planners/vhpop {} {} {}'.format(args, domain, problem)
 
 
     ## call command ##
@@ -263,7 +267,7 @@ def call_vhpop(domain, problem, verbose=0):
 ###############################################################################
 ###############################################################################
 ## call lpg-td planner
-def call_lpg_td(domain, problem, verbose=0):
+def call_lpg_td(domain, problem, args='-speed -noout', verbose=0):
     """
     Call an external planner
     @arg domain : path to a given domain 
@@ -276,11 +280,11 @@ def call_lpg_td(domain, problem, verbose=0):
                           ...]
     """
 
-    cmd = './planners/lpg-td -o {0} -f {1} -speed -noout'.format(domain, problem)
+    cmd = './planners/lpg-td -o {} -f {} {}'.format(domain, problem, args)
 
     ## call command ##
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
-    # process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    # process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
      
     (output, err) = process.communicate()
 
@@ -309,9 +313,14 @@ def call_lpg_td(domain, problem, verbose=0):
 
     ## if not supported some PDDL features by planner ##
     if "not supported by this exp version" in to_str(err):
-        if not verbose == 2: 
-            print('\nSome PDDL features not supported by this \'lpg-td\' planner.')
-            print('Please try to run with \'-v 2\' to see the planners output.\n')
+        # if not verbose == 2: 
+        #     print('\nSome PDDL features not supported by this \'lpg-td\' planner.')
+        #     print('Please try to run with \'-v 2\' to see the planners output.\n')
+        print(fg_voilet('\n-- planner stdout'))
+        print(shell)
+        if to_str(err):
+            print(fg_voilet('-- planner stderr'))
+            print(to_str(err))
         exit()
 
     ## if solution already exists in the problem ##
@@ -367,7 +376,7 @@ def run(command):
 
 ###############################################################################
 ###############################################################################
-def call_planner(domain, problem, planner='ff', verbose=0):
+def call_planner(domain, problem, planner='ff', args='', verbose=0):
     """
     Call an external deterministic planner.
     Arguments:
@@ -386,23 +395,23 @@ def call_planner(domain, problem, planner='ff', verbose=0):
 
     ## FF planner ##
     if 'ff' in planner.lower():
-        return call_ff(domain, problem, verbose)
+        return call_ff(domain, problem, verbose=verbose)
 
     ## Madagascar (M) planner ##
     elif 'm' in planner.lower():
-        return call_m(domain, problem, verbose)
+        return call_m(domain, problem, verbose=verbose)
 
     ## optic-clp planner ##
     elif 'optic-clp' in planner.lower() or 'optic' in planner.lower():
-        return call_optic_clp(domain, problem, verbose)
+        return call_optic_clp(domain, problem, verbose=verbose)
 
     ## optic-clp planner ##
     elif 'vhpop' in planner.lower():
-        return call_vhpop(domain, problem, verbose)
+        return call_vhpop(domain, problem, verbose=verbose)
 
     ## lpg-td planner ##
     elif 'lpg-td' in planner.lower():
-        return call_lpg_td(domain, problem, verbose)
+        return call_lpg_td(domain, problem, verbose=verbose)
 
     ## optic-clp planner ##
     else:

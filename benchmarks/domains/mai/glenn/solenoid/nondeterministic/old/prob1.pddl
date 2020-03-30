@@ -6,8 +6,8 @@
        (on sole1 hole1)
        (on sole2 hole2)
        (gripper_free)
-       (robot_at_home)
-       (state_observation_needed))
+       (robot_at_table)
+       (sense_on))
 (:goal 
   (and 
         (removed sole1)

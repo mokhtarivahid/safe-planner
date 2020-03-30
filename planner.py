@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from collections import OrderedDict, defaultdict, Counter
+from collections import OrderedDict, defaultdict
 import os, time
 from inspect import currentframe, getframeinfo
 
@@ -152,7 +152,7 @@ class Planner(object):
                         continue
 
                     # in some small problems, the state may become empty by the step application
-                    if new_state.is_empty():
+                    if not new_state:
                         if verbose: print(fg_red('    -- empty state by \'{}\'!'.format(os.path.basename(res[0][1]))))
                         break
 
@@ -227,7 +227,7 @@ class Planner(object):
 
             if verbose: print(fg_yellow2('    -- domain:') + domain)
 
-            plan = call_planner(domain, problm_pddl, self.planner, verbose)
+            plan = call_planner(domain, problm_pddl, self.planner, verbose=verbose)
 
             if verbose == 1: print_classical_plan(plan)
 
@@ -249,23 +249,6 @@ class Planner(object):
         return policy
 
 
-    # def push_open_terminal_states(self, policy, verbose=False):
-    #     '''
-    #     finds non-deterministic actions in the given policy and push 
-    #     them in open_terminal_states for expansion on their other outcomes
-    #     '''
-    #     nd_actions = list()
-    #     for state, step in policy.items():
-    #         if step is not None: # and not state in self.policy:
-    #             for action in step[0]:
-    #                 if action[0] in self.prob_actions:
-    #                     self.open_terminal_states[state] = step[0]
-    #                     nd_actions.append(action)
-    #     if verbose and nd_actions: 
-    #         print(fg_yellow('[non-deterministic actions to further expand: ')+\
-    #             '{}'.format(' '.join(map(str, nd_actions)))+fg_yellow(']'))
-
-
     def push_open_terminal_states(self, verbose=False):
         '''
         finds non-goal terminal states in self.policy and push them in 
@@ -284,7 +267,7 @@ class Planner(object):
                     for step in self.open_terminal_states.values() if step is not None]))))
 
 
-    def update_policy(self, policy1, policy2, preserve=True, verbose=False):
+    def update_policy(self, policy1, policy2, preserve=False, verbose=False):
         '''
         update policy1 by policy2 but skips already existed items
         @arg policy1 : the main given and the output policy
@@ -337,7 +320,7 @@ class Planner(object):
             if step == None: return
             for s in self.apply_step(state, step[0], verbose=verbose):
                 ## exclude states that in some domains a non-deterministic action 
-                ## leads to the previous state (before action application)
+                ## leads to the previous state (the state before action application)
                 if s in self.policy and self.policy[s] is not None and \
                     not state in self.apply_step(s, self.policy[s][0], verbose=verbose):
                     self.remove_path(s, verbose)
@@ -371,10 +354,19 @@ class Planner(object):
         if len([action for action in step if action[0] in self.prob_actions]) == 0:
             for domain, domain_spec in self.domains.items():
                 state = init
+                del_effects = set()
+                add_effects = set()
                 for action in step:
                     grounded_action = domain_spec.ground(action)
+                    add_effects |= set(grounded_action.add_effects)
+                    del_effects |= set(grounded_action.del_effects)
+                    for effect in grounded_action.when_effects:
+                        (pos_cnd_lst, neg_cnd_lst, pos_eff_lst, neg_eff_lst) = effect
+                        add_effects |= set(pos_eff_lst)
+                        del_effects |= set(neg_eff_lst)
                     state = state.apply(grounded_action)
-                states[state] = [((), domain)]
+                states[state] = [((add_effects, del_effects), domain)]
+                # states[state] = [((), domain)]
                 return states
         
         # otherwise, if there is a probabilistic action in step, 
@@ -387,9 +379,13 @@ class Planner(object):
                 grounded_action = domain_spec.ground(action)
                 # if grounded_action is not None:
                 ## effects of the probabilistic actions are included for the purpose of final plan generation
-                if grounded_action.name in self.prob_actions:
-                    add_effects |= set(grounded_action.add_effects)
-                    del_effects |= set(grounded_action.del_effects)
+                # if grounded_action.name in self.prob_actions:
+                add_effects |= set(grounded_action.add_effects)
+                del_effects |= set(grounded_action.del_effects)
+                for effect in grounded_action.when_effects:
+                    (pos_cnd_lst, neg_cnd_lst, pos_eff_lst, neg_eff_lst) = effect
+                    add_effects |= set(pos_eff_lst)
+                    del_effects |= set(neg_eff_lst)
                 state = state.apply(grounded_action)
             if not state in states:
                 states[state] = [((add_effects, del_effects), domain)]
@@ -504,7 +500,8 @@ class Planner(object):
 
                     # unfold conditions as add and delete lists
                     # if there is non-deterministic outcomes
-                    if len(conditions) > 0: 
+                    if len([action.sig for action in actions if action.sig[0] in self.prob_actions]) > 0:
+                    # if len(conditions) > 0: 
                         (add_list, del_list) = conditions
                         # if there is non-deterministic delete list in outcomes
                         if del_effects_included and len(del_list) > 0:
@@ -647,7 +644,7 @@ class Planner(object):
 
                     # unfold conditions as add and delete lists
                     # if there is non-deterministic outcomes
-                    if len(conditions) > 0: 
+                    if len([action.sig for action in actions if action.sig[0] in self.prob_actions]) > 0:
                         (add_list, del_list) = conditions
                         # if there is non-deterministic delete list in outcomes
                         if del_effects_included and len(del_list) > 0:

@@ -25,7 +25,7 @@
           (unobstructed object1)
           (unobstructed object2)
 
-          ; (blocked object1 object2)
+          ; (obstructed object1 object2)
 
           ;;;;;;;;;;;;;;;;;;;;;;;;;;
           ;; constraint 2

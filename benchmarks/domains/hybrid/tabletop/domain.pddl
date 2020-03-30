@@ -1,6 +1,6 @@
 (define (domain tabletop)
 
-  (:requirements :strips :typing :equality :probabilistic-effects)
+  (:requirements :strips :typing :equality :negative-preconditions :universal-preconditions :conditional-effects :probabilistic-effects)
 
   (:types arm table tray object grasp_pose)
 
@@ -27,10 +27,16 @@
 ;; grasp actions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+; (:action grasp
+;  :parameters   (?a - arm ?o - object ?g - grasp_pose ?t - table)
+;  :precondition (and (free ?a)(ontable ?o ?t)(graspable ?o ?g)
+;                     (reachable ?a ?g)(unobstructed ?g))
+;  :effect       (and (grasped ?a ?o ?g)(not(graspable ?o ?g))(not(free ?a))))
+
 (:action grasp
  :parameters   (?a - arm ?o - object ?g - grasp_pose ?t - table)
- :precondition (and (free ?a)(ontable ?o ?t)(graspable ?o ?g)
-                    (reachable ?a ?g)(unobstructed ?g))
+ :precondition (and (free ?a)(ontable ?o ?t)(graspable ?o ?g)(reachable ?a ?g)
+                    (forall (?x - object) (not(obstructed ?g ?x))))
  :effect       (and (grasped ?a ?o ?g)(not(graspable ?o ?g))(not(free ?a))))
 
 (:action ungrasp
@@ -53,7 +59,9 @@
  :precondition (and (grasped ?a ?o ?g1)(ontable ?o ?t)(empty ?o)
                     (graspable ?o ?g2)(graspable ?o ?g3)
                     (not(= ?g1 ?g2))(not(= ?g2 ?g3)))
- :effect       (and (probabilistic 1/2 (and (lifted ?o)(not(ontable ?o ?t))))
+ :effect       (and (probabilistic 1/2 (and (lifted ?o)(not(ontable ?o ?t))
+                                       (forall (?p - grasp_pose)
+                                            (when (obstructed ?p ?o) (not(obstructed ?p ?o))))))
                     (probabilistic 1/2 (and (ontable ?o ?t)(free ?a)(graspable ?o ?g1)(not(grasped ?a ?o ?g1))))))
 
 (:action pickup-filled
@@ -61,7 +69,9 @@
  :precondition (and (grasped ?a ?o ?g1)(ontable ?o ?t)(filled ?o)
                     (graspable ?o ?g2)(graspable ?o ?g3)
                     (not(= ?g1 ?g2))(not(= ?g2 ?g3)))
- :effect       (and (probabilistic 1/3 (and (lifted ?o)(not(ontable ?o ?t))))
+ :effect       (and (probabilistic 1/3 (and (lifted ?o)(not(ontable ?o ?t))
+                                       (forall (?p - grasp_pose)
+                                            (when (obstructed ?p ?o) (not(obstructed ?p ?o))))))
                     (probabilistic 1/3 (and (ontable ?o ?t)(free ?a)(graspable ?o ?g1)(not(grasped ?a ?o ?g1))))
                     (probabilistic 1/3 (and (ontable ?o ?t)(free ?a)(graspable ?o ?g1)(not(grasped ?a ?o ?g1))(not(filled ?o))(empty ?o)))))
 
@@ -69,7 +79,9 @@
  :parameters   (?a ?b - arm ?o - object ?g1 ?g2 ?g3 - grasp_pose ?t - table)
  :precondition (and (grasped ?a ?o ?g1)(grasped ?b ?o ?g2)(ontable ?o ?t)
                     (graspable ?o ?g3)(not(= ?g1 ?g2))(not(= ?g2 ?g3))(not(= ?a ?b)))
- :effect       (and (co_lifted ?o)(not(ontable ?o ?t))))
+ :effect       (and (co_lifted ?o)(not(ontable ?o ?t))
+                    (forall (?p - grasp_pose)
+                         (when (obstructed ?p ?o) (not(obstructed ?p ?o))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; put down actions
@@ -105,14 +117,14 @@
 ;; actions to delete constraints in a state upon happening some other actions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(:action unobstructed
- :parameters   (?g - grasp_pose ?o - object)
- :precondition (and (obstructed ?g ?o)(lifted ?o))
- :effect       (and (not(obstructed ?g ?o))(unobstructed ?g)))
+; (:action unobstructed
+;  :parameters   (?g - grasp_pose ?o - object)
+;  :precondition (and (obstructed ?g ?o)(lifted ?o))
+;  :effect       (and (not(obstructed ?g ?o))(unobstructed ?g)))
 
-(:action unobstructed2
- :parameters   (?g - grasp_pose ?o - object)
- :precondition (and (obstructed ?g ?o)(co_lifted ?o))
- :effect       (and (not(obstructed ?g ?o))(unobstructed ?g)))
+; (:action unobstructed2
+;  :parameters   (?g - grasp_pose ?o - object)
+;  :precondition (and (obstructed ?g ?o)(co_lifted ?o))
+;  :effect       (and (not(obstructed ?g ?o))(unobstructed ?g)))
 
 )

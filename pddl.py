@@ -45,7 +45,10 @@ def to_pddl(object, state=None, goals=None):
         for uni in object.forall:
             types, variables = zip(*uni[0])
             varlist = ' '.join(['%s - %s' % pair for pair in zip(variables, types)])
-            for_str += '(forall ({}) {})'.format(varlist,literals_to_pddl(uni[1]))
+            if len(uni) == 2:
+                for_str += '(forall ({}) {})'.format(varlist,literals_to_pddl(uni[1]))
+            elif len(uni) == 3:
+                for_str += '(forall ({}) (when {} {}))'.format(varlist,literals_to_pddl(uni[1]),literals_to_pddl(uni[2]))
         for uni in object.when:
             whn_str += '(when {} {})'.format(literals_to_pddl(uni[0]),literals_to_pddl(uni[1]))
         return (lit_str, for_str, whn_str)
@@ -57,7 +60,7 @@ def to_pddl(object, state=None, goals=None):
         pddl_str += '\n   :parameters ({})'.format(arglist)
         if object.preconditions:
             pddl_str += '\n   :precondition {}'.format(to_pddl(object.preconditions))
-        if object.effects:
+        if object.effects or object.probabilistic or object.oneof:
             pddl_str += '\n   :effect (and {}'.format('\n           '.join(filter(None,to_pddl(object.effects))))
             for probabilistic in object.probabilistic:
                 prob_lst = list()
@@ -162,4 +165,3 @@ def literals_to_pddl(literal_lst):
 
     if len(literal_lst) == 1: return literal_to_pddl(literal_lst[0])
     return '(and {})'.format(' '.join(map(str, [literal_to_pddl(e) for e in literal_lst])))
-

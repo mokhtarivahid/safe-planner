@@ -25,7 +25,7 @@ def parse():
 
 
 ###############################################################################
-def gen_dot_plan(plan, dot_file=None):
+def gen_dot_plan(plan, del_effect=True, dot_file=None):
 
     dot_str = str()
     dot_str+= 'digraph Struc {\n'
@@ -48,27 +48,38 @@ def gen_dot_plan(plan, dot_file=None):
         else:
             # unfold step into a tuple of actions and outcomes
             (actions, outcomes) = step
-            dot_str+= ' n{} [label="{}"];\n'.format(str(level), ' '.join(map(str, actions)))
+            # create a node for the current step
+            if len(outcomes) > 1: 
+                # non-deterministic step in different color
+                dot_str+= ' n{} [style=filled, color=lightgrey, label="{}"];\n'.format(str(level), ' '.join(map(str, actions)))
+            else:
+                # deterministic step
+                dot_str+= ' n{} [label="{}"];\n'.format(str(level), ' '.join(map(str, actions)))
 
             # each outcome is a tuple of conditions and jump to a next level
             for (conditions, jump) in outcomes:
                 # unfold conditions as add and delete lists
                 (add_list, del_list) = ([],[])
+
+                # if action is non-deterministic (has some effects)
                 if len(conditions) > 0: (add_list, del_list) = conditions
-                add_str = '+ {}'.format(str(' '.join(map(str,[str('('+' '.join(eff)+')') for eff in add_list]))))\
+
+                # create an edge and its label
+                eff_str = '+ {}'.format(str(' '.join(map(str,[str('('+' '.join(eff)+')') for eff in add_list]))))\
                             if add_list else ''
-                del_str = '\\n- {}'.format(str(' '.join(map(str,[str('('+' '.join(eff)+')') for eff in del_list]))))\
+                if del_effect:
+                    eff_str+= '\\n- {}'.format(str(' '.join(map(str,[str('('+' '.join(eff)+')') for eff in del_list]))))\
                             if del_list else ''
-                dot_str+= ' n{}->n{} [label="{}{}"];\n'.format(str(level), str(jump), (add_str), (del_str))
+                dot_str+= ' n{}->n{} [fontsize=12, label="{}"];\n'.format(str(level), str(jump), (eff_str))
                 # check if goal is achieved at the next step
                 # if jump == 'GOAL': dot_str+= ' n{} [shape=circle,label="",peripheries=2];\n'.format(str(jump))
     dot_str+= '}'
 
     # create a dot file
     if dot_file == None:
-        if not os.path.exists("/tmp/pyddl/"):
-            os.makedirs("/tmp/pyddl/")
-        dot_file = "/tmp/pyddl/prob"+str(int(time.time()*1000000))+".dot"
+        if not os.path.exists("/tmp/pyppddl/"):
+            os.makedirs("/tmp/pyppddl/")
+        dot_file = "/tmp/pyppddl/prob"+str(int(time.time()*1000000))+".dot"
     else:
         dot_file = '{}.dot'.format(os.path.splitext(dot_file)[0])
     with open(dot_file, 'w') as f:
@@ -87,7 +98,7 @@ if __name__ == '__main__':
     plan = policy.plan(tree=True)
     policy.print_plan(plan)
 
-    dot_file = gen_dot_plan(plan=plan, dot_file=args.problem)
+    dot_file = gen_dot_plan(plan=plan, del_effect=False, dot_file=args.problem)
     print(dot_file)
 
     print('Planning time: %.3f s' % policy.planning_time)

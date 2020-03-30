@@ -2,6 +2,9 @@
 Classes and functions for creating a problem object
 """
 
+from itertools import product
+from domain import _grounder
+
 ###############################################################################
 ## PROBLEM CLASS
 ###############################################################################
@@ -69,19 +72,37 @@ class State(object):
                 new_preds -= set(neg_eff_lst)
         ## apply conditional forall effect
         for effect in action.forall_effects:
-            ## first ground var_list in the state
-            (var_lst, pos_eff_lst, neg_eff_lst) = effect
-            (types, arg_names) = zip(*var_lst)
-            param_lists = [self.objects[t] for t in types]
-            for params in product(*param_lists):
-                ground = _grounder(arg_names, params)
-                new_preds |= set([ground(eff) for eff in pos_eff_lst])
-                new_preds -= set([ground(eff) for eff in neg_eff_lst])
+            ## (forall (var_lst) (effects))
+            if len(effect) == 3:
+                ## first ground var_list in the state
+                (var_lst, pos_eff_lst, neg_eff_lst) = effect
+                (types, arg_names) = zip(*var_lst)
+                param_lists = [self.objects[t] for t in types]
+                for params in product(*param_lists):
+                    ground = _grounder(arg_names, params)
+                    new_preds |= set([ground(eff) for eff in pos_eff_lst])
+                    new_preds -= set([ground(eff) for eff in neg_eff_lst])
+            ## (forall (var_lst) (when (cnd) (effects)))
+            elif len(effect) == 5:
+                ## first ground var_list in the state
+                (var_lst, pos_cnd_lst, neg_cnd_lst, pos_eff_lst, neg_eff_lst) = effect
+                (types, arg_names) = zip(*var_lst)
+                param_lists = [self.objects[t] for t in types]
+                for params in product(*param_lists):
+                    ground = _grounder(arg_names, params)
+                    if self.is_true([ground(eff) for eff in pos_cnd_lst], [ground(eff) for eff in neg_cnd_lst]):
+                        new_preds |= set([ground(eff) for eff in pos_eff_lst])
+                        new_preds -= set([ground(eff) for eff in neg_eff_lst])
     
         return State(new_preds, self.objects)
 
-    def is_empty(self):
-        return (len(self.predicates) == 0)
+    def __bool__(self):
+        """Return false if state is empty, otherwise true"""
+        return not (not self.predicates)
+
+    def __len__(self):
+        """Return length of the state (length of predicates)"""
+        return len(self.predicates)
 
     # Implement __hash__ and __eq__ so we can easily
     # check if we've encountered this state before
@@ -98,5 +119,3 @@ class State(object):
 
     def __lt__(self, other):
         return hash(self) < hash(other)
-
-

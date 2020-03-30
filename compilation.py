@@ -135,6 +135,9 @@ if __name__ == '__main__':
 
     domain = PDDLParser.parse(args.domain)
 
+    ## if problem is also in the file
+    if type(domain) == tuple: domain = domain[0]
+
     domains_dir = compile(domain)
 
     deterministic_domains = OrderedDict()

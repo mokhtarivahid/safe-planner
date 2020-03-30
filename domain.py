@@ -114,7 +114,10 @@ class Effect(object):
         if self.literals:
             eff_str += '\n       -- literals: {}'.format(self.literals)
         for p in self.forall:
-            eff_str += '\n       -- forall: {} {}'.format(p[0],p[1])
+            if len(p) == 2:
+                eff_str += '\n       -- forall: {} {}'.format(p[0],p[1])
+            elif len(p) == 3:
+                eff_str += '\n       -- forall: {} when: {} {}'.format(p[0],p[1],p[2])
         for p in self.when:
             eff_str += '\n       -- when: {} {}'.format(p[0],p[1])
         return eff_str
@@ -249,13 +252,29 @@ class _GroundedAction(object):
         ## conditional-effects (forall)
         ## var_list are not grounded here; they are grounded when action is applied in a state
         for effect in action.effects.forall:
-            (neg_eff_lst, pos_eff_lst) = ([],[])
-            for eff in effect[1]:
-                if eff[0] == -1:
-                    neg_eff_lst.append(ground(eff[1]))
-                else:
-                    pos_eff_lst.append(ground(eff))
-            self.forall_effects.append((effect[0], tuple(pos_eff_lst), tuple(neg_eff_lst)))
+            ## (forall (var_lst) (effects))
+            if len(effect) == 2:
+                (neg_eff_lst, pos_eff_lst) = ([],[])
+                for eff in effect[1]:
+                    if eff[0] == -1:
+                        neg_eff_lst.append(ground(eff[1]))
+                    else:
+                        pos_eff_lst.append(ground(eff))
+                self.forall_effects.append((effect[0], tuple(pos_eff_lst), tuple(neg_eff_lst)))
+            ## (forall (var_lst) (when (cnd) (effects)))
+            elif len(effect) == 3:
+                (pos_cnd_lst, neg_cnd_lst, pos_eff_lst, neg_eff_lst) = ([],[],[],[])
+                for eff in effect[1]:
+                    if eff[0] == -1:
+                        neg_cnd_lst.append(ground(eff[1]))
+                    else:
+                        pos_cnd_lst.append(ground(eff))
+                for eff in effect[2]:
+                    if eff[0] == -1:
+                        neg_eff_lst.append(ground(eff[1]))
+                    else:
+                        pos_eff_lst.append(ground(eff))
+                self.forall_effects.append((effect[0], tuple(pos_cnd_lst), tuple(neg_cnd_lst), tuple(pos_eff_lst), tuple(neg_eff_lst)))
 
         ## conditional-effects (when)
         for effect in action.effects.when:
@@ -314,4 +333,3 @@ class _GroundedAction(object):
                 set(self.add_effects), set(self.del_effects)) ) == \
             ((other.name, set(other.sig), set(other.pos_preconditions), set(other.neg_preconditions), \
                 set(other.add_effects), set(other.del_effects)) ))
-

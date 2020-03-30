@@ -1,8 +1,8 @@
 (define (domain pullandpick)
 
-  (:requirements :strips :typing :negative-preconditions :conditional-effects :probabilistic-effects)
+  (:requirements :strips :typing :probabilistic-effects)
  
-  (:types arm graspable - object)
+  (:types arm graspable)
 
   (:predicates  (free ?a - arm)
 
@@ -19,8 +19,11 @@
 
                 (unobstructed ?o - graspable)
 
-                ; ?o is obstructed by ?b to pull off
-                (obstructed ?o - graspable ?b - object) 
+                ; ?o is blocked by ?b to pull off
+                (blocked ?o - graspable ?b - graspable) 
+
+                ; ?o is not accessible because arm ?a has obstructed the grasping space of ?o
+                (obstructed ?o - graspable ?a - arm) 
                 )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -35,10 +38,7 @@
 (:action ungrasp
  :parameters   (?a - arm ?o - graspable)
  :precondition (and (grasped ?a ?o)(ontable ?o))
- :effect       (and (free ?a)(ungrasped ?o)(not(grasped ?a ?o))
-                    (forall (?x - graspable)
-                        (when (obstructed ?x ?a) 
-                            (and (unobstructed ?x)(not(obstructed ?x ?a)))))))
+ :effect       (and (free ?a)(ungrasped ?o)(not(grasped ?a ?o))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; pick up actions
@@ -47,10 +47,7 @@
 (:action pickup
  :parameters   (?a - arm ?o - graspable)
  :precondition (and (grasped ?a ?o)(ontable ?o)(nearby ?o ?a)(not(heavy ?o ?a)))
- :effect       (and (probabilistic 1/2 (and (lifted ?o)(not(ontable ?o))
-                                       (forall (?x - graspable)
-                                            (when (obstructed ?x ?o) 
-                                                (and (unobstructed ?x)(not(obstructed ?x ?o)))))))
+ :effect       (and (probabilistic 1/2 (and (lifted ?o)(not(ontable ?o))))
                     (probabilistic 1/2 (and (heavy ?o ?a)(not (nearby ?o ?a))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -75,14 +72,14 @@
 ;; actions to delete constraints in a state upon happening some other actions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-; (:action unobstruct
-;  :parameters   (?b - graspable ?o - graspable)
-;  :precondition (and (obstructed ?o ?b)(lifted ?b))
-;  :effect       (and (not(obstructed ?o ?b))(unobstructed ?o)))
+(:action unobstruct
+ :parameters   (?b - graspable ?o - graspable)
+ :precondition (and (blocked ?o ?b)(lifted ?b))
+ :effect       (and (not(blocked ?o ?b))(unobstructed ?o)))
 
-; (:action release
-;  :parameters   (?a - arm ?o - graspable)
-;  :precondition (and (obstructed ?o ?a)(free ?a))
-;  :effect       (and (not(obstructed ?o ?a))(unobstructed ?o)))
+(:action release
+ :parameters   (?a - arm ?o - graspable)
+ :precondition (and (obstructed ?o ?a)(free ?a))
+ :effect       (and (not(obstructed ?o ?a))(unobstructed ?o)))
 
 )

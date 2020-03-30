@@ -35,8 +35,8 @@
           ; (unobstructed object2)
           (unobstructed object3)
 
-          (blocked object1 object2)
-          (blocked object2 object3)
+          (obstructed object1 object2)
+          (obstructed object2 object3)
 
           ;;;;;;;;;;;;;;;;;;;;;;;;;;
           ;; constraint 3
