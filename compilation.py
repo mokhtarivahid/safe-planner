@@ -15,7 +15,7 @@ from pddl import to_pddl
 from domain import Domain, Action, Effect
 
 def parse():
-    usage = 'python3 main.py <DOMAIN> [-v] [-h]'
+    usage = 'python3 compilation.py <DOMAIN> [-v] [-h]'
     description = "Compiling a non-deterministic domain to a set of deterministic domains."
     parser = argparse.ArgumentParser(usage=usage, description=description)
     parser.add_argument('domain',  type=str, help='path to a PDDL domain file')
@@ -45,28 +45,70 @@ def compilation(domain):
         ## a list of all possible effects separately
         deterministic_effects = list()
 
-        ## sum of the probabilities
-        probability = 0.0
+        # ## sum of the probabilities
+        # probability = 0.0
+
+        # ## split action probabilistic effects into a list of deterministic effects
+        # for prob_eff_lst in action.probabilistic:
+        #     deterministic_effects.extend([Effect(action.effects.literals+eff[1].literals, \
+        #             action.effects.forall+eff[1].forall, \
+        #             action.effects.when+eff[1].when) for eff in prob_eff_lst])
+        #     probability += sum([eff[0] for eff in prob_eff_lst])
+
+        # ## split action oneof effects into a list of deterministic effects
+        # for oneof_eff in action.oneof:
+        #     deterministic_effects.extend([Effect(action.effects.literals+eff.literals, \
+        #             action.effects.forall+eff.forall, \
+        #             action.effects.when+eff.when) for eff in oneof_eff])
+
+        # ## include also the action effects if the total probability is less than 1.0
+        # if action.effects and not probability == 1.0 and len(action.oneof) == 0: 
+        #     deterministic_effects.extend([action.effects])
+        # ## if there is only one probabilistic effect, then we also need a neutral effect,
+        # ## i.e., we add the action preconditions (literals only) as an action effect
+        # elif not action.effects and len(deterministic_effects) == 1:
+        #     deterministic_effects.extend([Effect(literals=action.preconditions.literals)])
+        #     # deterministic_effects.extend([Effect()])
 
         ## split action probabilistic effects into a list of deterministic effects
-        for prob_eff in action.probabilistic:
-            deterministic_effects.extend([Effect(action.effects.literals+eff[1].literals, \
-                    action.effects.forall+eff[1].forall, \
-                    action.effects.when+eff[1].when) for eff in prob_eff])
-            probability += sum([eff[0] for eff in prob_eff])
+        ## make all possible combination of probabilistic effects
+        probabilistic_effects = list()
+        for prob_eff_lst in action.probabilistic:
+            if sum([eff[0] for eff in prob_eff_lst]) == 1:
+                probabilistic_effects.append(prob_eff_lst)
+            else:
+                probabilistic_effects.append(prob_eff_lst+tuple([(0, Effect())]))
+
+        for prob_eff in list(product(*probabilistic_effects)):
+            if prob_eff:
+                literals_lst, forall_lst, when_lst = [], [], []
+                for eff in prob_eff:
+                    literals_lst.extend(eff[1].literals)
+                    forall_lst.extend(eff[1].forall)
+                    when_lst.extend(eff[1].when)
+                deterministic_effects.extend([Effect(action.effects.literals+tuple(literals_lst), \
+                        action.effects.forall+tuple(forall_lst), \
+                        action.effects.when+tuple(when_lst))])
 
         ## split action oneof effects into a list of deterministic effects
-        for oneof_eff in action.oneof:
-            deterministic_effects.extend([Effect(action.effects.literals+eff.literals, \
-                    action.effects.forall+eff.forall, \
-                    action.effects.when+eff.when) for eff in oneof_eff])
+        ## make all possible combination of oneof effects
+        for oneof_eff in list(product(*action.oneof)):
+            if oneof_eff:
+                literals_lst, forall_lst, when_lst = [], [], []
+                for eff in oneof_eff:
+                    literals_lst.extend(eff.literals)
+                    forall_lst.extend(eff.forall)
+                    when_lst.extend(eff.when)
+                deterministic_effects.extend([Effect(action.effects.literals+tuple(literals_lst), \
+                        action.effects.forall+tuple(forall_lst), \
+                        action.effects.when+tuple(when_lst))])
 
         ## include also the action effects if the total probability is less than 1.0
-        if action.effects and not probability == 1.0 and len(action.oneof) == 0: 
+        if action.effects and len(deterministic_effects) == 0: 
             deterministic_effects.extend([action.effects])
-        ## if there is only one probabilistic effect, then we also need a neutral effect,
-        ## i.e., we add the action preconditions (literals only) as an action effect
-        elif not action.effects and len(deterministic_effects) == 1:
+        ## if there is only one probabilistic/oneof effect, then we also need a neutral 
+        ## effect, i.e., we add the action preconditions (literals only) as an action effect
+        if not action.effects and len(deterministic_effects) == 1:
             deterministic_effects.extend([Effect(literals=action.preconditions.literals)])
             # deterministic_effects.extend([Effect()])
 
@@ -99,8 +141,7 @@ def compile(domain, verbose=False):
     """
 
     if not ':probabilistic-effects' in domain.requirements:
-        if verbose:
-            print('\'{}\' is not non-deterministic'.format(domain.name))
+        print('\'{}\' is not non-deterministic'.format(domain.name))
         return ((),())
 
     (deterministic_domains, nd_actions) = compilation(domain)
@@ -144,6 +185,7 @@ if __name__ == '__main__':
     nd_actions = list()
 
     ## parse deterministic pddl domains
+    # print([os.path.join(domains_dir, file) for file in os.listdir(domains_dir)])
     for domain in sorted([os.path.join(domains_dir, file) for file in os.listdir(domains_dir)]):
         ## read the probabilistic actions names
         if domain.endswith('.prob'):
@@ -159,9 +201,10 @@ if __name__ == '__main__':
 
     # deterministic_domains, nd_actions = compilation(domain)
 
-    # for domain in deterministic_domains:
-    #     print(fg_yellow('-------------------------'))
-    #     print(to_pddl(domain))
+    if args.verbose:
+        for domain_dir, domain in deterministic_domains.items():
+            print(fg_yellow('-------------------------'))
+            print(to_pddl(domain))
 
     # print(fg_yellow('-- total number of non-deterministic domains: ') +str(len(deterministic_domains)))
     # print(fg_yellow('-- non-deterministic actions: ') + str(nd_actions))

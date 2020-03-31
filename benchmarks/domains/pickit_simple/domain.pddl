@@ -99,8 +99,8 @@
  :parameters   (?a - arm ?o ?c - object)
  :precondition (and (arm_vacuumed ?a ?o) (arm_at ?a ?c) (camera ?c))
  :effect (and (camera_checked ?o)
-              (probabilistic 0.5 (upward ?o))
-              (probabilistic 0.5 (downward ?o))))
+              (probabilistic 0.5 (upward ?o)
+                             0.5 (downward ?o))))
 
 (:action rotate_object
  :parameters   (?a - arm ?o - object)

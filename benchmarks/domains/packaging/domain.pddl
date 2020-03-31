@@ -122,8 +122,8 @@
  :parameters   (?a - arm ?o - object ?l - object)
  :precondition (and (vacuumed ?a ?o)(arm_at ?a ?l)(camera ?l))
  :effect       (and (camera_checked ?o)
-                    (probabilistic 0.5 (downward ?o))
-                    (probabilistic 0.5 (upward ?o))))
+                    (probabilistic 0.5 (downward ?o)
+                                   0.5 (upward ?o))))
 
 ; (:action check_direction
 ;  :parameters   (?a - arm ?o - object ?l - object)

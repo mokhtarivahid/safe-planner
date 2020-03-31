@@ -122,8 +122,8 @@
  :parameters   (?a - arm ?o - graspable ?l - graspable)
  :precondition (and (gripped ?a ?o)(arm_at ?a ?l)(camera ?l))
  :effect       (and (camera_checked ?o)
-                    (probabilistic 0.5 (downward ?o))
-                    (probabilistic 0.5 (upward ?o))))
+                    (probabilistic 0.5 (downward ?o)
+                                   0.5 (upward ?o))))
 
 ; (:action check_direction
 ;  :parameters   (?a - arm ?o - graspable ?l - graspable)

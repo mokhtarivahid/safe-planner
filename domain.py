@@ -130,6 +130,7 @@ class Effect(object):
         """Return length of effects (total length of literals + forall + when)"""
         return len(self.literals) + len(self.forall) + len(self.when)
 
+
 ###############################################################################
 ## ACTION CLASS
 ###############################################################################

@@ -87,8 +87,8 @@
  :parameters   (?a - arm ?o - location ?l - location)
  :precondition (and (gripped ?a ?o)(arm_at ?a ?l)(camera ?l)(unknown_pos ?o))
  :effect       (and (camera_checked ?o)
-                    (probabilistic 0.5 (and (downward ?o) (not (unknown_pos ?o))))
-                    (probabilistic 0.5 (and (upward ?o) (not (unknown_pos ?o))))))
+                    (probabilistic 0.5 (and (downward ?o) (not (unknown_pos ?o)))
+                                   0.5 (and (upward ?o) (not (unknown_pos ?o))))))
 
 ; (:action check_direction
 ;  :parameters   (?a - arm ?o - location ?l - location)

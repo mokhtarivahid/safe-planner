@@ -34,7 +34,8 @@
  :effect (and
          (oneof (and (robot_at ?h)(not(robot_at_home)))
                 (and (human_towards ?s ?h)(certainty_low ?s))
-                (and (human_towards ?s ?h)(certainty_high ?s)(removed ?s)(not(sensed_on ?s ?h))(state_observation_needed)))))
+                (and (human_towards ?s ?h)(certainty_high ?s))
+                (and (removed ?s)(not(sensed_on ?s ?h))(state_observation_needed)))))
 
 (:action move_slow
  :parameters (?s - solenoid ?h - hole)
@@ -42,7 +43,16 @@
  :effect (and (not(certainty_low ?s))
          (oneof (and (robot_at ?h)(not(robot_at_home))(not(human_towards ?s ?h)))
                 (and (not(human_towards ?s ?h)))
-                (and (certainty_high ?s)(removed ?s)(not(sensed_on ?s ?h))(state_observation_needed)))))
+                (and (certainty_high ?s))
+                (and (removed ?s)(not(sensed_on ?s ?h))(state_observation_needed)(not(human_towards ?s ?h))))))
+
+(:action move_stop
+ :parameters (?s - solenoid ?h - hole)
+ :precondition (and (sensed_on ?s ?h)(human_towards ?s ?h)(certainty_high ?s))
+ :effect (and (not(certainty_high ?s))
+         (oneof (and (certainty_low ?s))
+                (and (not(human_towards ?s ?h)))
+                (and (removed ?s)(not(sensed_on ?s ?h))(state_observation_needed)(not(human_towards ?s ?h))))))
 
 (:action grasp
   :parameters (?s - solenoid ?h - hole)

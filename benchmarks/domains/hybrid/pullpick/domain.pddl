@@ -47,11 +47,11 @@
 (:action pickup
  :parameters   (?a - arm ?o - graspable)
  :precondition (and (grasped ?a ?o)(ontable ?o)(nearby ?o ?a)(not(heavy ?o ?a)))
- :effect       (and (probabilistic 1/2 (and (lifted ?o)(not(ontable ?o))
-                                       (forall (?x - graspable)
-                                            (when (obstructed ?x ?o) 
-                                                (and (unobstructed ?x)(not(obstructed ?x ?o)))))))
-                    (probabilistic 1/2 (and (heavy ?o ?a)(not (nearby ?o ?a))))))
+ :effect       (and (oneof (and (lifted ?o)(not(ontable ?o))
+                                (forall (?x - graspable)
+                                    (when (obstructed ?x ?o) 
+                                        (and (unobstructed ?x)(not(obstructed ?x ?o))))))
+                           (and (heavy ?o ?a)(not (nearby ?o ?a))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; pick up actions

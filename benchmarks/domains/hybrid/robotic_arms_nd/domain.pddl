@@ -28,8 +28,8 @@
 (:action pick_up
  :parameters   (?a - robot ?o - object ?t - table)
  :precondition (and (arm_free ?a) (arm_canreach ?a ?o) (on ?o ?t) (clear ?o))
- :effect       (and (probabilistic 0.5 (and (arm_holding ?a ?o) (not (arm_free ?a)) (not (on ?o ?t))))
-                    (probabilistic 0.5 (and (arm_free ?a) (arm_canreach ?a ?o) (on ?o ?t) (clear ?o)))))
+ :effect       (and (probabilistic 0.5 (and (arm_holding ?a ?o) (not (arm_free ?a)) (not (on ?o ?t)))
+                                   0.5 (and (arm_free ?a) (arm_canreach ?a ?o) (on ?o ?t) (clear ?o)))))
 
 (:action put_down
  :parameters   (?a - robot ?o - object ?t - table)

@@ -47,8 +47,7 @@
 ; (:action weigh
 ;  :parameters   (?a - arm ?o - object ?g - grasp_pose ?t - table)
 ;  :precondition (and (grasped ?a ?o ?g)(ontable ?o ?t))
-;  :effect       (and (probabilistic 1/2 (empty ?o))
-;                     (probabilistic 1/2 (filled ?o))))
+;  :effect       (and (oneof (empty ?o)(filled ?o))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; pick up actions
@@ -59,21 +58,21 @@
  :precondition (and (grasped ?a ?o ?g1)(ontable ?o ?t)(empty ?o)
                     (graspable ?o ?g2)(graspable ?o ?g3)
                     (not(= ?g1 ?g2))(not(= ?g2 ?g3)))
- :effect       (and (probabilistic 1/2 (and (lifted ?o)(not(ontable ?o ?t))
-                                       (forall (?p - grasp_pose)
-                                            (when (obstructed ?p ?o) (not(obstructed ?p ?o))))))
-                    (probabilistic 1/2 (and (ontable ?o ?t)(free ?a)(graspable ?o ?g1)(not(grasped ?a ?o ?g1))))))
+ :effect       (and (oneof (and (lifted ?o)(not(ontable ?o ?t))
+                                (forall (?p - grasp_pose)
+                                    (when (obstructed ?p ?o) (not(obstructed ?p ?o)))))
+                           (and (ontable ?o ?t)(free ?a)(graspable ?o ?g1)(not(grasped ?a ?o ?g1))))))
 
 (:action pickup-filled
  :parameters   (?a - arm ?o - object ?g1 ?g2 ?g3 - grasp_pose ?t - table)
  :precondition (and (grasped ?a ?o ?g1)(ontable ?o ?t)(filled ?o)
                     (graspable ?o ?g2)(graspable ?o ?g3)
                     (not(= ?g1 ?g2))(not(= ?g2 ?g3)))
- :effect       (and (probabilistic 1/3 (and (lifted ?o)(not(ontable ?o ?t))
-                                       (forall (?p - grasp_pose)
-                                            (when (obstructed ?p ?o) (not(obstructed ?p ?o))))))
-                    (probabilistic 1/3 (and (ontable ?o ?t)(free ?a)(graspable ?o ?g1)(not(grasped ?a ?o ?g1))))
-                    (probabilistic 1/3 (and (ontable ?o ?t)(free ?a)(graspable ?o ?g1)(not(grasped ?a ?o ?g1))(not(filled ?o))(empty ?o)))))
+ :effect       (and (oneof (and (lifted ?o)(not(ontable ?o ?t))
+                                (forall (?p - grasp_pose)
+                                    (when (obstructed ?p ?o) (not(obstructed ?p ?o)))))
+                           (and (ontable ?o ?t)(free ?a)(graspable ?o ?g1)(not(grasped ?a ?o ?g1)))
+                           (and (ontable ?o ?t)(free ?a)(graspable ?o ?g1)(not(grasped ?a ?o ?g1))(not(filled ?o))(empty ?o)))))
 
 (:action dualarm-pickup
  :parameters   (?a ?b - arm ?o - object ?g1 ?g2 ?g3 - grasp_pose ?t - table)
