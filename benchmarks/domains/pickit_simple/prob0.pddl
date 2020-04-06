@@ -4,60 +4,38 @@
 
   (:objects 
             arm1 arm2 - arm
-            camera1 
-            bin1 bin2 stand1 stand2 box1 
-            product1 - object)
+            box1 box2 package1 - container
+            part1 part2 - graspable
+            assembly_pose1 assembly_pose2 - assemble)
 
   (:init 
-            (arm arm1)
-            (arm arm2)
-            (bin bin1)
-            (bin bin2)
-            (package box1)
-            (stand stand2)
-            (stand stand1)
-            (camera camera1)
-            (product product1)
-            
-            (graspable product1)
-            
-            (arm_canreach arm1 bin1)
-            (arm_canreach arm1 bin2)
-            (arm_canreach arm1 stand2)
-            (arm_canreach arm1 stand1)
-            (arm_canreach arm1 product1)
-            (arm_canreach arm1 camera1)
             (arm_canreach arm1 box1)
+            ; (arm_canreach arm1 box2)
+            (arm_canreach arm1 assembly_pose1)
+            (arm_canreach arm1 package1)
 
-            (arm_canreach arm2 bin1)
-            (arm_canreach arm2 bin2)
-            (arm_canreach arm2 stand2)
-            (arm_canreach arm2 stand1)
-            (arm_canreach arm2 product1)
-            (arm_canreach arm2 camera1)
-            (arm_canreach arm2 box1)
+            ; (arm_canreach arm2 box1)
+            (arm_canreach arm2 box2)
+            (arm_canreach arm2 assembly_pose2)
+            ; (arm_canreach arm2 package1)
 
             (arm_free arm1)
             (arm_free arm2)
 
-            (object_in product1 bin1)
+            (object_in part1 box1)
+            (object_in part2 box2)
 
-            (arm_at arm1 bin1)
-            (arm_at arm2 bin2)
+            (arm_at arm1 box1)
+            (arm_at arm2 box2)
 
-            (occupied bin1)
-            (occupied bin2)
-
-            (free box1)
-            (free stand2)
-            (free stand1)
-            (free camera1)
-            (free product1)
-
+            ; (free box1)
+            ; (free box2)
+            (free package1)
+            (free assembly_pose1)
+            (free assembly_pose2)
             )
 
   (:goal (and
-            (object_in product1 box1)
+            (packed part1 part2 package1)
           ))
-  ; (:metric minimize (total-cost))
 )

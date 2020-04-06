@@ -3,6 +3,7 @@
 from collections import OrderedDict, defaultdict
 import os, time
 from inspect import currentframe, getframeinfo
+from itertools import product
 
 from color import fg_green, fg_red, fg_red2, fg_yellow, fg_yellow2, fg_blue, fg_voilet, fg_beige, bg_green, bg_red, bg_yellow, bg_blue, bg_voilet
 from pddlparser import PDDLParser
@@ -110,7 +111,7 @@ class Planner(object):
                     ## put in the self.unsolvable_states all states leading to 'state' and remove their path from self.policy ##
                     for (s, stp) in [(s, stp) for (s, stp) in self.policy.items() \
                                               if stp is not None and stp[0] is not None \
-                                              and state in self.apply_step(s, stp[0], verbose=verbose)]:
+                                              and state in self.apply_step(init=s, step=stp[0], verbose=verbose)]:
                         self.unsolvable_states[s].add(stp[1])
                         if verbose: print(fg_red2('  -- unsolvable by \'{}\''.format(os.path.basename(stp[1]))))
                         self.remove_path(s, verbose=False)
@@ -134,7 +135,7 @@ class Planner(object):
                 policies = OrderedDict()
 
                 ## make all possible states from application of 'step' in 'state'
-                new_states = self.apply_step(state, step, verbose=verbose)
+                new_states = self.apply_step(init=state, step=step, verbose=verbose)
 
                 if verbose: print(fg_green('\n[Expand \'{}\' -- {} possible states]').format(\
                             ' '.join([str('('+' '.join(s)+')') for s in step]), len(new_states)))
@@ -256,7 +257,7 @@ class Planner(object):
         '''
         for state, step in self.policy.items():
             if step is not None:
-                new_states = self.apply_step(state, step[0], verbose=verbose)
+                new_states = self.apply_step(init=state, step=step[0], verbose=verbose)
                 for new_state in new_states:
                     if not new_state in self.policy and not new_state.is_true(self.problem.goals):
                         self.open_terminal_states[state] = step[0]
@@ -297,7 +298,7 @@ class Planner(object):
         for step in plan:
             policy[state] = (step, domain)
             ## make full grounded specification of actions ##
-            state = self.apply_step(state, step, domain_spec, verbose)
+            state = self.apply_step(init=state, step=step, domain=domain_spec, verbose=verbose)
             policy[state] = None
 
         return policy
@@ -318,26 +319,27 @@ class Planner(object):
                 print(fg_yellow(' -- removed from policy: ')+str(step))
             del self.policy[state]
             if step == None: return
-            for s in self.apply_step(state, step[0], verbose=verbose):
+            for s in self.apply_step(init=state, step=step[0], verbose=verbose):
                 ## exclude states that in some domains a non-deterministic action 
                 ## leads to the previous state (the state before action application)
                 if s in self.policy and self.policy[s] is not None and \
-                    not state in self.apply_step(s, self.policy[s][0], verbose=verbose):
+                    not state in self.apply_step(init=s, step=self.policy[s][0], verbose=verbose):
                     self.remove_path(s, verbose)
 
 
-    def apply_step(self, init, step, domain=None, verbose=False):
+    def apply_step(self, init, step, domain=None, all_effect_inc=False, verbose=False):
         """
         return a state resulting from the application of actions in the step
         @arg init : the initial state that the step has to apply on it
         @arg step : a sequence of (concurrent) fully grounded actions
         @arg domain : if domain is given one state is generated from the application 
                       of the step on init, if the domain is not given, all domains are 
-                      used and a list of states are generated from the application of 
+                      used and a list of states are genearted from the application of 
                       the step on init
         """
+
         if step is None:
-            if verbose: print(fg_voilet('    -- step is None!!'))
+            if verbose: print(bg_voilet('## step is None!!'))
             if domain is not None: return init
             return OrderedDict([(init, [])])
 
@@ -346,54 +348,126 @@ class Planner(object):
         if domain is not None:
             for action in step:
                 init = init.apply(domain.ground(action))
+
             return init
 
-        states = OrderedDict()
-
-        # if there is not probabilistic actions in step, making ground on the first domain is sufficient
-        if len([action for action in step if action[0] in self.prob_actions]) == 0:
+        # else:
+        # if the domain is not given, all domains are used to make ground 
+        # probabilistic action signatures (note, only one domain is sufficient 
+        # to make ground deterministic action signatures)
+        grounded_steps = list()
+        # if there is a probabilistic action in step, make ground all possible combination of actions on all domains
+        if len([action for action in step if action[0] in self.prob_actions]) > 0:
+            # for domain, domain_spec in self.domains.items():
+            #     grounded_steps.append([domain_spec.ground(action) for action in step])
+            grounded_actions = list()
+            for action in step:
+                grounded_action = set()
+                for domain, domain_spec in self.domains.items():
+                    grounded_action.add(domain_spec.ground(action))
+                grounded_actions.append(tuple(grounded_action))
+            ## generate all possible combination of actions
+            grounded_steps = list(product(*grounded_actions))
+        # otherwise, making ground on the first domain is sufficient
+        else:
+            # pick up the first domain object
             for domain, domain_spec in self.domains.items():
-                state = init
-                del_effects = set()
-                add_effects = set()
-                for action in step:
-                    grounded_action = domain_spec.ground(action)
+                grounded_steps.append([domain_spec.ground(action) for action in step])
+                break
+
+        states = OrderedDict()
+        for grounded_step in grounded_steps:
+            state = init
+            del_effects = set()
+            add_effects = set()
+            for grounded_action in grounded_step:
+                # if grounded_action is not None:
+                ## effects of the probabilistic actions are included for the purpose of final plan generation
+                if (grounded_action.name in self.prob_actions) or (all_effect_inc):
                     add_effects |= set(grounded_action.add_effects)
                     del_effects |= set(grounded_action.del_effects)
                     for effect in grounded_action.when_effects:
                         (pos_cnd_lst, neg_cnd_lst, pos_eff_lst, neg_eff_lst) = effect
-                        add_effects |= set(pos_eff_lst)
-                        del_effects |= set(neg_eff_lst)
-                    state = state.apply(grounded_action)
-                states[state] = [((add_effects, del_effects), domain)]
-                # states[state] = [((), domain)]
-                return states
-        
-        # otherwise, if there is a probabilistic action in step, 
-        # make ground the given step on all domains
-        for domain, domain_spec in self.domains.items():
-            state = init
-            del_effects = set()
-            add_effects = set()
-            for action in step:
-                grounded_action = domain_spec.ground(action)
-                # if grounded_action is not None:
-                ## effects of the probabilistic actions are included for the purpose of final plan generation
-                # if grounded_action.name in self.prob_actions:
-                add_effects |= set(grounded_action.add_effects)
-                del_effects |= set(grounded_action.del_effects)
-                for effect in grounded_action.when_effects:
-                    (pos_cnd_lst, neg_cnd_lst, pos_eff_lst, neg_eff_lst) = effect
-                    add_effects |= set(pos_eff_lst)
-                    del_effects |= set(neg_eff_lst)
+                        if state.is_true(pos_cnd_lst, neg_cnd_lst):
+                            add_effects |= set(pos_eff_lst)
+                            del_effects |= set(neg_eff_lst)
                 state = state.apply(grounded_action)
             if not state in states:
                 states[state] = [((add_effects, del_effects), domain)]
             elif not (add_effects, del_effects) in [eff for (eff, _) in states[state]]:
                 states[state].append(((add_effects, del_effects), domain))
-                # if verbose: print(fg_red('non-deterministic effects generate a similar state'), states[state])
 
         return states
+
+
+    # def apply_step(self, init, step, domain=None, verbose=False):
+    #     """
+    #     return a state resulting from the application of actions in the step
+    #     @arg init : the initial state that the step has to apply on it
+    #     @arg step : a sequence of (concurrent) fully grounded actions
+    #     @arg domain : if domain is given one state is generated from the application 
+    #                   of the step on init, if the domain is not given, all domains are 
+    #                   used and a list of states are generated from the application of 
+    #                   the step on init
+    #     """
+    #     if step is None:
+    #         if verbose: print(fg_voilet('    -- step is None!!'))
+    #         if domain is not None: return init
+    #         return OrderedDict([(init, [])])
+
+    #     # if the domain is given, only action signatures in step are grounded
+    #     # based on the given domain specification
+    #     if domain is not None:
+    #         for action in step:
+    #             init = init.apply(domain.ground(action))
+    #         return init
+
+    #     states = OrderedDict()
+
+    #     # if there is not probabilistic actions in step, making ground on the first domain is sufficient
+    #     if len([action for action in step if action[0] in self.prob_actions]) == 0:
+    #         for domain, domain_spec in self.domains.items():
+    #             state = init
+    #             del_effects = set()
+    #             add_effects = set()
+    #             for action in step:
+    #                 grounded_action = domain_spec.ground(action)
+    #                 add_effects |= set(grounded_action.add_effects)
+    #                 del_effects |= set(grounded_action.del_effects)
+    #                 for effect in grounded_action.when_effects:
+    #                     (pos_cnd_lst, neg_cnd_lst, pos_eff_lst, neg_eff_lst) = effect
+    #                     add_effects |= set(pos_eff_lst)
+    #                     del_effects |= set(neg_eff_lst)
+    #                 state = state.apply(grounded_action)
+    #             states[state] = [((add_effects, del_effects), domain)]
+    #             # states[state] = [((), domain)]
+    #             return states
+        
+    #     # otherwise, if there is a probabilistic action in step, 
+    #     # make ground the given step on all domains
+    #     for domain, domain_spec in self.domains.items():
+    #         state = init
+    #         del_effects = set()
+    #         add_effects = set()
+    #         for action in step:
+    #             grounded_action = domain_spec.ground(action)
+    #             # if grounded_action is not None:
+    #             ## effects of the probabilistic actions are included for the purpose of final plan generation
+    #             # if grounded_action.name in self.prob_actions:
+    #             add_effects |= set(grounded_action.add_effects)
+    #             del_effects |= set(grounded_action.del_effects)
+    #             for effect in grounded_action.when_effects:
+    #                 (pos_cnd_lst, neg_cnd_lst, pos_eff_lst, neg_eff_lst) = effect
+    #                 add_effects |= set(pos_eff_lst)
+    #                 del_effects |= set(neg_eff_lst)
+    #             state = state.apply(grounded_action)
+    #         if not state in states:
+    #             states[state] = [((add_effects, del_effects), domain)]
+    #         elif not (add_effects, del_effects) in [eff for (eff, _) in states[state]]:
+    #             states[state].append(((add_effects, del_effects), domain))
+    #             # if verbose: print(fg_red('non-deterministic effects generate a similar state'), states[state])
+
+    #     return states
 
 
     def plan(self, tree=False, verbose=False):
@@ -404,7 +478,8 @@ class Planner(object):
         every sequence of actions in each step is followed by pairs of 
         conditions and a level to jump. the conditions are the outcome of 
         the actions that should be achieved after their execution.
-        @arg tree : if True, plan is tree like. it will include goal states as a jump point in the plan
+        @arg tree : if True, plan is tree like. it will include goal states 
+                    jumping points in the plan
         the plan is dictionary as: 
             plan = { level : step, ...}
             step is a tuple as:
@@ -449,7 +524,7 @@ class Planner(object):
                         if verbose: print(bg_red('[Goal is not achieved!]'))
                         plan[i] = None
                 else:
-                    states = self.apply_step(state, step[0], verbose=verbose)
+                    states = self.apply_step(init=state, step=step[0], all_effect_inc=True, verbose=verbose)
 
                     next_steps = list()
                     for s, cnd in states.items():
@@ -676,6 +751,9 @@ def mergeDict(dict1, dict2):
     for key in dict3:
         if key in dict2:
             dict3[key] = tuple(list(set(dict3[key]) | set(dict2[key])))
+    for key in dict2:
+        if not key in dict3:
+            dict3[key] = dict2[key]
     return dict3
 
 def get_linenumber():

@@ -1,13 +1,11 @@
 (define (problem prob0)
 (:domain solenoid)
-(:objects hole1 hole2 - hole
-          sole1 sole2 - solenoid)
+(:objects sole1 sole2 - solenoid)
 (:init 
-       (on sole1 hole1)
-       (on sole2 hole2)
+       (ontable sole1)
+       (ontable sole2)
        (gripper_free)
-       (robot_at_home)
-       (state_observation_needed))
+       (robot_at_home))
 (:goal 
   (and 
         (removed sole1)

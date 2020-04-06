@@ -27,8 +27,12 @@ def parse():
 
 ###############################################################################
 def compilation(domain):
-    '''given a non-deterministic domain object returns 
+    '''given a non-deterministic domain object return 
        a list (set) of deterministic domains'''
+
+    ## NOTE: currently, it is supposed that an action does not have both  
+    ##       probabilistic and non-deterministic effects simultaneously; 
+    ##       but it has either probabilistic or non-deterministic effects.
 
     ## list of non-deterministic/probabilistic actions
     nd_actions = list()
@@ -44,31 +48,6 @@ def compilation(domain):
 
         ## a list of all possible effects separately
         deterministic_effects = list()
-
-        # ## sum of the probabilities
-        # probability = 0.0
-
-        # ## split action probabilistic effects into a list of deterministic effects
-        # for prob_eff_lst in action.probabilistic:
-        #     deterministic_effects.extend([Effect(action.effects.literals+eff[1].literals, \
-        #             action.effects.forall+eff[1].forall, \
-        #             action.effects.when+eff[1].when) for eff in prob_eff_lst])
-        #     probability += sum([eff[0] for eff in prob_eff_lst])
-
-        # ## split action oneof effects into a list of deterministic effects
-        # for oneof_eff in action.oneof:
-        #     deterministic_effects.extend([Effect(action.effects.literals+eff.literals, \
-        #             action.effects.forall+eff.forall, \
-        #             action.effects.when+eff.when) for eff in oneof_eff])
-
-        # ## include also the action effects if the total probability is less than 1.0
-        # if action.effects and not probability == 1.0 and len(action.oneof) == 0: 
-        #     deterministic_effects.extend([action.effects])
-        # ## if there is only one probabilistic effect, then we also need a neutral effect,
-        # ## i.e., we add the action preconditions (literals only) as an action effect
-        # elif not action.effects and len(deterministic_effects) == 1:
-        #     deterministic_effects.extend([Effect(literals=action.preconditions.literals)])
-        #     # deterministic_effects.extend([Effect()])
 
         ## split action probabilistic effects into a list of deterministic effects
         ## make all possible combination of probabilistic effects
@@ -86,9 +65,10 @@ def compilation(domain):
                     literals_lst.extend(eff[1].literals)
                     forall_lst.extend(eff[1].forall)
                     when_lst.extend(eff[1].when)
-                deterministic_effects.extend([Effect(action.effects.literals+tuple(literals_lst), \
+                eff = Effect(action.effects.literals+tuple(literals_lst), \
                         action.effects.forall+tuple(forall_lst), \
-                        action.effects.when+tuple(when_lst))])
+                        action.effects.when+tuple(when_lst))
+                if eff: deterministic_effects.append(eff)
 
         ## split action oneof effects into a list of deterministic effects
         ## make all possible combination of oneof effects
@@ -99,9 +79,10 @@ def compilation(domain):
                     literals_lst.extend(eff.literals)
                     forall_lst.extend(eff.forall)
                     when_lst.extend(eff.when)
-                deterministic_effects.extend([Effect(action.effects.literals+tuple(literals_lst), \
+                eff = Effect(action.effects.literals+tuple(literals_lst), \
                         action.effects.forall+tuple(forall_lst), \
-                        action.effects.when+tuple(when_lst))])
+                        action.effects.when+tuple(when_lst))
+                if eff: deterministic_effects.append(eff)
 
         ## include also the action effects if the total probability is less than 1.0
         if action.effects and len(deterministic_effects) == 0: 
@@ -119,7 +100,7 @@ def compilation(domain):
                 preconditions=action.preconditions, \
                 effects=effect) for effect in deterministic_effects]))
 
-    ## make all combination of deterministic effects
+    ## make all possible combination of deterministic actions
     deterministic_actions = list(product(*deterministic_actions))
 
     ## return a list of deterministic domains

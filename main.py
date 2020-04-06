@@ -61,6 +61,8 @@ if __name__ == '__main__':
                 dot_file = gen_dot_plan(plan=path)
                 print(fg_yellow('-- path{} dot file: ').format(str(i+1)) + dot_file)
                 # os.system('xdot %s &' % dot_file)
+            dot_file = gen_dot_plan(plan=paths[0])
+            os.system('xdot %s &' % dot_file)
             print('')
 
     ## generate a graph of the policy as a dot file in graphviz
@@ -69,6 +71,8 @@ if __name__ == '__main__':
         dot_file = gen_dot_plan(plan=plan, del_effect=True, dot_file=args.problem)
         print(fg_yellow('-- dot file: ') + dot_file + '\n')
         os.system('xdot %s &' % dot_file)
+        # os.system('dot -T pdf %s > %s.pdf &' % (dot_file, dot_file))
+        # os.system('evince %s.pdf &' % dot_file)
         # if not args.tree: 
         #     print(fg_beige('-- try also \'-d\' with \'-t\' to generate a tree-like plan dot file\n'))
 

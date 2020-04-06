@@ -207,34 +207,36 @@ class _GroundedAction(object):
         self.universal_preconditions = list()
         self.existential_preconditions = list()
 
-        ## literals
-        for pre in action.preconditions.literals:
-            if pre[0] == -1:
-                self.neg_preconditions.append(ground(pre[1]))
-            else:
-                self.pos_preconditions.append(ground(pre))
-
-        ## universal-preconditions
-        ## var_list are not grounded here; they are grounded when action is applied in a state
-        for precondition in action.preconditions.universal:
-            (neg_pre_lst, pos_pre_lst) = ([],[])
-            for pre in precondition[1]:
+        # if action has precondition
+        if action.preconditions:
+            ## literals
+            for pre in action.preconditions.literals:
                 if pre[0] == -1:
-                    neg_pre_lst.append(ground(pre[1]))
+                    self.neg_preconditions.append(ground(pre[1]))
                 else:
-                    pos_pre_lst.append(ground(pre))
-            self.universal_preconditions.append((precondition[0], tuple(pos_pre_lst), tuple(neg_pre_lst)))
+                    self.pos_preconditions.append(ground(pre))
 
-        ## existential-preconditions
-        ## var_list are not grounded here; they are grounded when action is applied in a state
-        for precondition in action.preconditions.existential:
-            (neg_pre_lst, pos_pre_lst) = ([],[])
-            for pre in precondition[1]:
-                if pre[0] == -1:
-                    neg_pre_lst.append(ground(pre[1]))
-                else:
-                    pos_pre_lst.append(ground(pre))
-            self.existential_preconditions.append((precondition[0], tuple(pos_pre_lst), tuple(neg_pre_lst)))
+            ## universal-preconditions
+            ## var_list are not grounded here; they are grounded when action is applied in a state
+            for precondition in action.preconditions.universal:
+                (neg_pre_lst, pos_pre_lst) = ([],[])
+                for pre in precondition[1]:
+                    if pre[0] == -1:
+                        neg_pre_lst.append(ground(pre[1]))
+                    else:
+                        pos_pre_lst.append(ground(pre))
+                self.universal_preconditions.append((precondition[0], tuple(pos_pre_lst), tuple(neg_pre_lst)))
+
+            ## existential-preconditions
+            ## var_list are not grounded here; they are grounded when action is applied in a state
+            for precondition in action.preconditions.existential:
+                (neg_pre_lst, pos_pre_lst) = ([],[])
+                for pre in precondition[1]:
+                    if pre[0] == -1:
+                        neg_pre_lst.append(ground(pre[1]))
+                    else:
+                        pos_pre_lst.append(ground(pre))
+                self.existential_preconditions.append((precondition[0], tuple(pos_pre_lst), tuple(neg_pre_lst)))
 
         ## Ground Effects
         self.add_effects = list()
@@ -243,54 +245,56 @@ class _GroundedAction(object):
         self.when_effects = list()
         self.prob_effects = list()
 
-        ## literals
-        for effect in action.effects.literals:
-            if effect[0] == -1:
-                self.del_effects.append(ground(effect[1]))
-            else:
-                self.add_effects.append(ground(effect))
+        # if action has effect
+        if action.effects:
+            ## literals
+            for effect in action.effects.literals:
+                if effect[0] == -1:
+                    self.del_effects.append(ground(effect[1]))
+                else:
+                    self.add_effects.append(ground(effect))
 
-        ## conditional-effects (forall)
-        ## var_list are not grounded here; they are grounded when action is applied in a state
-        for effect in action.effects.forall:
-            ## (forall (var_lst) (effects))
-            if len(effect) == 2:
-                (neg_eff_lst, pos_eff_lst) = ([],[])
-                for eff in effect[1]:
-                    if eff[0] == -1:
-                        neg_eff_lst.append(ground(eff[1]))
-                    else:
-                        pos_eff_lst.append(ground(eff))
-                self.forall_effects.append((effect[0], tuple(pos_eff_lst), tuple(neg_eff_lst)))
-            ## (forall (var_lst) (when (cnd) (effects)))
-            elif len(effect) == 3:
+            ## conditional-effects (forall)
+            ## var_list are not grounded here; they are grounded when action is applied in a state
+            for effect in action.effects.forall:
+                ## (forall (var_lst) (effects))
+                if len(effect) == 2:
+                    (neg_eff_lst, pos_eff_lst) = ([],[])
+                    for eff in effect[1]:
+                        if eff[0] == -1:
+                            neg_eff_lst.append(ground(eff[1]))
+                        else:
+                            pos_eff_lst.append(ground(eff))
+                    self.forall_effects.append((effect[0], tuple(pos_eff_lst), tuple(neg_eff_lst)))
+                ## (forall (var_lst) (when (cnd) (effects)))
+                elif len(effect) == 3:
+                    (pos_cnd_lst, neg_cnd_lst, pos_eff_lst, neg_eff_lst) = ([],[],[],[])
+                    for eff in effect[1]:
+                        if eff[0] == -1:
+                            neg_cnd_lst.append(ground(eff[1]))
+                        else:
+                            pos_cnd_lst.append(ground(eff))
+                    for eff in effect[2]:
+                        if eff[0] == -1:
+                            neg_eff_lst.append(ground(eff[1]))
+                        else:
+                            pos_eff_lst.append(ground(eff))
+                    self.forall_effects.append((effect[0], tuple(pos_cnd_lst), tuple(neg_cnd_lst), tuple(pos_eff_lst), tuple(neg_eff_lst)))
+
+            ## conditional-effects (when)
+            for effect in action.effects.when:
                 (pos_cnd_lst, neg_cnd_lst, pos_eff_lst, neg_eff_lst) = ([],[],[],[])
-                for eff in effect[1]:
+                for eff in effect[0]:
                     if eff[0] == -1:
                         neg_cnd_lst.append(ground(eff[1]))
                     else:
                         pos_cnd_lst.append(ground(eff))
-                for eff in effect[2]:
+                for eff in effect[1]:
                     if eff[0] == -1:
                         neg_eff_lst.append(ground(eff[1]))
                     else:
                         pos_eff_lst.append(ground(eff))
-                self.forall_effects.append((effect[0], tuple(pos_cnd_lst), tuple(neg_cnd_lst), tuple(pos_eff_lst), tuple(neg_eff_lst)))
-
-        ## conditional-effects (when)
-        for effect in action.effects.when:
-            (pos_cnd_lst, neg_cnd_lst, pos_eff_lst, neg_eff_lst) = ([],[],[],[])
-            for eff in effect[0]:
-                if eff[0] == -1:
-                    neg_cnd_lst.append(ground(eff[1]))
-                else:
-                    pos_cnd_lst.append(ground(eff))
-            for eff in effect[1]:
-                if eff[0] == -1:
-                    neg_eff_lst.append(ground(eff[1]))
-                else:
-                    pos_eff_lst.append(ground(eff))
-            self.when_effects.append((tuple(pos_cnd_lst), tuple(neg_cnd_lst), tuple(pos_eff_lst), tuple(neg_eff_lst)))
+                self.when_effects.append((tuple(pos_cnd_lst), tuple(neg_cnd_lst), tuple(pos_eff_lst), tuple(neg_eff_lst)))
 
     def sig(self):
         """

@@ -1,62 +1,56 @@
 (define (domain solenoid)
 (:requirements :strips :typing :negative-preconditions :probabilistic-effects)
-(:types solenoid hole)
+(:types solenoid)
 
-(:predicates (on ?s - solenoid ?l - hole)
-             (sensed_on ?s - solenoid ?l - hole)
-             (ontable ?s - solenoid)
-             (robot_at ?h - hole)
-             (human_at ?s - solenoid)
-             (human_towards ?s - solenoid ?h - hole)
-             (certainty_low ?s - solenoid)
-             (certainty_high ?s - solenoid)
+(:predicates (ontable ?s - solenoid)
              (holding ?s - solenoid)
              (removed ?s - solenoid)
-             (gripper_free)
+             (robot_at_table)
              (robot_at_home)
-             (state_observation_needed)
-             )
+             (human_towards ?s - solenoid)
+             (certainty_low ?s - solenoid)
+             (certainty_high ?s - solenoid)
+             (gripper_free))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; ABB actions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(:action observe_state
- :parameters   (?s - solenoid ?h - hole)
- :precondition (and (on ?s ?h)(state_observation_needed))
- :effect (and
-         (oneof (and (sensed_on ?s ?h)(not(state_observation_needed)))
-                (and (removed ?s)(not(on ?s ?h))))))
+(:action update_observation
+ :parameters   (?s - solenoid)
+ :precondition (and (ontable ?s) (human_towards ?s) (certainty_high ?s) (robot_at_home))
+ :effect (and (not (human_towards ?s)) (not (certainty_high ?s))
+              (probabilistic 0.5 (and (removed ?s) (not (ontable ?s))))))
 
 (:action move
- :parameters (?s - solenoid ?h - hole)
- :precondition (and (sensed_on ?s ?h)(robot_at_home)(not(human_towards ?s ?h)))
- :effect (and
-         (oneof (and (robot_at ?h)(not(robot_at_home)))
-                (and (human_towards ?s ?h)(certainty_low ?s))
-                (and (human_towards ?s ?h)(certainty_high ?s)(removed ?s)(not(sensed_on ?s ?h))(state_observation_needed)))))
+ :parameters (?s - solenoid)
+ :precondition (and (ontable ?s) 
+                    (forall (?x - solenoid) (and (not (human_towards ?s)) (not (certainty_low ?x)))))
+ :effect (and (oneof (robot_at_table)
+                     (and (human_towards ?s) (certainty_low ?s))
+                     (and (human_towards ?s) (certainty_high ?s)))
+              (not (robot_at_home))))
 
 (:action move_slow
- :parameters (?s - solenoid ?h - hole)
- :precondition (and (sensed_on ?s ?h)(human_towards ?s ?h)(certainty_low ?s))
- :effect (and (not(certainty_low ?s))
-         (oneof (and (robot_at ?h)(not(robot_at_home))(not(human_towards ?s ?h)))
-                (and (not(human_towards ?s ?h)))
-                (and (certainty_high ?s)(removed ?s)(not(sensed_on ?s ?h))(state_observation_needed)))))
+ :parameters (?s - solenoid)
+ :precondition (and (ontable ?s) (human_towards ?s) (certainty_low ?s))
+ :effect (and (oneof (certainty_high ?s)
+                     (and (robot_at_table) (not (human_towards ?s))))
+              (not (certainty_low ?s))))
 
 (:action grasp
-  :parameters (?s - solenoid ?h - hole)
-  :precondition (and (gripper_free)(robot_at ?h)(sensed_on ?s ?h))
-  :effect (and (holding ?s)(removed ?s)(not(on ?s ?h))(not(sensed_on ?s ?h))(not(gripper_free))))
+  :parameters (?s - solenoid)
+  :precondition (and (ontable ?s) (not (human_towards ?s)) (gripper_free) (robot_at_table))
+  :effect (and (holding ?s) (not (ontable ?s)) (not (gripper_free))))
 
-(:action carry
-  :parameters (?s - solenoid ?h - hole)
-  :precondition (and (holding ?s)(robot_at ?h))
-  :effect (and (robot_at_home)(not(robot_at ?h))))
+(:action move_home
+  :parameters ()
+  :precondition (not (robot_at_home))
+  :effect (and (robot_at_home) (not (robot_at_table))))
 
 (:action putdown
   :parameters (?s - solenoid)
-  :precondition (and (holding ?s)(robot_at_home))
-  :effect (and (ontable ?s)(gripper_free)(not(holding ?s))(state_observation_needed)))
+  :precondition (and (holding ?s) (robot_at_home))
+  :effect (and (removed ?s) (gripper_free) (not (holding ?s))))
 
 )

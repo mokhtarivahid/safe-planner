@@ -1,4 +1,4 @@
-# safe-planner -- a Non-Deterministic Planner by Compilation into Classical Problems
+# Safe-Planner -- a Non-Deterministic Planner by Compilation into Classical Problems
 
 A nondeterministic planner to solve PPDDL problems by compilation into classical planning 
 (in Python3). 
