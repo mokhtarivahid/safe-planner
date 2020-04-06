@@ -16,7 +16,7 @@
 ;; ABB actions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(:action update_observation
+(:action observe
  :parameters   (?s - solenoid)
  :precondition (and (ontable ?s) (human_towards ?s) (certainty_high ?s) (robot_at_home))
  :effect (and (not (human_towards ?s)) (not (certainty_high ?s))
