@@ -2,8 +2,8 @@
 (:domain solenoid)
 (:objects sole1 - solenoid)
 (:init 
-       (sense sole1) 
-       (observe_state)
-       (gripper_free))
+       (ontable sole1)
+       (gripper_free)
+       (robot_at_home))
 (:goal (removed sole1))
 )

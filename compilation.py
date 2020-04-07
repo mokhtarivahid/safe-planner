@@ -122,8 +122,9 @@ def compile(domain, verbose=False):
     """
 
     if not ':probabilistic-effects' in domain.requirements:
-        print('\'{}\' is not non-deterministic'.format(domain.name))
-        return ((),())
+        print(fg_yellow('-- the \':probabilistic-effects\' requirement is not present'))
+        print(fg_yellow('-- \'{}\' is assumed as a deterministic domain'.format(domain.name)))
+        return None
 
     (deterministic_domains, nd_actions) = compilation(domain)
 
@@ -162,6 +163,10 @@ if __name__ == '__main__':
 
     domains_dir = compile(domain)
 
+    if domains_dir is None: 
+        print(fg_yellow('-- successfully parsed: ') + args.domain)
+        exit()
+
     deterministic_domains = OrderedDict()
     nd_actions = list()
 
@@ -180,12 +185,7 @@ if __name__ == '__main__':
     print(fg_yellow('-- total number of non-deterministic domains: ') +str(len(deterministic_domains)))
     print(fg_yellow('-- non-deterministic actions: ') + str(nd_actions))
 
-    # deterministic_domains, nd_actions = compilation(domain)
-
     if args.verbose:
         for domain_dir, domain in deterministic_domains.items():
             print(fg_yellow('-------------------------'))
             print(to_pddl(domain))
-
-    # print(fg_yellow('-- total number of non-deterministic domains: ') +str(len(deterministic_domains)))
-    # print(fg_yellow('-- non-deterministic actions: ') + str(nd_actions))

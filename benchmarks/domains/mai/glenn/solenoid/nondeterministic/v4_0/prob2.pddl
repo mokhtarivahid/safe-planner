@@ -6,7 +6,8 @@
        (sense sole2) 
        (sense sole3) 
        (observe_state)
-       (gripper_free))
+       (gripper_free)
+       (robot_at_home))
 (:goal 
   (and 
         (removed sole1)

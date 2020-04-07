@@ -4,6 +4,7 @@
 (:init 
        (sense sole1) 
        (observe_state)
-       (gripper_free))
+       (gripper_free)
+       (robot_at_home))
 (:goal (removed sole1))
 )
