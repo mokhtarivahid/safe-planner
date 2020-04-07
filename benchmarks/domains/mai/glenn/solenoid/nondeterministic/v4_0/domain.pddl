@@ -19,7 +19,7 @@
 ;; ABB actions
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(:action observe_state
+(:action observe
  :parameters   (?s - solenoid)
  :precondition (and (sense ?s) (observe_state))
  :effect (and (when (and (human_towards ?s) (certainty_high ?s))
