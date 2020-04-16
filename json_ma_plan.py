@@ -198,7 +198,7 @@ def action_json(action):
     return action_json
 
 #################################################################
-def json_ma_plan(policy, verbose=False):
+def json_ma_plan(policy, verbose=True):
     '''
     Convert given plan into a concurrent plan for execution by multi-robot.
     The output is partial parallel plan iff the given plan is partial-order.
