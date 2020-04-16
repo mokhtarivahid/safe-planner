@@ -32,6 +32,10 @@ class Planner(object):
             ## parse pddl problem
             self.problem = PDDLParser.parse(problem)
 
+        ## store domain and problem files paths
+        self.problem_file = problem
+        self.domain_file = domain
+
         ## a dictionary of deterministic domains: keys as paths to pddl 
         ## domains and values as domain objects -- dict({pddl:object})
         self.domains = OrderedDict()
@@ -63,8 +67,7 @@ class Planner(object):
 
         ## merge constants and objects
         if self.domain.constants:
-            self.problem.objects = mergeDict(self.problem.objects, self.domain.constants)
-            self.problem.initial_state.objects = self.problem.objects
+            self.problem.initial_state.objects = mergeDict(self.problem.objects, self.domain.constants)
 
         ## stores the external planner
         self.planner = planner
@@ -327,7 +330,7 @@ class Planner(object):
                     self.remove_path(s, verbose)
 
 
-    def apply_step(self, init, step, domain=None, all_effect_inc=False, verbose=False):
+    def apply_step(self, init, step, domain=None, det_effect_inc=False, verbose=False):
         """
         return a state resulting from the application of actions in the step
         @arg init : the initial state that the step has to apply on it
@@ -383,10 +386,10 @@ class Planner(object):
             for grounded_action in grounded_step:
                 # if grounded_action is not None:
                 ## effects of the probabilistic actions are included for the purpose of final plan generation
-                if (grounded_action.name in self.prob_actions) or (all_effect_inc):
-                    add_effects |= set(grounded_action.add_effects)
-                    del_effects |= set(grounded_action.del_effects)
-                    for effect in grounded_action.when_effects:
+                if (grounded_action.name in self.prob_actions) or (det_effect_inc):
+                    add_effects |= set(grounded_action.effects.add_effects)
+                    del_effects |= set(grounded_action.effects.del_effects)
+                    for effect in grounded_action.effects.when_effects:
                         (pos_cnd_lst, neg_cnd_lst, pos_eff_lst, neg_eff_lst) = effect
                         if state.is_true(pos_cnd_lst, neg_cnd_lst):
                             add_effects |= set(pos_eff_lst)
@@ -478,9 +481,9 @@ class Planner(object):
         every sequence of actions in each step is followed by pairs of 
         conditions and a level to jump. the conditions are the outcome of 
         the actions that should be achieved after their execution.
-        @arg tree : if True, plan is tree like. it will include goal states 
-                    jumping points in the plan
-        the plan is dictionary as: 
+        @arg tree : if True, plan is tree-like. it will include goal states 
+                    as jumping points in the plan
+        the plan is a dictionary as: 
             plan = { level : step, ...}
             step is a tuple as:
                 step = (actions, outcomes)
@@ -524,7 +527,7 @@ class Planner(object):
                         if verbose: print(bg_red('[Goal is not achieved!]'))
                         plan[i] = None
                 else:
-                    states = self.apply_step(init=state, step=step[0], all_effect_inc=True, verbose=verbose)
+                    states = self.apply_step(init=state, step=step[0], det_effect_inc=True, verbose=verbose)
 
                     next_steps = list()
                     for s, cnd in states.items():

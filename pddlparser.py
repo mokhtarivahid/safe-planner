@@ -646,7 +646,10 @@ def p_problem(p):
       elif 'GOAL_KEY' in d:
         goal = d[1]
 
-    p[0] = Problem(problem, domain, objects, init, goal)
+    # add objects to 'objects' attributes of the State class
+    State.objects = objects
+
+    p[0] = Problem(problem, domain, State(init), goal)
 
 
 def p_problem_structure_def_lst(p):

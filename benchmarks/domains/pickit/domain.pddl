@@ -91,7 +91,7 @@
 (:action check_orientation
  :parameters   (?a - arm ?o - graspable ?c - camera)
  :precondition (and (arm_vacuumed ?a ?o) (arm_at ?a ?c) (unknown_orientation ?o))
- :effect (and (camera_checked ?o)
+ :effect (and ;(camera_checked ?o)
               (oneof (and (downward ?o) (not (unknown_orientation ?o)))
                      (and (upward ?o) (not (unknown_orientation ?o))))))
 

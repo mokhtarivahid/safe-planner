@@ -7,7 +7,7 @@ import os
 from color import *
 from planner import Planner
 from dot_plan import gen_dot_plan
-from json_plan import gen_json_plan
+from json_ma_plan import json_ma_plan
 
 
 def parse():
@@ -78,10 +78,19 @@ if __name__ == '__main__':
 
     ## transform the policy into a json file
     if args.json:
-        plan = policy.plan(tree=False, verbose=args.verbose)
-        json_file, plan_json = gen_json_plan(plan, args.problem)
-        # print(fg_yellow('-- json plan object\n') + str(plan_json))
-        print(fg_yellow('-- json file: ') + json_file + fg_red(' [EXPERIMENTAL!]\n'))
+        plan_json_file, actions_json_file = json_ma_plan(policy, verbose=args.verbose)
+        print(fg_yellow('-- plan_json_file:') + plan_json_file + fg_red(' [EXPERIMENTAL!]'))
+        print(fg_yellow('-- actions_json_file:') + actions_json_file + fg_red(' [EXPERIMENTAL!]'))
+        os.system('cd lua && lua json_multiagent_plan.lua ../%s &' % plan_json_file)
+        os.system('xdot %s.dot &' % plan_json_file)
+
+
+    # ## transform the policy into a json file
+    # if args.json:
+    #     plan = policy.plan(tree=False, verbose=args.verbose)
+    #     json_file, plan_json = gen_json_plan(plan, args.problem)
+    #     # print(fg_yellow('-- json plan object\n') + str(plan_json))
+    #     print(fg_yellow('-- json file: ') + json_file + fg_red(' [EXPERIMENTAL!]\n'))
 
     print('Planning time: %.3f s' % policy.planning_time)
     print('Total number of replannings: %i' % policy.planning_call)

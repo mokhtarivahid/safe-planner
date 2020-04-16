@@ -120,12 +120,12 @@ def to_pddl(object, state=None, goals=None):
 
         pddl_str  = '(define (problem {0})\n'.format(object.problem)
         pddl_str += '  (:domain {0})\n'.format(object.domain)
-        if len(object.objects) > 0:
+        if len(object.initial_state.objects) > 0:
             pddl_str += '  (:objects \n'
-            for tp in sorted(object.objects.keys())[:-1]:
-                pddl_str += '\t\t{0} - {1}\n'.format(' '.join(sorted(object.objects[tp])), tp)
-            tp = sorted(object.objects.keys())[-1]
-            pddl_str += '\t\t{0} - {1})\n'.format(' '.join(sorted(object.objects[tp])), tp)
+            for tp in sorted(object.initial_state.objects.keys())[:-1]:
+                pddl_str += '\t\t{0} - {1}\n'.format(' '.join(sorted(object.initial_state.objects[tp])), tp)
+            tp = sorted(object.initial_state.objects.keys())[-1]
+            pddl_str += '\t\t{0} - {1})\n'.format(' '.join(sorted(object.initial_state.objects[tp])), tp)
         pddl_str += '  (:init'
         for predicate in sorted(state.predicates):
             pddl_str += '\n\t\t({0})'.format(' '.join(map(str, predicate)))

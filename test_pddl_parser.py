@@ -36,14 +36,14 @@ if __name__ == '__main__':
         ## if problem is also in the file
         if type(domain) == tuple:
             domain, problem = domain[0], domain[1]
-            problem.objects = mergeDict(problem.objects, domain.constants)
+            problem.initial_state.objects = mergeDict(problem.initial_state.objects, domain.constants)
         else:
             problem = None
     ## if both args (domain, problem) are given
     else:
         domain = PDDLParser.parse(args.domain)
         problem = PDDLParser.parse(args.problem)
-        problem.objects = mergeDict(problem.objects, domain.constants)
+        problem.initial_state.objects = mergeDict(problem.initial_state.objects, domain.constants)
 
 
     ## print out in string
