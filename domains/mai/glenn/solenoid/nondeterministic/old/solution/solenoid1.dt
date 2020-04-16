@@ -1,0 +1,20 @@
+digraph Struc {
+ graph [fontname = "helvetica"];
+ node [fontname = "helvetica"];
+ edge [fontname = "helvetica"];
+//{rank = same; n3; n7; n5;}
+
+node [shape=ellipse];
+packMode="graph";
+  n1 [label="(observe_solenoid sole1 hole1) "];
+  n2 [label="(move sole1 hole1) "];
+  n3 [shape=circle,label="",peripheries=2];
+  n4 [label="(pickup sole1 hole1) "];
+  n5 [shape=circle,label="",peripheries=2];
+  n6 [shape=circle,label="",peripheries=2];
+  n1->n2 [label=" (sensed_on sole1 hole1) "];
+  n1->n3 [label=" (removed sole1) "];
+  n2->n5 [label=" (human_at sole1) (removed sole1) "];
+  n2->n4 [label=" (no_human_at sole1) (robot_at hole1) "];
+  n4->n6 [label=" (removed sole1) "];
+}

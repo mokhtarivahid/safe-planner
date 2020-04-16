@@ -1,0 +1,23 @@
+ 0 : (observe_solenoid sole1 hole1) -- ((sensed_on sole1 hole1)) 1 -- ((removed sole1)) 2
+ 1 : (move sole1 hole1) -- ((no_human_at sole1) (robot_at hole1)) 3 -- ((human_at sole1) (removed sole1) (sense_on )) 4
+ 2 : (observe_solenoid sole2 hole2) -- ((sensed_on sole2 hole2)) 5 -- ((removed sole2)) 6
+ 3 : (pickup sole1 hole1) -- () 7
+ 4 : (observe_solenoid sole2 hole2) -- ((sensed_on sole2 hole2)) 8 -- ((removed sole2)) 9
+ 5 : (move sole2 hole2) -- ((no_human_at sole2) (robot_at hole2)) 10 -- ((human_at sole2) (removed sole2) (sense_on )) 11
+ 6 : Goal achieved!
+ 7 : (carry sole1 hole1) -- () 12
+ 8 : (move sole2 hole2) -- ((no_human_at sole2) (robot_at hole2)) 13 -- ((human_at sole2) (removed sole2) (sense_on )) 14
+ 9 : Goal achieved!
+10 : (pickup sole2 hole2) -- () 15
+11 : Goal achieved!
+12 : (putdown sole1) -- () 16
+13 : (pickup sole2 hole2) -- () 17
+14 : Goal achieved!
+15 : Goal achieved!
+16 : (observe_solenoid sole2 hole2) -- ((sensed_on sole2 hole2)) 18 -- ((removed sole2)) 19
+17 : Goal achieved!
+18 : (move sole2 hole2) -- ((no_human_at sole2) (robot_at hole2)) 20 -- ((human_at sole2) (removed sole2) (sense_on )) 21
+19 : Goal achieved!
+20 : (pickup sole2 hole2) -- () 22
+21 : Goal achieved!
+22 : Goal achieved!

@@ -1,0 +1,6 @@
+ 0 : (observe_solenoid sole1 hole1) -- ((sensed_on sole1 hole1)) 1 -- ((removed sole1)) 2
+ 1 : (move sole1 hole1) -- ((no_human_at sole1) (robot_at hole1)) 3 -- ((human_at sole1) (removed sole1) (sense_on)) 4
+ 2 : Goal achieved!
+ 3 : (pickup sole1 hole1) -- () 5
+ 4 : Goal achieved!
+ 5 : Goal achieved!

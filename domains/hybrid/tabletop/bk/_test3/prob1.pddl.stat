@@ -1,0 +1,7 @@
+problem_name=prob1
+total_time=20
+search_time=0
+evaluated_states=16
+generated_states=0
+memory=19904
+plan_length=12
