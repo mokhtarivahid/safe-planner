@@ -205,7 +205,10 @@ def json_ma_plan(policy, verbose=True):
     '''
     # get the first pre-order path
     path = policy.get_paths(policy.plan())[0]
-    if verbose: policy.print_plan(path)
+    if verbose: 
+        print(fg_red('[EXPERIMENTAL JSON PLAN!]'))
+        print(fg_red('[APPLIED ONLY TO THE FIRST PRE-ORDER PATH OF THE PLAN]'))
+        policy.print_plan(path)
 
     # get concurrent executions in concurrent clusters
     concurrent_subplans_lists = concurrent_subplans(policy, path)

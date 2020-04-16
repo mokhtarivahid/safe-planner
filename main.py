@@ -78,7 +78,7 @@ if __name__ == '__main__':
 
     ## transform the policy into a json file
     if args.json:
-        plan_json_file, actions_json_file = json_ma_plan(policy, verbose=args.verbose)
+        plan_json_file, actions_json_file = json_ma_plan(policy)
         print(fg_yellow('-- plan_json_file:') + plan_json_file + fg_red(' [EXPERIMENTAL!]'))
         print(fg_yellow('-- actions_json_file:') + actions_json_file + fg_red(' [EXPERIMENTAL!]'))
         os.system('cd lua && lua json_multiagent_plan.lua ../%s &' % plan_json_file)
