@@ -46,12 +46,14 @@ local function execute(step)
         arguments = action.arguments
 
         -- print action name
-        print(colors.yellow .. '\n' .. name .. colors.reset)
+        print(colors.yellow .. name .. colors.reset)
 
         -- print action arguments
         for k, arg in pairs(arguments) do
             print(arg)
         end
+        -- print(table.concat(arguments,", "))
+
     end
 
     ---------------------------------------------------------------------------
@@ -63,7 +65,7 @@ local function execute(step)
 
     -- unfold outcome conditions
     for key, cnd in pairs(step.outcomes) do
-        print(colors.yellow .. 'condition' .. colors.reset)
+        print(colors.magenta .. '\npost-conditions' .. colors.reset)
         for key, c in pairs(cnd.condition) do
             print(c)
             -- if c == result.condition then
@@ -89,32 +91,35 @@ local json_file, verbose = parse_args(arg)
 -- open the json plan file
 local file = io.open(json_file, "r")
 
--- load the json plan into a table
-local table
+-- load the json plan into a plan table
+local plan
 if file then
-    table = json.decode(file:read("*all"))
+    plan = json.decode(file:read("*all"))
     file:close()
 end
 
 -- print out the json plan file
 if verbose then
     pretty = require 'pl.pretty'
-    pretty.dump(table)
+    pretty.dump(plan)
 end
 
 -- the main loop to execute the plan
 print(colors.green .. '\n[EXECUTION STARTS]' .. colors.reset)
+
 -- start from the root
-local step = 'step0'
+local step = plan.plan[1]
 
 while true do
     -- if there is no actions terminate the loop
-    if table[step] == nil then
+    if plan[step] == nil then
         print(colors.green .. '\n[TASK ACHIEVED]\n' .. colors.reset)
         break
     end
 
+    print(colors.white .. colors.reverse .. '\n' .. step .. colors.reset)
+
     -- execute actions and continue for the next action
-    step = execute(table[step]).next
+    step = execute(plan[step]).next
 end
 

@@ -4,20 +4,12 @@ from collections import OrderedDict, Counter, defaultdict
 import os, time
 from inspect import currentframe, getframeinfo
 from itertools import product
-import logging
-import copy 
 
 from color import fg_green, fg_red, fg_red2, fg_yellow, fg_yellow2, fg_blue, fg_voilet, fg_beige, bg_green, bg_red, bg_yellow, bg_blue, bg_voilet
 from pddlparser import PDDLParser
 from external_planner import call_planner
 from pddl import pddl, to_pddl
 from compilation import compile
-from problem import State
-from domain import Domain
-
-logging.basicConfig(level=logging.DEBUG,
-                    format='(%(filename)s:%(lineno)s - %(funcName)s) %(message)s')
-
 
 class Planner(object):
 
@@ -29,79 +21,76 @@ class Planner(object):
         @arg planner : name of the external planner (string)
         @arg verbose : if True, prints out statistics 
         """
-        # store the given verbosity
-        self.verbose = verbose
 
         if problem is None:
-            # parse pddl domain and problem together in a single file
+            ## parse pddl domain and problem together in a single file
             self.domain, self.problem = PDDLParser.parse(domain)
         else:
-            # parse pddl non-deterministic domain 
+            ## the main probabilistic domain object ##
             self.domain = PDDLParser.parse(domain)
 
-            # parse pddl problem
+            ## parse pddl problem
             self.problem = PDDLParser.parse(problem)
 
-        # store domain and problem files paths
+        ## store domain and problem files paths
         self.problem_file = problem
         self.domain_file = domain
 
-        # a dictionary of deterministic domains: keys as paths to deterministic domains 
-        # files and values as domain objects -- dict({pddl:object})
+        ## a dictionary of deterministic domains: keys as paths to pddl 
+        ## domains and values as domain objects -- dict({pddl:object})
         self.domains = OrderedDict()
 
-        # a list of the names of non-deterministic actions
+        ## list of the probabilistic actions names
         self.prob_actions = list()
 
-        # the working directory if the domain is non-deterministic
+        ## the working directory if the domain is probabilistic
         self.working_dir = None
 
-        # if the domain is non-deterministic/probabilistic
+        ## if the domain is probabilistic
         if ":probabilistic-effects" in self.domain.requirements:
 
-            # compile and records the given non-deterministic domain into a list of deterministic domains
-            if self.verbose: print(fg_green('\n[Compilation to non-deterministic domains]'))
+            ## compile and records the given non-deterministic domain into a list of deterministic domains
+            if verbose: print(fg_green('\n[Compilation to non-deterministic domains]'))
             self.working_dir = compile(self.domain, verbose=verbose)
 
-            # parse pddl deterministic domains
+            ## parse deterministic pddl domains
             for domain in sorted(listdir_fullpath(self.working_dir)):
-                # read the names of non-deterministic actions
+                ## read the probabilistic actions names
                 if domain.endswith('.prob'):
                     with open(domain) as f:
                         self.prob_actions = f.read().splitlines()
-                # parse the deterministic domains
+                ## read the deterministic domains
                 if domain.endswith('.pddl'):
                     self.domains[domain] = PDDLParser.parse(domain)
         else:
             self.domains[domain] = self.domain
 
-        # merge constants and objects (if any exists)
+        ## merge constants and objects
         if self.domain.constants:
             self.problem.initial_state.objects = mergeDict(self.problem.initial_state.objects, self.domain.constants)
 
-        # store the name of external classical planner
+        ## stores the external planner
         self.planner = planner
 
-        # the resulting policy as an ordered dictionary 
-        # -- keys as states and values as actions applicable in the associated states
         self.policy = OrderedDict()
 
-        # store states and actions leading to unsolvable (dead-ends) states
+        ## stores states and probabilistic steps which are not yet explored ##
+        self.open_terminal_states = OrderedDict({self.problem.initial_state: None})
+
+        ## stores states and domains which lead to dead-ends (unsolvable states) ##
         self.unsolvable_states = defaultdict(set)
 
-        # total number of calls to external planner
         self.planning_call = 0
 
-        # total number of seen unsolvable states
+        self.deadends_call = 0
         self.unsolvable_call = 0
 
-        # planning time
         self.planning_time = 0.0
 
-        # if the initial state already contains the goal (then the plan is empty)
+        # if new_state is itself a goal state (then the plan is empty)
         if self.problem.initial_state.is_true(self.problem.goals):
             self.policy[self.problem.initial_state] = None
-            if self.verbose: print(fg_yellow('[Initial state already contains the goal!]'))
+            if verbose: print(fg_yellow('[Initial state already contains the goal!]'))
             return
 
         self.planning_time = time.time()
@@ -109,44 +98,116 @@ class Planner(object):
         ##
         ## main loop of the planner
         ##
-        while True:
-            # find a non-goal terminal state in the current policy
-            state = self.find_open_terminal_state()
+        while self.open_terminal_states:
 
-            # if no non-goal terminal state exists then return the current policy and finish the loop
-            if state is None: 
-                break
+            # pop items as in LIFO
+            (state, step) = self.open_terminal_states.popitem()
 
-            # find a plan at the current state
-            policy = self.find_plan(state)
+            ###################################################################
+            if step == None:
+                if verbose: print(fg_green('\n[Make initial plan at state {}]').format(\
+                            list(self.open_terminal_states).index(state) if state in self.open_terminal_states else 0))
 
-            # if a policy is found then merge it into the resulting self.policy
-            if policy is not None:
-                self.policy = self.update_policy(self.policy, policy)
+                policy = self.explore_plan(state, verbose=verbose)
 
-            # if no plan found at the initial state then no policy exists and finish the loop
-            elif state == self.problem.initial_state:
-                break
+                if not policy:
+                    ## if no such domain nor plan exist ##
+                    if verbose: print(fg_red2('  -- no initial plan found!'))
+                    ## put in the self.unsolvable_states all states leading to 'state' and remove their path from self.policy ##
+                    for (s, stp) in [(s, stp) for (s, stp) in self.policy.items() \
+                                              if stp is not None and stp[0] is not None \
+                                              and state in self.apply_step(init=s, step=stp[0], verbose=verbose)]:
+                        self.unsolvable_states[s].add(stp[1])
+                        if verbose: print(fg_red2('  -- unsolvable by \'{}\''.format(os.path.basename(stp[1]))))
+                        self.remove_path(s, verbose=False)
+                        self.open_terminal_states[s] = None
 
+                else:
+                    ## update global policy ##
+                    # self.policy.update(policy)
+                    self.policy = self.update_policy(self.policy, policy, verbose=verbose)
+
+                    ## push the state and probabilistic actions into the self.open_terminal_states 
+                    ## if {(s, a) exist p | s !exist Sg, s !exist S_\pi, a is probabilistic}
+                    self.push_open_terminal_states(verbose)
+
+                ## continue the main while-loop and do not run the following code
+                continue
+
+            ###################################################################
+            ## if step == None: ##
             else:
-                if self.verbose: print(fg_red2('  -- no initial plan found!'))
-                # put in the self.unsolvable_states all states leading to 'state' and remove their path from self.policy
-                for (s, step) in [(s, step) for (s, step) in self.policy.items() if step is not None \
-                        and state in self.apply_step(init=s, step=step, verbose=verbose)]:
-                    if self.unsolvable_states[s] is not None:
-                        self.unsolvable_states[s].update(set(step))
-                    if self.verbose: print(fg_red2('  -- unsolvable by: {}'.format(\
-                        ' '.join([str('('+' '.join(a)+')') for a in step]))))
-                    self.remove_path(s)
+                policies = OrderedDict()
 
-                self.unsolvable_states[state] = None
+                ## make all possible states from application of 'step' in 'state'
+                new_states = self.apply_step(init=state, step=step, verbose=verbose)
+
+                if verbose: print(fg_green('\n[Expand \'{}\' -- {} possible states]').format(\
+                            ' '.join([str('('+' '.join(s)+')') for s in step]), len(new_states)))
+
+                # if verbose: print(fg_yellow('[{} states to expand]'.format(len(new_states))))
+
+                for i, (new_state, res) in enumerate(new_states.items()):
+
+                    if verbose: print(fg_yellow2('  -- state {}'.format(str(i))))
+
+                    # if new_state is itself a goal state (then the plan is empty)
+                    if new_state.is_true(self.problem.goals): 
+                        policies[new_state] = None
+                        if verbose: print(fg_yellow('    -- already contains the goal'))
+                        continue
+
+                    # in some small problems, the state may become empty by the step application
+                    if not new_state:
+                        if verbose: print(fg_red('    -- empty state by \'{}\'!'.format(os.path.basename(res[0][1]))))
+                        break
+
+                    if new_state in self.policy:
+                        if verbose: print(fg_yellow('    -- already visited'))
+                        continue
+
+                    policy = self.explore_plan(new_state, verbose=verbose)
+
+                    if not policy:
+                        break
+                    else:
+                        if verbose: print(fg_yellow('    -- there is a valid plan'))
+                        # policies.update(policy)
+                        policies = self.update_policy(policies, policy, verbose=verbose)
+                        continue
+
+                else:
+                    ## continue if there are valid plans at this branch of 'state' and 'step'
+                    ## (the inner for-loop wasn't broken)
+                    if verbose: print(fg_yellow('  -- all states are solvable'))
+
+                    ## update global policy and continue the main loop ##
+                    # self.policy.update(policies)
+                    self.policy = self.update_policy(self.policy, policies, verbose=verbose)
+
+                    ## push the state and probabilistic actions into the self.open_terminal_states 
+                    ## if {(s, a) exist p | s !exist Sg, s !exist S_\pi, a is probabilistic}
+                    self.push_open_terminal_states(verbose)
+
+                    ## skip running the rest code and continue the main while loop
+                    continue
+
+                ## there were not valid plans for all possible outcomes of 'state' and 'step',
+                ## (i.e., some break happened in the above for-loop)
+                ## no valid plan for other outcomes, remove path from 'state' in policy 
+                ## and put 'state' in self.unsolvable_states
+                if verbose: print(fg_red2('  -- some states are unsolvable'))
+                self.unsolvable_states[state].add(self.policy[state][1])
+                if verbose: print(fg_red2('-- \'{}\' added unsolvable by \'{}\''.format(' '.join([str('('+' '.join(s)+')') for s in step]),os.path.basename(self.policy[state][1]))))
+                self.remove_path(state, verbose=False)
+                self.open_terminal_states[state] = None
 
         self.planning_time = time.time() - self.planning_time
         print('')
 
         ###################################################################
 
-    def find_plan(self, init, verbose=False):
+    def explore_plan(self, state, deep=False, verbose=False):
         '''
         extend the policy and make a plan from the given state
         @arg state : a given state that a plan is made on it
@@ -155,182 +216,61 @@ class Planner(object):
                     if True, all applicable domains on @state are 
                     tried and the aggregated policy is returned 
         '''
-        # in some small problems, the state may become empty by the step application
-        if not init:
-            if self.verbose: print(fg_red('    -- empty state!'))
-            return None
 
-        if init in self.unsolvable_states:
-            self.unsolvable_call += 1
-            if self.unsolvable_states[init] is None:
-                if self.verbose: print(fg_red('      -- already unsolvable state'))
-                return None
-            if self.verbose: print(fg_red('      -- already unsolvable by: {}'.format(\
-                ' '.join([str('('+' '.join(a)+')') for a in self.unsolvable_states[init]]))))
+        ## create a pddl problem given retrieved 'state' as its initial state ##
+        problm_pddl = pddl(self.problem, state=state, path=self.working_dir)
 
-        state = init
+        if verbose: print(fg_yellow2('    -- problem:') + problm_pddl)
+
         policy = OrderedDict()
-        policy[state] = None
 
-        while True:
+        for domain, domain_spec in self.domains.items():
 
-            if state.is_true(self.problem.goals):
-                return policy
-
-            # modify state such that plan does not start with an action in self.unsolvable_states[state]
-            # create a pddl problem given retrieved 'state' as its initial state 
-            problem_pddl = pddl(self.problem, \
-                state=state.constrain_state(self.unsolvable_states[state]), \
-                path=self.working_dir)
-
-            for domain_pddl, domain_obj in self.domains.items():
-                # modify domain such that plan does not start with an action in self.unsolvable_states[state]
-                cons_domain_obj = domain_obj.constrain_domain(self.unsolvable_states[state])
-
-                cons_domain_pddl = pddl(cons_domain_obj)
-
-                if self.verbose: 
-                    print(fg_yellow2('    -- problem:') + problem_pddl)
-                    print(fg_yellow2('    -- domain:') + cons_domain_pddl)
-
-                plan = call_planner(cons_domain_pddl, problem_pddl, self.planner, verbose=verbose)
-
-                self.planning_call += 1
-
-                if verbose == 1: print_classical_plan(plan)
-
-                # if no plan exists try the next domain
-                if plan == None:
-                    if self.verbose: print(fg_red('      -- no plan found by \'{}\''.format(os.path.basename(domain_pddl))))
-                    continue
-
-                state = self.safe_policy_image(policy, domain_pddl, domain_obj, \
-                        state, plan, verbose=verbose)
-
-                break
-            # for-loop didn't break, that is, no plan was found
-            else: # no plan exists
-                if not policy: return None
-                state, step = policy.popitem()
-                self.unsolvable_states[state] = None
-
-                if not policy: return None
-                state, step = policy.popitem()
-                self.unsolvable_states[state].update(set(step))
-
-
-    def safe_policy_image(self, policy, domain, domain_obj, state, plan, verbose=False):
-        """
-        return a policy image of the given plan from given domain and initial state 
-        @arg domain : the domain object used to generate the plan 
-        @arg init : the initial state of the plan
-        @arg plan : the plan
-        """
-        for step in plan:
-            ## make full grounded specification of actions ##
-            new_state = self.apply_step(init=state, step=step, domain=domain_obj, verbose=verbose)
-            if (new_state in self.unsolvable_states and \
-                self.unsolvable_states[new_state] is None) \
-                or new_state in policy or new_state in self.policy:
+            if domain in self.unsolvable_states[state]:
+                if verbose: print(fg_red('      -- already unsolvable by \'{}\''.format(os.path.basename(domain))))
                 self.unsolvable_call += 1
-                self.unsolvable_states[state].update(set(step))
-                if self.verbose: print(fg_red('      -- plan has already unsolvable state by: {}'.format(\
-                    ' '.join([str('('+' '.join(a)+')') for a in self.unsolvable_states[state]]))))
-                return state
+                continue
 
-            policy[state] = step
-            policy[new_state] = None
-            state = new_state
+            if verbose: print(fg_yellow2('    -- domain:') + domain)
 
-        return state
+            plan = call_planner(domain, problm_pddl, self.planner, verbose=verbose)
 
-    # def find_plan(self, state, verbose=False):
-    #     '''
-    #     extend the policy and make a plan from the given state
-    #     @arg state : a given state that a plan is made on it
-    #     @arg deep : if False, a plan from the first applicable 
-    #                 domain on @state is returned;
-    #                 if True, all applicable domains on @state are 
-    #                 tried and the aggregated policy is returned 
-    #     '''
-    #     # in some small problems, the state may become empty by the step application
-    #     if not state:
-    #         if self.verbose: print(fg_red('    -- empty state!'))
-    #         return None
+            if verbose == 1: print_classical_plan(plan)
 
-    #     if state in self.unsolvable_states:
-    #         self.unsolvable_call += 1
-    #         if self.verbose: print(fg_red('      -- already unsolvable by \'{}\''.format(self.unsolvable_states[state])))
+            self.planning_call += 1
 
-    #     # modify state such that plan does not start with an action in self.unsolvable_states[state]
-    #     # create a pddl problem given retrieved 'state' as its initial state 
-    #     problem_pddl = pddl(self.problem, \
-    #         state=state.constrain_state(self.unsolvable_states[state]), \
-    #         path=self.working_dir)
+            ## if no plan exists try the next domain ##
+            if plan == None:
+                if verbose: print(fg_red('      -- no plan found - added unsolvable by \'{}\''.format(os.path.basename(domain))))
+                self.unsolvable_states[state].add(domain)
+                continue
 
-    #     policy = OrderedDict()
+            ## there exists a valid plan: terminate the loop ##
+            if not deep: return self.policy_image(domain, domain_spec, state, plan, verbose)
 
-    #     for domain_pddl, domain_obj in self.domains.items():
+            # policy.update(self.policy_image(domain, domain_spec, state, plan, verbose))
+            policy = self.update_policy(policy, self.policy_image(domain, domain_spec, state, plan, verbose), verbose=verbose)
 
-    #         ## modify domain such that plan does not start with an action in self.unsolvable_states[state]
-    #         cons_domain_obj = domain_obj.constrain_domain(self.unsolvable_states[state])
-
-    #         cons_domain_pddl = pddl(cons_domain_obj)
-
-    #         if self.verbose: 
-    #             print(fg_yellow2('    -- problem:') + problem_pddl)
-    #             print(fg_yellow2('    -- domain:') + cons_domain_pddl)
-
-    #         plan = call_planner(cons_domain_pddl, problem_pddl, self.planner, verbose=verbose)
-
-    #         self.planning_call += 1
-
-    #         if verbose == 1: print_classical_plan(plan)
+        ## no plan exists
+        return policy
 
 
-    #         ## if no plan exists try the next domain ##
-    #         if plan == None:
-    #             if self.verbose: print(fg_red('      -- no plan found by \'{}\''.format(os.path.basename(domain_pddl))))
-    #             continue
-
-    #         policy = self.policy_image(domain_pddl, domain_obj, state, plan, verbose=verbose)
-
-    #         if self.has_unsolvable(policy, verbose=verbose):
-    #             continue
-
-    #         return policy
-
-    #     ## no plan exists
-    #     return None
-
-
-    def has_unsolvable(self, policy, verbose=False):
-        ''' check whether the policy contains states and actions in the dead-ends list
+    def push_open_terminal_states(self, verbose=False):
         '''
-        for state, step in policy.items():
-            if step is not None and state in self.unsolvable_states:
-                if self.unsolvable_states[state] is None or \
-                   set(step).issubset(self.unsolvable_states[state]):
-                    if self.verbose: print(fg_red('      -- plan has already unsolvable state by: ' + \
-                            ' '.join([str('('+' '.join(a)+')') for a in step])))
-                    return True
-        return False
-
-
-    def find_open_terminal_state(self, verbose=False):
-        '''finds a non-goal terminal state in self.policy and returns if for expansion'''
+        finds non-goal terminal states in self.policy and push them in 
+        self.open_terminal_states for expansion on their other outcomes
+        '''
         for state, step in self.policy.items():
             if step is not None:
-                for new_state in self.apply_step(init=state, step=step, verbose=verbose):
+                new_states = self.apply_step(init=state, step=step[0], verbose=verbose)
+                for new_state in new_states:
                     if not new_state in self.policy and not new_state.is_true(self.problem.goals):
-                        if self.verbose: print(fg_yellow('  -- expand non-goal terminal state by: ')+\
-                                            ' '.join([str('('+' '.join(a)+')') for a in step]))
-                        return new_state
-            elif not state.is_true(self.problem.goals):
-                if self.verbose: print(fg_yellow('  -- expand non-goal terminal state by None'))
-                return state
-        if self.policy: return None
-        return self.problem.initial_state 
+                        self.open_terminal_states[state] = step[0]
+                        break
+        if verbose and self.open_terminal_states.values():
+            print(fg_yellow('  -- non-deterministic steps to expand: ')+\
+                '{}'.format((' '.join([' '.join([str('('+' '.join(s)+')') for s in step]) \
+                    for step in self.open_terminal_states.values() if step is not None]))))
 
 
     def update_policy(self, policy1, policy2, preserve=False, verbose=False):
@@ -349,7 +289,7 @@ class Planner(object):
         return policy1
 
 
-    def policy_image(self, domain, domain_obj, state, plan, verbose=False):
+    def policy_image(self, domain, domain_spec, state, plan, verbose=False):
         """
         return a policy image of the given plan from given domain and initial state 
         @arg domain : the domain object used to generate the plan 
@@ -361,9 +301,9 @@ class Planner(object):
         policy = OrderedDict()
 
         for step in plan:
-            policy[state] = step
+            policy[state] = (step, domain)
             ## make full grounded specification of actions ##
-            state = self.apply_step(init=state, step=step, domain=domain_obj, verbose=verbose)
+            state = self.apply_step(init=state, step=step, domain=domain_spec, verbose=verbose)
             policy[state] = None
 
         return policy
@@ -373,21 +313,23 @@ class Planner(object):
         """
         remove all path starting from state in the policy
         """
+        if state in self.open_terminal_states:
+            if verbose and self.open_terminal_states[state] is not None: 
+                print(fg_yellow('  -- removed from open_terminal_states: ')+\
+                    str(self.open_terminal_states[state]))
+            del self.open_terminal_states[state]
         if state in self.policy:
             step = self.policy[state]
             if verbose and step is not None: 
-                print(fg_yellow(' -- removed from policy: ') + \
-                    ' '.join([str('('+' '.join(a)+')') for a in step]))
+                print(fg_yellow(' -- removed from policy: ')+str(step))
             del self.policy[state]
             if step == None: return
-            for s in self.apply_step(init=state, step=step, verbose=verbose):
+            for s in self.apply_step(init=state, step=step[0], verbose=verbose):
                 ## exclude states that in some domains a non-deterministic action 
                 ## leads to the previous state (the state before action application)
                 if s in self.policy and self.policy[s] is not None and \
-                    not state in self.apply_step(init=s, step=self.policy[s], verbose=verbose):
-                    self.remove_path(s)
-                elif s in self.policy and self.policy[s] is None:
-                    self.remove_path(s)
+                    not state in self.apply_step(init=s, step=self.policy[s][0], verbose=verbose):
+                    self.remove_path(s, verbose)
 
 
     def apply_step(self, init, step, domain=None, det_effect_inc=False, verbose=False):
@@ -402,7 +344,7 @@ class Planner(object):
         """
 
         if step is None:
-            if self.verbose: print(bg_voilet('## step is None!!'))
+            if verbose: print(bg_voilet('## step is None!!'))
             if domain is not None: return init
             return OrderedDict([(init, [])])
 
@@ -421,21 +363,21 @@ class Planner(object):
         grounded_steps = list()
         # if there is a probabilistic action in step, make ground all possible combination of actions on all domains
         if len([action for action in step if action[0] in self.prob_actions]) > 0:
-            # for domain, domain_obj in self.domains.items():
-            #     grounded_steps.append([domain_obj.ground(action) for action in step])
+            # for domain, domain_spec in self.domains.items():
+            #     grounded_steps.append([domain_spec.ground(action) for action in step])
             grounded_actions = list()
             for action in step:
                 grounded_action = set()
-                for domain, domain_obj in self.domains.items():
-                    grounded_action.add(domain_obj.ground(action))
+                for domain, domain_spec in self.domains.items():
+                    grounded_action.add(domain_spec.ground(action))
                 grounded_actions.append(tuple(grounded_action))
             ## generate all possible combination of actions
             grounded_steps = list(product(*grounded_actions))
         # otherwise, making ground on the first domain is sufficient
         else:
             # pick up the first domain object
-            for domain, domain_obj in self.domains.items():
-                grounded_steps.append([domain_obj.ground(action) for action in step])
+            for domain, domain_spec in self.domains.items():
+                grounded_steps.append([domain_spec.ground(action) for action in step])
                 break
 
         states = OrderedDict()
@@ -455,7 +397,10 @@ class Planner(object):
                             add_effects |= set(pos_eff_lst)
                             del_effects |= set(neg_eff_lst)
                 state = state.apply(grounded_action)
-            states[state] = (add_effects, del_effects)
+            if not state in states:
+                states[state] = [((add_effects, del_effects), domain)]
+            elif not (add_effects, del_effects) in [eff for (eff, _) in states[state]]:
+                states[state].append(((add_effects, del_effects), domain))
 
         return states
 
@@ -471,7 +416,7 @@ class Planner(object):
     #                   the step on init
     #     """
     #     if step is None:
-    #         if self.verbose: print(fg_voilet('    -- step is None!!'))
+    #         if verbose: print(fg_voilet('    -- step is None!!'))
     #         if domain is not None: return init
     #         return OrderedDict([(init, [])])
 
@@ -486,12 +431,12 @@ class Planner(object):
 
     #     # if there is not probabilistic actions in step, making ground on the first domain is sufficient
     #     if len([action for action in step if action[0] in self.prob_actions]) == 0:
-    #         for domain, domain_obj in self.domains.items():
+    #         for domain, domain_spec in self.domains.items():
     #             state = init
     #             del_effects = set()
     #             add_effects = set()
     #             for action in step:
-    #                 grounded_action = domain_obj.ground(action)
+    #                 grounded_action = domain_spec.ground(action)
     #                 add_effects |= set(grounded_action.add_effects)
     #                 del_effects |= set(grounded_action.del_effects)
     #                 for effect in grounded_action.when_effects:
@@ -505,12 +450,12 @@ class Planner(object):
         
     #     # otherwise, if there is a probabilistic action in step, 
     #     # make ground the given step on all domains
-    #     for domain, domain_obj in self.domains.items():
+    #     for domain, domain_spec in self.domains.items():
     #         state = init
     #         del_effects = set()
     #         add_effects = set()
     #         for action in step:
-    #             grounded_action = domain_obj.ground(action)
+    #             grounded_action = domain_spec.ground(action)
     #             # if grounded_action is not None:
     #             ## effects of the probabilistic actions are included for the purpose of final plan generation
     #             # if grounded_action.name in self.prob_actions:
@@ -525,7 +470,7 @@ class Planner(object):
     #             states[state] = [((add_effects, del_effects), domain)]
     #         elif not (add_effects, del_effects) in [eff for (eff, _) in states[state]]:
     #             states[state].append(((add_effects, del_effects), domain))
-    #             # if self.verbose: print(fg_red('non-deterministic effects generate a similar state'), states[state])
+    #             # if verbose: print(fg_red('non-deterministic effects generate a similar state'), states[state])
 
     #     return states
 
@@ -578,31 +523,32 @@ class Planner(object):
 
                 if step == None: 
                     if state.is_true(self.problem.goals):
-                        # if self.verbose: print(fg_green('[Goal is achieved]'))
+                        # if verbose: print(fg_green('[Goal is achieved]'))
                         plan[i] = 'GOAL'
                     else:
-                        if self.verbose: print(bg_red('[Goal is not achieved!]'))
+                        if verbose: print(bg_red('[Goal is not achieved!]'))
                         plan[i] = None
                 else:
-                    states = self.apply_step(init=state, step=step, det_effect_inc=True, verbose=verbose)
+                    states = self.apply_step(init=state, step=step[0], det_effect_inc=True, verbose=verbose)
 
                     next_steps = list()
-                    for s, c in states.items():
-                        if s in jumpto:
-                            next_steps.append((c, jumpto[s]))
-                        elif s in visited:
-                            next_steps.append((c, visited[s]))
-                            jumpto[s] = visited[s]
-                        else:
-                            if not tree and s.is_true(self.problem.goals): 
-                                jumpto[s] = 'GOAL'
-                                next_steps.append((c, 'GOAL'))
+                    for s, cnd in states.items():
+                        for c in cnd:
+                            if s in jumpto:
+                                next_steps.append((c[0], jumpto[s]))
+                            elif s in visited:
+                                next_steps.append((c[0], visited[s]))
+                                jumpto[s] = visited[s]
                             else:
-                                level += 1
-                                jumpto[s] = level
-                                next_steps.append((c, level))
+                                if not tree and s.is_true(self.problem.goals): 
+                                    jumpto[s] = 'GOAL'
+                                    next_steps.append((c[0], 'GOAL'))
+                                else:
+                                    level += 1
+                                    jumpto[s] = level
+                                    next_steps.append((c[0], level))
 
-                    plan[i] = (tuple([self.domain.ground(action) for action in step]), tuple(next_steps))
+                    plan[i] = (tuple([self.domain.ground(action) for action in step[0]]), tuple(next_steps))
 
         return plan
 
@@ -803,8 +749,7 @@ class Planner(object):
         performance = {'time':round(self.planning_time,3),\
                        'planning_call':self.planning_call,\
                        'unsolvable_call':self.unsolvable_call,\
-                       'solvable': 'GOAL' in self.plan().keys() or\
-                                   'GOAL' in self.plan().values()}
+                       'solvable': self.plan()[0] is not None}
         if self.problem_file is not None:
             stat_file = '{}.stat'.format(os.path.splitext(self.problem_file)[0])
         else:

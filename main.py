@@ -11,7 +11,7 @@ from json_ma_plan import json_ma_plan
 
 
 def parse():
-    usage = 'python3 main.py <DOMAIN> <PROBLEM> [-c <PLANNER>] [-p] [-d] [-j] [-v N] [-h]'
+    usage = 'python3 main.py <DOMAIN> <PROBLEM> [-c <PLANNER>] [-p] [-d] [-j] [-s] [-v N] [-h]'
     description = "Safe-Planner is a non-deterministic planner for PPDDL."
     parser = argparse.ArgumentParser(usage=usage, description=description)
 
@@ -28,6 +28,8 @@ def parse():
     # parser.add_argument("-t", "--tree", help="include goal states as individual steps (combine with \'-d\' to see the difference in the produced dot file)", 
     #     action="store_true")
     parser.add_argument("-j", "--json", help="transform the produced policy into a json file", 
+        action="store_true")
+    parser.add_argument("-s", "--store", help="store the planner's performance in a '.stat' file", 
         action="store_true")
     parser.add_argument("-v", "--verbose", default=0, type=int, choices=(0, 1, 2),
         help="increase output verbosity: 0 (nothing), 1 (high-level), 2 (external planners outputs) (default=0)", )
@@ -84,7 +86,6 @@ if __name__ == '__main__':
         os.system('cd lua && lua json_multiagent_plan.lua ../%s &' % plan_json_file)
         os.system('xdot %s.dot &' % plan_json_file)
 
-
     # ## transform the policy into a json file
     # if args.json:
     #     plan = policy.plan(tree=False, verbose=args.verbose)
@@ -92,6 +93,10 @@ if __name__ == '__main__':
     #     # print(fg_yellow('-- json plan object\n') + str(plan_json))
     #     print(fg_yellow('-- json file: ') + json_file + fg_red(' [EXPERIMENTAL!]\n'))
 
-    print('Planning time: %.3f s' % policy.planning_time)
+    if args.store:
+        stat_file = policy.log_performance()
+        print(fg_yellow('-- planner performance: ') + stat_file)
+
+    print('\nPlanning time: %.3f s' % policy.planning_time)
     print('Total number of replannings: %i' % policy.planning_call)
     print('Total number of calls to unsolvable states: %i' % policy.unsolvable_call)

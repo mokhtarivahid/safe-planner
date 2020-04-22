@@ -27,51 +27,51 @@ def parse():
 
 
 ###############################################################################
-def gen_json_plan(policy):
+def gen_json_plan(plan, json_file=None):
     '''transforms a plan into a json object (OrderedDict) and stores it in a 
        file and return the json object and path to the json file
     '''
     plan_json = OrderedDict()
-    for level, step in policy.plan().items():
+    for level, step in plan.items():
 
-        if level is 'GOAL' or step is None or step is 'GOAL': continue
-
-        plan_json.setdefault('plan', []).append('step_{}'.format(str(level)))
+        plan_json.setdefault('plan', []).append('step{}'.format(str(level)))
 
         step_json = OrderedDict()
 
-        (actions, outcomes) = step
+        if step is None or step is 'GOAL': 
+          # plan_json.setdefault('step_descriptions', []).append(dict( { 'step{}'.format(str(level)) : \
+          #   dict({'actions':[], 'outcomes':[dict({'condition':[], 'next':''})]}) } ))
+          step_json['actions'] = []
+          step_json['outcomes'] = [dict({'condition':[], 'next':''})]
+          
+        else:
+          (actions, outcomes) = step
 
-        for i, action in enumerate(actions):
-            # step_json.setdefault('actions',[]).append( {'name' : action.sig[0], 'arguments' : action.sig[1:]} )
-            step_json.setdefault('actions',[]).append( \
-                OrderedDict({'name' : action.sig[0], \
-                 'arguments' : action.sig[1:], \
-                 'add_effects' : action.effects.add_effects, \
-                 'del_effects' : action.effects.del_effects, \
-                 }) )
+          for i, action in enumerate(actions):
+              step_json.setdefault('actions',[]).append( {'name' : action.sig[0], 'arguments' : action.sig[1:]} )
 
-        for (conditions, jump) in outcomes:
-            if jump is 'GOAL':
-                jump_str = 'GOAL'
-            else:
-                jump_str = 'step_{}'.format(str(jump))
+          for (conditions, jump) in outcomes:
+              if len(conditions) > 0:
+                  step_json.setdefault('outcomes',[]).append(\
+                      dict({'condition':['({0})'.format(' '.join(map(str, cnd))) for cnd in conditions[0]], \
+                        'next':'step{}'.format(str(jump))}))
+              else:
+                  step_json.setdefault('outcomes',[]).append(dict({'condition':[], \
+                    'next':'step{}'.format(str(jump))}))
 
-            if len(conditions) > 0:
-                step_json.setdefault('outcomes',[]).append(\
-                    dict({'condition':['({0})'.format(' '.join(map(str, cnd))) for cnd in conditions[0]], \
-                      'next':jump_str}))
-            else:
-                step_json.setdefault('outcomes',[]).append(dict({'condition':[], \
-                  'next':jump_str}))
-
-        plan_json['step_{}'.format(str(level))] = step_json
+        plan_json['step{}'.format(str(level))] = step_json
+        # plan_json.setdefault('step_descriptions', []).append(dict( {'step{}'.format(str(level)) : step_json} ))
 
     plan_json_str = json.dumps(plan_json, indent=4)
     # print(plan_json_str)
 
     # create a json file
-    json_file = '{}.json'.format(os.path.splitext(policy.problem_file)[0])
+    if json_file == None:
+        if not os.path.exists("/tmp/pyppddl/"):
+            os.makedirs("/tmp/pyppddl/")
+        json_file = "/tmp/pyppddl/prob"+str(int(time.time()*1000000))+".json"
+    else:
+        json_file = '{}.json'.format(os.path.splitext(json_file)[0])
 
     with open(json_file, 'w') as outfile:
         json.dump(json.loads(plan_json_str, object_pairs_hook=OrderedDict), outfile, sort_keys=False, indent=4)
@@ -89,7 +89,7 @@ if __name__ == '__main__':
     plan = policy.plan()
     policy.print_plan()
 
-    json_file_path, plan_json = gen_json_plan(policy)
+    json_file_path, plan_json = gen_json_plan(plan, args.problem)
 
     print(fg_yellow('-- json plan object\n') + str(plan_json))
     print(fg_yellow('-- json file\n') +str(json_file_path))

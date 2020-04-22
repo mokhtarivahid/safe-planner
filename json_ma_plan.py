@@ -35,7 +35,7 @@ def parse():
 
 
 #################################################################
-def add_list(action, state, initial_state):
+def add_effects(action, state, initial_state):
     '''returns all positive effects of @action applicable in @state'''
 
     # add_lists = set(action.effects.add_effects)
@@ -105,7 +105,7 @@ def concurrent_executions(policy, plan):
             for i, action in enumerate(step):
                 # create a ConcurrentAction object for each action
                 single_executions.append({ root : (set([action]), set([level for ((add_eff, del_eff), level) in outcomes])) })
-                new_add_lists.append(add_list(action, state, initial_state))
+                new_add_lists.append(add_effects(action, state, initial_state))
         else:
             for action in step:
                 # create a ConcurrentAction object for each action
@@ -114,14 +114,14 @@ def concurrent_executions(policy, plan):
                 if len(results) == 1: # only one is True (append action to a single_execution)
                     single_executions[results[0]].setdefault(root, (set(),set()))[0].add(action)
                     single_executions[results[0]].setdefault(root, (set(),set()))[1].update(set([out[1] for out in outcomes]))
-                    new_add_lists[results[0]].update(add_list(action, state, initial_state))
+                    new_add_lists[results[0]].update(add_effects(action, state, initial_state))
                 elif len(results) == 0: # all are False (no intersection; add a new single_execution)
                     single_executions.append({root:(set([action]), set([out[1] for out in outcomes]))})
-                    new_add_lists.append(add_list(action, state, initial_state))
+                    new_add_lists.append(add_effects(action, state, initial_state))
                 else: # some joint_executions (add action to joint_executions)
                     joint_executions.setdefault(root, (set(), set()))[0].add(action)
                     joint_executions.setdefault(root, (set(), set()))[1].update(set([out[1] for out in outcomes]))
-                    for i in results: new_add_lists[i].update(add_list(action, state, initial_state))
+                    for i in results: new_add_lists[i].update(add_effects(action, state, initial_state))
 
         # apply 'step' in the current state and get possible states 
         states = policy.apply_step(state, [action.sig for action in step])
@@ -145,7 +145,7 @@ def concurrent_subplans(policy, plan):
     single_executions, joint_executions = concurrent_executions(policy, plan)
 
     # find the final plan's main list boundaries/clusters 
-    main_list_borders = set(joint_executions.keys()) | {max(plan.keys())+1}
+    main_list_borders = set(joint_executions.keys()) | {max([k for k in plan.keys() if isinstance(k,int)])+1}
     for single_execution in single_executions:
         root = 0
         for i in sorted(single_execution.keys()):
@@ -384,16 +384,10 @@ if __name__ == '__main__':
     plan = policy.plan()
     policy.print_plan(plan=plan)
 
-    # generate a graph of the policy as a dot file in graphviz
-    if args.dot:
-        dot_file = gen_dot_plan(plan=plan, dot_file=args.problem)
-        print(fg_yellow('-- dot file: ') + dot_file + '\n')
-        os.system('xdot %s &' % dot_file)
+    # paths = policy.get_paths(plan, verbose=args.verbose)
+    # policy.print_paths(paths=paths, del_effects_included=True, verbose=args.verbose)
 
-    paths = policy.get_paths(plan, verbose=args.verbose)
-    policy.print_paths(paths=paths, del_effects_included=True, verbose=args.verbose)
-
-    plan = paths[0]
+    # plan = paths[0]
 
     #############################
     # get possible concurrent and joint executions
@@ -472,11 +466,18 @@ if __name__ == '__main__':
     # convert the plan inti a concurrent plan in json files
     plan_json_file, actions_json_file = json_ma_plan(policy)
 
-    print(fg_yellow('-- plan_json_file:'), plan_json_file)
-    print(fg_yellow('-- actions_json_file:'), actions_json_file)
+    print(fg_yellow('-- plan_json_file:') + plan_json_file)
+    print(fg_yellow('-- actions_json_file:') + actions_json_file)
     os.system('cd lua && lua json_multiagent_plan.lua ../%s &' % plan_json_file)
     os.system('xdot %s.dot &' % plan_json_file)
-    print()
+    print('')
+
+    # generate a graph of the policy as a dot file in graphviz
+    if args.dot:
+        dot_file = gen_dot_plan(plan=plan, dot_file=args.problem)
+        print(fg_yellow('-- dot file: ') + dot_file + '\n')
+        os.system('xdot %s &' % dot_file)
+
 
     print('Planning time: %.3f s' % policy.planning_time)
     print('Total number of replannings: %i' % policy.planning_call)

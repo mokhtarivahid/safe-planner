@@ -182,6 +182,25 @@ class State(object):
         # deterministic action
         return states
 
+    def constrain_state(self, ex_actions):
+        """
+        returns a new state copied from this state and adds 'disallowed' 
+        predicates from given @ex_actions into its predicates 
+        @arg ex_actions : a list of grounded action signatures that 
+        should become inapplicable in this state
+        """
+        if not ex_actions: return self
+
+        # convert self.predicates from frozenset to a list
+        predicates = list(self.predicates)
+
+        # add 'disallowed' predicates for given ex_actions
+        for ex_action in ex_actions:
+            predicates.append((('disallowed_{}'.format(ex_action[0]),) + ex_action[1:]))
+
+        # return a new state
+        return State(predicates=frozenset(predicates))
+
     def __bool__(self):
         """Return false if state is empty, otherwise true"""
         return not (not self.predicates)

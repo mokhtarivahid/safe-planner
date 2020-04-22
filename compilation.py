@@ -109,7 +109,7 @@ def compilation(domain):
                 types = domain.types, \
                 predicates = domain.predicates, \
                 constants = domain.constants, \
-                actions = actions) for actions in deterministic_actions],
+                actions = tuple(actions)) for actions in deterministic_actions],
             nd_actions)
 
 
