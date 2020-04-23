@@ -1,18 +1,18 @@
-"""
+'''
 functions for creating PDDL-like problem and domain files for planning
-"""
+'''
 import os, time
 
 from domain import Domain, Action, Precondition, Effect
 from problem import Problem, State
 
 def to_pddl(object, state=None, goals=None):
-    """
+    '''
     Return the given object as a pddl string
-    @arg object : a given object (Precondition/Effect/Action/Domain/Problem)
-    @arg state : a given initial state (default is the problem initial state)
-    @arg goal : a given problem goal (default is the problem goal)
-    """
+    @object : a given object (Precondition/Effect/Action/Domain/Problem)
+    @state : a given initial state (default is the problem initial state)
+    @goal : a given problem goal (default is the problem goal)
+    '''
     ## translate a Precondition object into a pddl string
     if type(object) is Precondition:
         precond_str = '(and'
@@ -138,12 +138,12 @@ def to_pddl(object, state=None, goals=None):
 
 
 def pddl(object, state=None, goals=None, path=None):
-    """
+    '''
     create a pddl file of the given object and return its path as a string
-    @arg object : a given object (Precondition/Effect/Action/Domain/Problem)
-    @arg state : a given initial state (default is the problem initial state)
-    @arg goal : a given problem goal (default is the problem goal)
-    """
+    @object : a given object (Precondition/Effect/Action/Domain/Problem)
+    @state : a given initial state (default is the problem initial state)
+    @goal : a given problem goal (default is the problem goal)
+    '''
     if path is None:
         path = "/tmp/pyppddl/"
         if not os.path.exists(path): os.makedirs(path)

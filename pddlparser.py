@@ -128,7 +128,7 @@ def t_PROBABILITY(t):
 
 
 def is_fraction(string):
-    """Return True if the string is a valid fraction"""
+    '''Return True if the string is a valid fraction'''
     return bool(re.search(r'^-?[0-9]+/0*[1-9][0-9]*$', string))
 
 

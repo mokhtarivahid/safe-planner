@@ -1,6 +1,6 @@
-"""
+'''
 Classes and functions for creating a domain object
-"""
+'''
 from itertools import product
 import copy 
 
@@ -10,15 +10,15 @@ import copy
 class Domain(object):
 
     def __init__(self, name=None, requirements=(), types={}, constants={}, predicates=(), actions=()):
-        """
+        '''
         Represents a PDDL-like Problem Domain
-        @arg name : string name of the given domain
-        @arg requirements : tuple of the requirements in the given domain
-        @arg types : dictionary of type and subtypes tuples keyed by super-types
-        @arg constants : dictionary of constant tuples keyed by type
-        @arg predicates : tuple of the predicates in the given domain
-        @arg actions : list of Action objects
-        """
+        @name : string name of the given domain
+        @requirements : tuple of the requirements in the given domain
+        @types : dictionary of type and subtypes tuples keyed by super-types
+        @constants : dictionary of constant tuples keyed by type
+        @predicates : tuple of the predicates in the given domain
+        @actions : list of Action objects
+        '''
 
         self.name = name
         self.requirements = tuple(requirements)
@@ -28,9 +28,9 @@ class Domain(object):
         self.actions = tuple(actions)
 
     def ground_actions(self, objects):
-        """
+        '''
         Ground all action schemas given a dictionary of objects keyed by type
-        """
+        '''
         grounded_actions = list()
         for action in self.actions:
             param_lists = [objects[t] for t in action.types]
@@ -39,22 +39,22 @@ class Domain(object):
         return grounded_actions
 
     def ground(self, action_sig):
-        """
+        '''
         Return the grounded action schema of a given action signature,
         an action signature example: ('move','robot1','room1',',room2')
-        """
+        '''
         for action in self.actions:
             if action.name == action_sig[0]:
                 return action.ground(*tuple(action_sig[1:]))
         return None
 
     def constrain_domain(self, ex_actions):
-        """
+        '''
         returns a new domain copied from this domain and makes its actions 
         in the given ex_actions inapplicable in a state 
-        @arg ex_actions : a list of grounded action signatures that should 
+        @ex_actions : a list of grounded action signatures that should 
         become inapplicable in a state
-        """
+        '''
         if not ex_actions: return self
 
         new_domain = copy.deepcopy(self)
@@ -73,10 +73,10 @@ class Domain(object):
         return new_domain
 
     # def make_inapplicable(self, ex_actions):
-    #     """
+    #     '''
     #     modify the domain such that the given ex_actions become inapplicable in a state
-    #     @arg ex_actions : a list of grounded action signatures that should become inapplicable in a state
-    #     """
+    #     @ex_actions : a list of grounded action signatures that should become inapplicable in a state
+    #     '''
     #     for action in self.actions:
     #         if action.name in [ex_action[0] for ex_action in ex_actions]:
     #             self.predicates = tuple(set(self.predicates + tuple([('disallowed',) + tuple(zip(action.types, action.arg_names))])))
@@ -110,18 +110,18 @@ class Domain(object):
 class Precondition(object):
 
     def __init__(self, literals=(), universal=(), existential=()):
-        """
+        '''
         A precondition schema
-        @arg literals : preconditions as a tuple of literals
-        @arg universal : tuple of universal-preconditions: [(var_lst),(literals)]
-        @arg existential : tuple of existential-preconditions: [(var_lst),(literals)]
-        """
+        @literals : preconditions as a tuple of literals
+        @universal : tuple of universal-preconditions: [(var_lst),(literals)]
+        @existential : tuple of existential-preconditions: [(var_lst),(literals)]
+        '''
         self.literals = literals
         self.universal = universal
         self.existential = existential
 
     def __str__(self):
-        """Return the precondition as a string"""
+        '''Return the precondition as a string'''
         precond_str = str()
         if self.literals:
             precond_str += '\n       -- literals: {}'.format(self.literals)
@@ -138,19 +138,19 @@ class Precondition(object):
 class GroundedPrecondition(object):
 
     def __init__(self, pos_preconditions=(), neg_preconditions=(), universal_preconditions=(), existential_preconditions=()):
-        """
+        '''
         A precondition schema
-        @arg literals : preconditions as a tuple of literals
-        @arg universal : tuple of universal-preconditions: [(var_lst),(literals)]
-        @arg existential : tuple of existential-preconditions: [(var_lst),(literals)]
-        """
+        @literals : preconditions as a tuple of literals
+        @universal : tuple of universal-preconditions: [(var_lst),(literals)]
+        @existential : tuple of existential-preconditions: [(var_lst),(literals)]
+        '''
         self.pos_preconditions = pos_preconditions
         self.neg_preconditions = neg_preconditions
         self.universal_preconditions = universal_preconditions
         self.existential_preconditions = existential_preconditions
 
     def __str__(self):
-        """Return the precondition as a string"""
+        '''Return the precondition as a string'''
         precond_str = str()
         if self.pos_preconditions:
             precond_str += '\n       -- pos_preconditions: {}'.format(self.pos_preconditions)
@@ -163,11 +163,11 @@ class GroundedPrecondition(object):
         return precond_str
 
     def __bool__(self):
-        """Return false if precondition is empty, otherwise true"""
+        '''Return false if precondition is empty, otherwise true'''
         return not (not self.pos_preconditions and not self.neg_preconditions and not self.universal_preconditions and not self.existential_preconditions)
 
     def __len__(self):
-        """Return length of precondition (total length of pos_preconditions + neg_preconditions + universal_preconditions + existential_preconditions)"""
+        '''Return length of precondition (total length of pos_preconditions + neg_preconditions + universal_preconditions + existential_preconditions)'''
         return len(self.pos_preconditions) + len(self.neg_preconditions) + len(self.universal_preconditions) + len(self.existential_preconditions)
 
     def __hash__(self):
@@ -180,18 +180,18 @@ class GroundedPrecondition(object):
 class Effect(object):
 
     def __init__(self, literals=(), forall=(), when=()):
-        """
+        '''
         An Effect  schema
-        @arg literals : effects as a tuple of literals
-        @arg forall : tuple of conditional-effects forall: [(var_lst),(literals)]
-        @arg when : tuple of conditional-effects when: [(literals),(literals)]
-        """
+        @literals : effects as a tuple of literals
+        @forall : tuple of conditional-effects forall: [(var_lst),(literals)]
+        @when : tuple of conditional-effects when: [(literals),(literals)]
+        '''
         self.literals = literals
         self.forall = forall
         self.when = when
 
     def __str__(self):
-        """Return the effect as a string"""
+        '''Return the effect as a string'''
         eff_str = str()
         if self.literals:
             eff_str += '\n       -- literals: {}'.format(self.literals)
@@ -205,11 +205,11 @@ class Effect(object):
         return eff_str
 
     def __bool__(self):
-        """Return false if effect is empty, otherwise true"""
+        '''Return false if effect is empty, otherwise true'''
         return not (not self.literals and not self.forall and not self.when)
 
     def __len__(self):
-        """Return length of effects (total length of literals + forall + when)"""
+        '''Return length of effects (total length of literals + forall + when)'''
         return len(self.literals) + len(self.forall) + len(self.when)
 
 
@@ -219,19 +219,19 @@ class Effect(object):
 class GroundedEffect(object):
 
     def __init__(self, add_effects=(), del_effects=(), forall_effects=(), when_effects=()):
-        """
+        '''
         An Effect  schema
-        @arg literals : effects as a tuple of literals
-        @arg forall : tuple of conditional-effects forall: [(var_lst),(literals)]
-        @arg when : tuple of conditional-effects when: [(literals),(literals)]
-        """
+        @literals : effects as a tuple of literals
+        @forall : tuple of conditional-effects forall: [(var_lst),(literals)]
+        @when : tuple of conditional-effects when: [(literals),(literals)]
+        '''
         self.add_effects = add_effects
         self.del_effects = del_effects
         self.forall_effects = forall_effects
         self.when_effects = when_effects
 
     def __str__(self):
-        """Return the effect as a string"""
+        '''Return the effect as a string'''
         eff_str = str()
         if self.add_effects:
             eff_str += '\n       -- add_effects: {}'.format(self.add_effects)
@@ -247,11 +247,11 @@ class GroundedEffect(object):
         return eff_str
 
     def __bool__(self):
-        """Return false if effect is empty, otherwise true"""
+        '''Return false if effect is empty, otherwise true'''
         return not (not self.add_effects and not self.del_effects and not self.forall_effects and not self.when_effects)
 
     def __len__(self):
-        """Return length of effects (total length of add_effects + del_effects + forall_effects + when_effects)"""
+        '''Return length of effects (total length of add_effects + del_effects + forall_effects + when_effects)'''
         return len(self.add_effects) + len(self.del_effects) + len(self.forall_effects) + len(self.when_effects)
 
     def __hash__(self):
@@ -263,18 +263,18 @@ class GroundedEffect(object):
 ## ACTION CLASS
 ###############################################################################
 class Action(object):
-    """An action schema"""
+    '''An action schema'''
     def __init__(self, name, parameters=(), preconditions=(), effects=(), \
                  probabilistic=(), oneof=()):
-        """
+        '''
         A PDDL-like action schema
-        @arg name : action name for display purposes
-        @arg parameters : tuple of ('type', 'param_name') tuples indicating action parameters
-        @arg preconditions : a Preconditions object 
-        @arg effects : an Effect object
-        @arg probabilistic : a tuple of probabilistic effects
-        @arg oneof : a tuple of non-deterministic effects
-        """
+        @name : action name for display purposes
+        @parameters : tuple of ('type', 'param_name') tuples indicating action parameters
+        @preconditions : a Preconditions object 
+        @effects : an Effect object
+        @probabilistic : a tuple of probabilistic effects
+        @oneof : a tuple of non-deterministic effects
+        '''
         self.name = name
         if len(parameters) > 0:
             self.types, self.arg_names = zip(*parameters)
@@ -306,7 +306,7 @@ class Action(object):
         return operator_str
 
 def _grounder(arg_names, args):
-    """Returns a function for grounding predicates and function symbols"""
+    '''Returns a function for grounding predicates and function symbols'''
     namemap = dict()
     for arg_name, arg in zip(arg_names, args):
         namemap[arg_name] = arg
@@ -319,7 +319,7 @@ def _grounder(arg_names, args):
 ## GROUNDEDACTION CLASS
 ###############################################################################
 class _GroundedAction(object):
-    """An action schema that has been grounded with objects"""
+    '''An action schema that has been grounded with objects'''
     def __init__(self, action, *args):
     # def __init__(self, action, *args, **kwargs):
         self.name = action.name
@@ -443,11 +443,11 @@ class _GroundedAction(object):
 
 
     def sig(self):
-        """
+        '''
         return the action signature in the predicate format, 
         e.g., self.sig = ('move', 'robot1', 'room1', 'room2')
               return: 'move(robot1,room1,room2)'
-        """
+        '''
         return str(self.sig[0]+'('+', '.join(self.sig[1:])+')')
 
     def __str__(self, body=False):

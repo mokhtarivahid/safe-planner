@@ -378,14 +378,14 @@ if __name__ == '__main__':
     args = parse()
 
     # make a policy given domain and problem
-    policy = Planner(args.domain, args.problem, args.planner)
+    policy = Planner(args.domain, args.problem, args.planner, verbose=args.verbose)
 
     # transform the produced policy into a contingency plan and print it
     plan = policy.plan()
     policy.print_plan(plan=plan)
 
-    # paths = policy.get_paths(plan, verbose=args.verbose)
-    # policy.print_paths(paths=paths, del_effects_included=True, verbose=args.verbose)
+    # paths = policy.get_paths(plan)
+    # policy.print_paths(paths=paths, del_effects_included=True)
 
     # plan = paths[0]
 

@@ -18,8 +18,6 @@ def parse():
     parser.add_argument('problem', type=str, help='path to PDDL problem file')
     parser.add_argument("planner", type=str, nargs='?', const=1, 
         help="external planner: ff, m, optic, vhpop, ... (default=ff)", default="ff")
-    # parser.add_argument("-v", "--verbose", help="increase output verbosity", 
-    #     action="store_true")
     parser.add_argument("-v", "--verbose", default=0, type=int, 
         help="increase output verbosity: 0 (nothing), 1 (high-level), 2 (external planners outputs) (default=0)", )
 
@@ -27,7 +25,7 @@ def parse():
 
 
 ###############################################################################
-def gen_json_plan(policy):
+def json_plan(policy):
     '''transforms a plan into a json object (OrderedDict) and stores it in a 
        file and return the json object and path to the json file
     '''
@@ -89,7 +87,7 @@ if __name__ == '__main__':
     plan = policy.plan()
     policy.print_plan()
 
-    json_file_path, plan_json = gen_json_plan(policy)
+    json_file_path, plan_json = json_plan(policy)
 
     print(fg_yellow('-- json plan object\n') + str(plan_json))
     print(fg_yellow('-- json file\n') +str(json_file_path))

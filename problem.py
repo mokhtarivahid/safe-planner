@@ -1,6 +1,6 @@
-"""
+'''
 Classes and functions for creating a problem object
-"""
+'''
 
 from itertools import product
 from domain import _grounder, GroundedEffect
@@ -11,14 +11,14 @@ from domain import _grounder, GroundedEffect
 class Problem(object):
 
     def __init__(self, problem=None, domain=None, init=None, goal=()):
-        """
+        '''
         Represents a PDDL Problem Specification
-        @arg problem : a string specifying the problem name
-        @arg domain : a string specifying the domain name
-        @arg objects : dictionary of object tuples keyed by type
-        @arg init : a State object as the initial state
-        @arg goal : tuple of goal state predicates
-        """
+        @problem : a string specifying the problem name
+        @domain : a string specifying the domain name
+        @objects : dictionary of object tuples keyed by type
+        @init : a State object as the initial state
+        @goal : tuple of goal state predicates
+        '''
         self.problem = problem
         self.domain = domain
         self.initial_state = init
@@ -50,7 +50,7 @@ class State(object):
     objects = {}
 
     def __init__(self, predicates):
-        """Represents a state"""
+        '''Represents a state'''
         self.predicates = frozenset(predicates)
 
     def is_true(self, pos_predicates, neg_predicates=()):
@@ -58,9 +58,9 @@ class State(object):
                 all(p not in self.predicates for p in neg_predicates))
 
     def apply(self, action):
-        """
+        '''
         Apply a deterministic action to this state to produce a new state.
-        """
+        '''
         new_preds = set(self.predicates)
         new_preds |= set(action.effects.add_effects)
         new_preds -= set(action.effects.del_effects)
@@ -97,9 +97,9 @@ class State(object):
         return State(new_preds)
 
     def apply_nd(self, action):
-        """
+        '''
         Apply a non-deterministic action to this state to produce a new state.
-        """
+        '''
         # a list of states after the action application
         states = []
 
@@ -183,12 +183,12 @@ class State(object):
         return states
 
     def constrain_state(self, ex_actions):
-        """
+        '''
         returns a new state copied from this state and adds 'disallowed' 
         predicates from given @ex_actions into its predicates 
-        @arg ex_actions : a list of grounded action signatures that 
+        @ex_actions : a list of grounded action signatures that 
         should become inapplicable in this state
-        """
+        '''
         if not ex_actions: return self
 
         # convert self.predicates from frozenset to a list
@@ -202,11 +202,11 @@ class State(object):
         return State(predicates=frozenset(predicates))
 
     def __bool__(self):
-        """Return false if state is empty, otherwise true"""
+        '''Return false if state is empty, otherwise true'''
         return not (not self.predicates)
 
     def __len__(self):
-        """Return length of the state (length of predicates)"""
+        '''Return length of the state (length of predicates)'''
         return len(self.predicates)
 
     # Implement __hash__ and __eq__ so we can easily

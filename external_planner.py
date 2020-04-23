@@ -9,15 +9,15 @@ from color import fg_green, fg_red, fg_yellow, fg_blue, fg_voilet, fg_beige, bg_
 ###############################################################################
 ## call ff planner
 def call_ff(domain, problem, args='', verbose=0):
-    """
+    '''
     Call an external planner
-    @arg domain : path to a given domain 
-    @arg problem : path to a given problem 
-    @arg verbose : if True, prints statistics before returning
+    @domain : path to a given domain 
+    @problem : path to a given problem 
+    @verbose : if True, prints statistics before returning
 
     @return plan : the output plan is a list of actions as tuples, 
                    e.g., [[('move-car', 'l1', 'l4')], [('changetire', 'l4')]]
-    """
+    '''
 
     cmd = './planners/ff -o {} -f {} {}'.format(domain, problem, args)
 
@@ -68,17 +68,17 @@ def call_ff(domain, problem, args='', verbose=0):
 ###############################################################################
 ## call optic-clp planner
 def call_optic_clp(domain, problem, args='-b -N', verbose=0):
-    """
+    '''
     Call an external planner
-    @arg domain : path to a given domain 
-    @arg problem : path to a given problem 
-    @arg verbose : if True, prints statistics before returning
+    @domain : path to a given domain 
+    @problem : path to a given problem 
+    @verbose : if True, prints statistics before returning
 
     @return plan : the output plan is a list of actions as tuples, 
                    e.g., [[('move_to_grasp', 'arm1', 'box1', 'base1', 'box2'), ('move_to_grasp', 'arm2', 'box2', 'cap1', 'box1')], 
                           [('vacuum_object', 'arm2', 'cap1', 'box1'), ('vacuum_object', 'arm1', 'base1', 'box2')],
                           ...]
-    """
+    '''
 
     cmd = './planners/optic-clp {} {} {}'.format(args, domain, problem)
 
@@ -142,15 +142,15 @@ def call_optic_clp(domain, problem, args='-b -N', verbose=0):
 ###############################################################################
 ## call madagascar (M) planner
 def call_m(domain, problem, args='-P 1 -t 5', verbose=0):
-    """
+    '''
     Call an external planner
-    @arg domain : path to a given domain 
-    @arg problem : path to a given problem 
-    @arg verbose : if True, prints statistics before returning
+    @domain : path to a given domain 
+    @problem : path to a given problem 
+    @verbose : if True, prints statistics before returning
 
     @return plan : the output plan is a list of actions as tuples, 
                    e.g., [[('move-car', 'l1', 'l4')], [('changetire', 'l4')]]
-    """
+    '''
 
     cmd = './planners/m {0} {1} {2} -o {2}.soln'.format(args, domain, problem)
 
@@ -207,15 +207,15 @@ def call_m(domain, problem, args='-P 1 -t 5', verbose=0):
 ###############################################################################
 ## call vhpop planner
 def call_vhpop(domain, problem, args='-g -f DSep-LIFO -s HC -w 5 -l 1500000', verbose=0):
-    """
+    '''
     Call an external planner
-    @arg domain : path to a given domain 
-    @arg problem : path to a given problem 
-    @arg verbose : if True, prints statistics before returning
+    @domain : path to a given domain 
+    @problem : path to a given problem 
+    @verbose : if True, prints statistics before returning
 
     @return plan : the output plan is a list of actions as tuples, 
                    e.g., [[('move-car', 'l1', 'l4')], [('changetire', 'l4')]]
-    """
+    '''
 
     cmd = './planners/vhpop {} {} {}'.format(args, domain, problem)
 
@@ -268,17 +268,17 @@ def call_vhpop(domain, problem, args='-g -f DSep-LIFO -s HC -w 5 -l 1500000', ve
 ###############################################################################
 ## call lpg-td planner
 def call_lpg_td(domain, problem, args='-speed -noout', verbose=0):
-    """
+    '''
     Call an external planner
-    @arg domain : path to a given domain 
-    @arg problem : path to a given problem 
-    @arg verbose : if True, prints statistics before returning
+    @domain : path to a given domain 
+    @problem : path to a given problem 
+    @verbose : if True, prints statistics before returning
 
     @return plan : the output plan is a list of actions as tuples, 
                    e.g., [[('move_to_grasp', 'arm1', 'box1', 'base1', 'box2'), ('move_to_grasp', 'arm2', 'box2', 'cap1', 'box1')], 
                           [('vacuum_object', 'arm2', 'cap1', 'box1'), ('vacuum_object', 'arm1', 'base1', 'box2')],
                           ...]
-    """
+    '''
 
     cmd = './planners/lpg-td -o {} -f {} {}'.format(domain, problem, args)
 
@@ -377,14 +377,14 @@ def run(command):
 ###############################################################################
 ###############################################################################
 def call_planner(domain, problem, planner='ff', args='', verbose=0):
-    """
+    '''
     Call an external deterministic planner.
     Arguments:
-    @arg domain : path to a given domain 
-    @arg problem : path to a given problem 
-    @arg planner : the name of the external planner  
-    @arg verbose : if True, prints statistics before returning
-    """
+    @domain : path to a given domain 
+    @problem : path to a given problem 
+    @planner : the name of the external planner  
+    @verbose : if True, prints statistics before returning
+    '''
 
     Planners = os.listdir('planners')
 
