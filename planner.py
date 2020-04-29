@@ -90,7 +90,7 @@ class Planner(object):
         # planning time
         self.planning_time = time.time()
 
-        # main loop of the planner
+        # the main loop of the planner
         self.find_policy()
 
         self.planning_time = time.time() - self.planning_time
@@ -108,6 +108,12 @@ class Planner(object):
             return
 
         while True:
+
+            if not self.verbose:
+                if self.planning_call > 0 and self.planning_call % 500 == 0:
+                    print(fg_yellow('(%s replanning) (%s unsolvable states) [%.3f s]' %\
+                        (self.planning_call, self.unsolvable_call, time.time() - self.planning_time)))
+
             # find a non-goal terminal state in the current policy
             state = self.find_open_terminal_state()
 
@@ -122,7 +128,9 @@ class Planner(object):
                 self.policy = self.update_policy(self.policy, policy)
 
             # if no plan found at the initial state then no policy exists and finish the loop
-            elif state == self.problem.initial_state: return
+            elif state == self.problem.initial_state: 
+                if self.verbose: print(fg_red('\n-- no plan at the initial state %s' % u'\U0001F593'))
+                return
 
             # otherwise; the current open terminal state is unsolvable 
             # add this state and all states leading to this state into unsolvable_states 
@@ -135,10 +143,6 @@ class Planner(object):
                 # put in the self.unsolvable_states all states leading to 'state' and remove their path from self.policy
                 for (s, step) in [(s, step) for (s, step) in self.policy.items() \
                         if step is not None and state in self.apply_step(init=s, step=step)]:
-                    # add to unsolvable_states
-                    if self.unsolvable_states[s] is not None: 
-                        # partially unsolvable state
-                        self.unsolvable_states[s].update(set(step))
                     # remove all states from 's' in self.policy
                     self.remove_path(s)
                     # verbosity
@@ -165,7 +169,7 @@ class Planner(object):
             return None
         # policy is empty
         if self.verbose: print(fg_yellow('\n-- expand the initial state'))
-        return self.problem.initial_state 
+        return self.problem.initial_state
 
 
     def find_plan(self, init):
@@ -259,8 +263,11 @@ class Planner(object):
             new_state = self.apply_step(init=state, step=step, domain=domain_obj)
 
             # check if the new_state is already an unsolvable state
+            # or is part of the current policy (to avoid cycles)
             if (new_state in self.unsolvable_states and self.unsolvable_states[new_state] is None) \
-                or new_state in policy: # or is part of the current policy (to avoid cycles)
+                or new_state in policy \
+                or any([True for s in self.apply_step(init=state, step=step) \
+                        if s in self.unsolvable_states and self.unsolvable_states[s] is None]):
                 # state is partially unsolvable
                 self.unsolvable_states[state].update(set(step))
                 self.unsolvable_call += 1
@@ -308,6 +315,12 @@ class Planner(object):
                     ' '.join([str('('+' '.join(a)+')') for a in step]))
             del self.policy[state]
             if step == None: return
+
+            # add to unsolvable_states
+            if state in self.unsolvable_states and self.unsolvable_states[state] is not None: 
+                # partially unsolvable state
+                self.unsolvable_states[state].update(set(step))
+
             for s in self.apply_step(init=state, step=step):
                 ## exclude states that in some domains a non-deterministic action 
                 ## leads to the previous state (the state before action application)
@@ -382,7 +395,9 @@ class Planner(object):
                         if state.is_true(pos_cnd_lst, neg_cnd_lst):
                             add_effects |= set(pos_eff_lst)
                             del_effects |= set(neg_eff_lst)
-                state = state.apply(grounded_action)
+                if state.is_true(grounded_action.preconditions.pos_preconditions,\
+                                 grounded_action.preconditions.neg_preconditions):
+                    state = state.apply(grounded_action)
             states[state] = (add_effects, del_effects)
 
         return states

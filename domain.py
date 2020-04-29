@@ -2,7 +2,7 @@
 Classes and functions for creating a domain object
 '''
 from itertools import product
-import copy 
+import copy
 
 ###############################################################################
 ## DOMAIN CLASS
@@ -61,32 +61,16 @@ class Domain(object):
 
         for action in new_domain.actions:
             if action.name in [ex_action[0] for ex_action in ex_actions]:
-                new_domain.predicates = tuple(set(new_domain.predicates + tuple([('disallowed_{}'.format(action.name),) + tuple(zip(action.types, action.arg_names))])))
+                new_domain.predicates = tuple(set(new_domain.predicates + tuple([('disallowed_{}'.format(action.name),) + tuple(zip(action.types, action.arg_names))[:5]])))
                 action.preconditions.literals = \
-                    tuple(set(action.preconditions.literals + tuple([(-1, (('disallowed_{}'.format(action.name),) + action.arg_names))])))
+                    tuple(set(action.preconditions.literals + tuple([(-1, (('disallowed_{}'.format(action.name),) + action.arg_names[:5]))])))
 
         for action in new_domain.actions:
             for ex_action in ex_actions:
                 action.effects.literals = \
-                    tuple(set(action.effects.literals + tuple([(-1, (('disallowed_{}'.format(ex_action[0]),) + ex_action[1:]))])))
+                    tuple(set(action.effects.literals + tuple([(-1, (('disallowed_{}'.format(ex_action[0]),) + ex_action[1:6]))])))
 
         return new_domain
-
-    # def make_inapplicable(self, ex_actions):
-    #     '''
-    #     modify the domain such that the given ex_actions become inapplicable in a state
-    #     @ex_actions : a list of grounded action signatures that should become inapplicable in a state
-    #     '''
-    #     for action in self.actions:
-    #         if action.name in [ex_action[0] for ex_action in ex_actions]:
-    #             self.predicates = tuple(set(self.predicates + tuple([('disallowed',) + tuple(zip(action.types, action.arg_names))])))
-    #             action.preconditions.literals = \
-    #                 tuple(set(action.preconditions.literals + tuple([(-1, (('disallowed',) + action.arg_names))])))
-
-    #     for action in self.actions:
-    #         for ex_action in ex_actions:
-    #             action.effects.literals = \
-    #                 tuple(set(action.effects.literals + tuple([(-1, (('disallowed',) + ex_action[1:]))])))
 
     def __str__(self):
         domain_str  = '@ Domain: {0}\n'.format(self.name)

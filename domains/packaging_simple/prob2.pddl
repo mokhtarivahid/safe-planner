@@ -4,7 +4,7 @@
 
   (:objects 
             left-arm right-arm - arm
-            bin-cap bin-base package peg hole camera assembly-pose-left assembly-pose-right cap1 cap2 cap3 base1 base2 base3 - object
+            bin-cap bin-base package peg hole camera assembly-pose-left assembly-pose-right cap1 cap2 cap3 base1 base2 base3 - graspable
             )
 
   (:init 
@@ -18,6 +18,13 @@
             (base base1)
             (base base2)
             (base base3)
+
+            (unknown_orientation cap1)
+            (unknown_orientation cap2)
+            (unknown_orientation cap3)
+            (unknown_orientation base1)
+            (unknown_orientation base2)
+            (unknown_orientation base3)
 
             (assembly assembly-pose-left)
             (assembly assembly-pose-right)

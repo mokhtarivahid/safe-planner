@@ -36,6 +36,17 @@
             (graspable obj9)
             (graspable obj10)
 
+            (unknown_orientation obj1)
+            (unknown_orientation obj2)
+            (unknown_orientation obj3)
+            (unknown_orientation obj4)
+            (unknown_orientation obj5)
+            (unknown_orientation obj6)
+            (unknown_orientation obj7)
+            (unknown_orientation obj8)
+            (unknown_orientation obj9)
+            (unknown_orientation obj10)
+
             ;; arm_canreach
             (arm_canreach left-arm _handover-left)
             (arm_canreach left-arm surface-left)

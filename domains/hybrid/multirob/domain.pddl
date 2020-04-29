@@ -11,6 +11,7 @@
              (location_free ?l - location)
              (object_in ?o - location ?l - location)
              (gripped ?a - arm ?o - location)
+             (unknown_orientation ?o - location)
              (upward ?o - location)
              (downward ?o - location)
              (camera_checked ?o - location)
@@ -83,10 +84,10 @@
 
 (:action check_direction
  :parameters   (?a - arm ?o - location ?l - location)
- :precondition (and (gripped ?a ?o)(arm_at ?a ?l)(camera ?l))
+ :precondition (and (gripped ?a ?o)(arm_at ?a ?l)(camera ?l)(unknown_orientation ?o))
  :effect       (and (camera_checked ?o)
-                    (probabilistic 0.5 (downward ?o)
-                                   0.5 (upward ?o))))
+                    (probabilistic 0.5 (and (downward ?o)(not (unknown_orientation ?o)))
+                                   0.5 (and (upward ?o)(not (unknown_orientation ?o))))))
 
 ; (:action check_direction
 ;  :parameters   (?a - arm ?o - location ?l - location)

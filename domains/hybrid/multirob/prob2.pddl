@@ -28,6 +28,9 @@
             (graspable obj1)
             (graspable obj2)
 
+            (unknown_orientation obj1)
+            (unknown_orientation obj2)
+
             ;; arm_canreach
             (arm_canreach left-arm _handover-left)
             (arm_canreach left-arm surface-left)

@@ -32,6 +32,7 @@ tokens = (
     'DEFINE_KEY',
     'DOMAIN_KEY',
     'REQUIREMENTS_KEY',
+    'ADL_KEY',
     'STRIPS_KEY',
     'EQUALITY_KEY',
     'TYPING_KEY',
@@ -72,6 +73,7 @@ reserved = {
     'define'                    : 'DEFINE_KEY',
     'domain'                    : 'DOMAIN_KEY',
     ':requirements'             : 'REQUIREMENTS_KEY',
+    ':adl'                      : 'ADL_KEY',
     ':strips'                   : 'STRIPS_KEY',
     ':equality'                 : 'EQUALITY_KEY',
     ':typing'                   : 'TYPING_KEY',
@@ -158,8 +160,9 @@ def p_pddl(p):
 
 def p_domain(p):
     '''domain : LPAREN DEFINE_KEY domain_structure_def_lst RPAREN'''
-    name = requirements = predicates = actions = tuple()
-    types = constants = dict()
+    name = str()
+    requirements, predicates, actions = (), (), ()
+    types, constants = {}, {}
     for d in p[3]:
       if 'DOMAIN_KEY' in d:
         name = d[1]
@@ -216,7 +219,8 @@ def p_require_key_lst(p):
 
 
 def p_require_key(p):
-    '''require_key : STRIPS_KEY
+    '''require_key : ADL_KEY
+                   | STRIPS_KEY
                    | EQUALITY_KEY
                    | TYPING_KEY
                    | PROBABILISTIC_EFFECTS_KEY
@@ -282,7 +286,8 @@ def p_action_def_lst(p):
 
 def p_action_def(p):
     '''action_def : LPAREN ACTION_KEY NAME action_def_body_list RPAREN'''
-    parameters = precondition = probabilistic = oneof = tuple()
+    parameters, probabilistic, oneof = (), (), ()
+    precondition = Precondition()
     effect = Effect()
     for d in p[4]:
       if 'PARAMETERS_KEY' in d:
@@ -299,7 +304,7 @@ def p_action_def(p):
 
 def p_action_def_body_list(p):
     '''action_def_body_list : action_def_body action_def_body_list
-                         | action_def_body'''
+                            | action_def_body'''
     if len(p) == 2:
         p[0] = tuple([p[1]])
     elif len(p) == 3:

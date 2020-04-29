@@ -15,6 +15,9 @@
             (cap cap)
             (base base)
 
+            (unknown_orientation cap)
+            (unknown_orientation base)
+
             (assembly assembly-pose-left)
             (assembly assembly-pose-right)
 

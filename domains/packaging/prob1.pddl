@@ -17,6 +17,11 @@
             (base base1)
             (base base2)
 
+            (unknown_orientation cap1)
+            (unknown_orientation cap2)
+            (unknown_orientation base1)
+            (unknown_orientation base2)
+
             (assembly assembly-pose-left)
             (assembly assembly-pose-right)
 

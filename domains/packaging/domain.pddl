@@ -16,6 +16,7 @@
              (vacuumed ?a - arm ?o - object)
              (gripped ?a - arm ?o - object)
              (ungripped ?o - object)
+             (unknown_orientation ?o - object)
              (upward ?o - object)
              (downward ?o - object)
              (camera_checked ?o - object)
@@ -120,10 +121,10 @@
 
 (:action check_direction
  :parameters   (?a - arm ?o - object ?l - object)
- :precondition (and (vacuumed ?a ?o)(arm_at ?a ?l)(camera ?l))
+ :precondition (and (vacuumed ?a ?o)(arm_at ?a ?l)(camera ?l)(unknown_orientation ?o))
  :effect       (and (camera_checked ?o)
-                    (probabilistic 0.5 (downward ?o)
-                                   0.5 (upward ?o))))
+                    (probabilistic 0.5 (and (downward ?o)(not (unknown_orientation ?o)))
+                                   0.5 (and (upward ?o)(not (unknown_orientation ?o))))))
 
 ; (:action check_direction
 ;  :parameters   (?a - arm ?o - object ?l - object)

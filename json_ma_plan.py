@@ -348,8 +348,13 @@ def json_ma_plan(policy, verbose=True):
     plan_json_str = json.dumps(plan_json, indent=4)
     action_json_str = json.dumps(action_descriptions_json, indent=4)
 
-    plan_json_file = '{}.plan.json'.format(os.path.splitext(policy.problem_file)[0])
-    actions_json_file = '{}.actions.json'.format(os.path.splitext(policy.problem_file)[0])
+    if policy.problem_file is not None:
+        problem_file = policy.problem_file
+    else:
+        problem_file = policy.domain_file
+
+    plan_json_file = '{}.plan.json'.format(os.path.splitext(problem_file)[0])
+    actions_json_file = '{}.actions.json'.format(os.path.splitext(problem_file)[0])
 
     with open(plan_json_file, 'w') as outfile:
         json.dump(json.loads(plan_json_str, object_pairs_hook=OrderedDict), outfile, sort_keys=False, indent=4)

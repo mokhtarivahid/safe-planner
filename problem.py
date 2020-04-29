@@ -196,7 +196,7 @@ class State(object):
 
         # add 'disallowed' predicates for given ex_actions
         for ex_action in ex_actions:
-            predicates.append((('disallowed_{}'.format(ex_action[0]),) + ex_action[1:]))
+            predicates.append((('disallowed_{}'.format(ex_action[0]),) + ex_action[1:6]))
 
         # return a new state
         return State(predicates=frozenset(predicates))

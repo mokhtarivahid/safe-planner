@@ -28,14 +28,19 @@ def parse():
     parser.add_argument("-s", "--store", help="store the planner's performance in a '.stat' file", 
         action="store_true")
     parser.add_argument("-v", "--verbose", default=0, type=int, choices=(0, 1, 2),
-        help="increase output verbosity: 0 (nothing), 1 (high-level), 2 (external planners outputs) (default=0)", )
+        help="increase output verbosity: 0 (minimal), 1 (high-level), 2 (external planners outputs) (default=0)", )
 
-    return parser.parse_args()
+    return parser
 
 
 if __name__ == '__main__':
 
-    args = parse()
+	## parse arguments
+    parser = parse()
+    args = parser.parse_args()
+    if args.domain == None:
+    	parser.print_help()
+    	exit()
 
     ## make a policy given domain and problem
     policy = Planner(args.domain, args.problem, args.planner, args.verbose)
@@ -44,7 +49,7 @@ if __name__ == '__main__':
     plan = policy.plan()
 
     ## print out the plan in a readable form
-    policy.print_plan(plan, del_effects_included=True)
+    policy.print_plan(plan, del_effects_included=False)
 
     ## print out sub-paths in the plan
     if args.path: 

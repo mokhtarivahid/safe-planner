@@ -50,8 +50,9 @@ def call_ff(domain, problem, args='', verbose=0):
         return list()
 
     ## if solution already exists in the problem ##
-    if "undeclared predicate" in shell:
-        print("[planning failed due to some errors in the domain description]\n")
+    if "predicate" in shell or "type mismatch" in shell or\
+       "undeclared variable" in shell or "declared to use unknown" in shell:
+        print(fg_yellow("[planning failed due to some error in the pddl description]"))
         print(fg_voilet('\n-- planner stdout'))
         print(shell)
         if to_str(err):
@@ -97,6 +98,16 @@ def call_optic_clp(domain, problem, args='-b -N', verbose=0):
     # shell = ''.join(map(chr, output))
     shell = to_str(output)
 
+    ## if solution already exists in the problem ##
+    if "has to terminate" in to_str(err):
+        print(fg_yellow("[planning failed due to some error in the pddl description]"))
+        print(fg_voilet('\n-- planner stdout'))
+        print(shell)
+        if to_str(err):
+            print(fg_voilet('-- planner stderr'))
+            print(to_str(err))
+        exit()
+
     ## if problem is unsolvable by EHC remove -b (activate best-first search)
     if "Problem unsolvable by EHC, and best-first search has been disabled":
         ## calling 'optic-clp' again removing '-b' option ##
@@ -115,6 +126,13 @@ def call_optic_clp(domain, problem, args='-b -N', verbose=0):
 
     ## if no solution exists try the next domain ##
     if "problem has been deemed unsolvable" in shell or "Problem unsolvable" in shell:
+        return None
+
+    ## if no solution exists try the next domain ##
+    if "file appear to violate part of the PDDL" in to_str(err) or\
+       "problem has been encountered, and the planner has to terminate" in to_str(err):
+        if not verbose == 2: 
+            print(fg_red('[error by external planner: run with \'-v 2\''))
         return None
 
     ## if solution already exists in the problem ##
@@ -247,6 +265,17 @@ def call_vhpop(domain, problem, args='-g -f DSep-LIFO -s HC -w 5 -l 1500000', ve
     # extract plan
     shell = shell[shell.find(';'):shell.find('Time')].strip()
 
+    ## if not supported some PDDL features by planner ##
+    if "undeclared type" in to_str(err) or\
+       "type mismatch" in to_str(err):
+        print(fg_yellow("[planning failed due to some error in the pddl description]"))
+        print(fg_voilet('\n-- planner stdout'))
+        print(shell)
+        if to_str(err):
+            print(fg_voilet('-- planner stderr'))
+            print(to_str(err))
+        exit()
+
     ## if no solution exists try the next domain ##
     if ";Problem has no solution." in shell or "no plan" in shell or ";Search limit reached." in shell:
         return None
@@ -308,14 +337,14 @@ def call_lpg_td(domain, problem, args='-speed -noout', verbose=0):
     ## if no solution exists try the next domain ##
     if "Goals of the planning problem can not be reached." in shell \
         or "goal can be simplified to FALSE" in shell \
+        or "The problem is unsolvable" in shell \
         or "No plan will solve it" in shell:
         return None
 
     ## if not supported some PDDL features by planner ##
-    if "not supported by this exp version" in to_str(err):
-        # if not verbose == 2: 
-        #     print('\nSome PDDL features not supported by this \'lpg-td\' planner.')
-        #     print('Please try to run with \'-v 2\' to see the planners output.\n')
+    if "not supported by this exp version" in to_str(err) or\
+       "type mismatch" in shell:
+        print(fg_yellow("[planning failed due to some error in the pddl description]"))
         print(fg_voilet('\n-- planner stdout'))
         print(shell)
         if to_str(err):

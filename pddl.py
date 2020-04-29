@@ -15,12 +15,12 @@ def to_pddl(object, state=None, goals=None):
     '''
     ## translate a Precondition object into a pddl string
     if type(object) is Precondition:
-        precond_str = '(and'
+        precond_str = '(and '
         for pre in object.literals:
             if pre[0] == -1:
-                precond_str += ' (not ({0}))'.format(' '.join(map(str, pre[1:][0])))
+                precond_str += '(not ({0}))'.format(' '.join(map(str, pre[1:][0])))
             else:
-                precond_str += ' ({0})'.format(' '.join(map(str, pre)))
+                precond_str += '({0})'.format(' '.join(map(str, pre)))
         ## universal-preconditions
         for uni in object.universal:
             types, variables = zip(*uni[0])

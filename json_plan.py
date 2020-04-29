@@ -45,8 +45,8 @@ def json_plan(policy):
             step_json.setdefault('actions',[]).append( \
                 OrderedDict({'name' : action.sig[0], \
                  'arguments' : action.sig[1:], \
-                 'add_effects' : action.effects.add_effects, \
-                 'del_effects' : action.effects.del_effects, \
+                 # 'add_effects' : ['({0})'.format(' '.join(map(str, eff))) for eff in action.effects.add_effects], \
+                 # 'del_effects' : ['({0})'.format(' '.join(map(str, eff))) for eff in action.effects.del_effects], \
                  }) )
 
         for (conditions, jump) in outcomes:
@@ -69,7 +69,12 @@ def json_plan(policy):
     # print(plan_json_str)
 
     # create a json file
-    json_file = '{}.json'.format(os.path.splitext(policy.problem_file)[0])
+    if policy.problem_file is not None:
+        problem_file = policy.problem_file
+    else:
+        problem_file = policy.domain_file
+
+    json_file = '{}.json'.format(os.path.splitext(problem_file)[0])
 
     with open(json_file, 'w') as outfile:
         json.dump(json.loads(plan_json_str, object_pairs_hook=OrderedDict), outfile, sort_keys=False, indent=4)
