@@ -4,7 +4,7 @@
 
 SP can employ any off-the-shelf classical planner for problem solving. Currently, the classical planners [FF], [OPTIC], [MADAGASCAR], [VHPOP], and [LPG-TD] have been integrated. 
 
-Note: OPTIC, MADAGASCAR, VHPOP, and LPG-TD are termporal/partial-order planners and therefore the produced policies are also partial-order policies.
+**Note:** OPTIC, MADAGASCAR, VHPOP, and LPG-TD are termporal/partial-order planners and therefore the produced policies are also partial-order policies.
 
 [FF]: https://fai.cs.uni-saarland.de/hoffmann/ff.html
 [OPTIC]: https://nms.kcl.ac.uk/planning/software/optic.html
@@ -35,9 +35,9 @@ sudo luarocks install ansicolors graphviz
 
 ## PPDDL
 
-Safe-Planner uses the **Probabilistic Planning Domain Definition Language (PPDDL)** as the domain modeling language with ``oneof`` clauses in the action effects. PPDDL is an extension of the standard PDDL to support probabilistic outcomes in the actions' descriptions. A description of PPDDL is available at http://reports-archive.adm.cs.cmu.edu/anon/2004/CMU-CS-04-167.pdf. 
+Safe-Planner uses the **Probabilistic Planning Domain Definition Language (PPDDL)** as the domain modeling language with ``oneof`` clauses in actions' effects. PPDDL is an extension of the standard PDDL to support probabilistic or non-deterministic outcomes in the actions' descriptions. A description of PPDDL is available at http://reports-archive.adm.cs.cmu.edu/anon/2004/CMU-CS-04-167.pdf. 
 
-A helpful collection of materials for AI Planning and PDDL are provided at https://planning.wiki.
+A helpful collection of materials for AI Planning and PDDL are also provided at https://planning.wiki.
 
 A useful introduction to learning PDDL is also available at https://fareskalaboud.github.io/LearnPDDL.
 
@@ -86,18 +86,18 @@ More precisely, the following combinations are supported by Safe-Planner for mod
 python3 main.py <DOMAIN> <PROBLEM> [-c <PLANNER>] [-d]
 ```
 
-For example, the following commands run Safe-Planner using classical planners FF, OPTIC and MADAGASCAR to solve a [pickit](domains/picki) problem:
+For example, the following commands run Safe-Planner using classical planners FF, OPTIC and MADAGASCAR to solve a [`pickit`](domains/picki) problem:
 
 ```
 python3 main.py domains/pickit/domain.pddl domains/pickit/prob0.pddl -c ff
 ```
 
 ```
-python3 main.py domains/pickit/domain.pddl domains/pickit/prob0.pddl -c optic-clp
+python3 main.py domains/pickit/domain.pddl domains/pickit/prob0.pddl -c lpg-td
 ```
 
 ```
-python3 main.py domains/pickit/domain.pddl domains/pickit/prob0.pddl -c m
+python3 main.py domains/pickit/domain.pddl domains/pickit/prob0.pddl -c optic-clp
 ```
 
 
@@ -115,9 +115,7 @@ python3 main.py domains/pickit/domain.pddl domains/pickit/prob0.pddl -c m
 
 
 
-## Example
-
-##### bus-fare domain
+##### Example 1: [`bus-fare`](benchmarks/prob_interesting/bus-fare) domain
 
 
 ```
@@ -133,7 +131,7 @@ the optional parameter `-d` translates the produced plan into a dot file in the 
 
 ![bus-fare](res/bus-fare.png)
 
-[**EXPERIMENTAL!**]the optional parameter `-j` translates the produced plan into a json file in the same path:
+[**EXPERIMENTAL!**] the optional parameter `-j` translates the produced plan into a json file in the same path:
 
 ```
 {
@@ -170,7 +168,7 @@ the optional parameter `-d` translates the produced plan into a dot file in the 
 }
 ```
 
-##### pickit domain
+##### Example 2: [`pickit`](domains/picki) domain
 
 ```
 $ python3 main.py domains/pickit/domain.pddl domains/pickit/prob0.pddl -c lpg-td -d -j
@@ -198,7 +196,7 @@ the optional parameter `-d` translates the produced plan into a dot file in the 
 
 ![pickit](res/pickit.png)
 
-[**EXPERIMENTAL!**]the optional parameter `-j` translates the produced plan into a json file in the same path:
+[**EXPERIMENTAL!**] the optional parameter `-j` translates the produced plan into a json file in the same path:
 
 ```
 {
