@@ -50,11 +50,17 @@ More precisely, the following combinations are supported by Safe-Planner for mod
 
 ##### conditional effects
 
-```(when (conditions) (effects))```
+```
+(when (conditions) (effects))
+```
 
-```(forall (variables list) (effects))```
+```
+(forall (variables list) (effects))
+```
 
-```(forall (variables list) (when (conditions) (effects)))```
+```
+(forall (variables list) (when (conditions) (effects)))
+```
 
 ##### non-deterministic effects
 
