@@ -124,7 +124,7 @@ python3 main.py domains/pickit/domain.pddl domains/pickit/prob0.pddl -c optic-cl
 ##### Example 1: [`bus-fare`](benchmarks/prob_interesting/bus-fare) domain
 
 
-```
+```bash
 $ python main.py benchmarks/prob_interesting/bus-fare.pddl -j -d
 
 @ PLAN
@@ -139,7 +139,7 @@ the optional parameter `-d` translates the produced plan into a dot file in the 
 
 [**EXPERIMENTAL!**] the optional parameter `-j` translates the produced plan into a json file in the same path:
 
-```
+```json
 {
     "plan": [
         "step_0", 
@@ -176,7 +176,7 @@ the optional parameter `-d` translates the produced plan into a dot file in the 
 
 ##### Example 2: [`pickit`](domains/picki) domain
 
-```
+```bash
 $ python3 main.py domains/pickit/domain.pddl domains/pickit/prob0.pddl -c lpg-td -d -j
 
 @ PLAN
@@ -204,7 +204,7 @@ the optional parameter `-d` translates the produced plan into a dot file in the 
 
 [**EXPERIMENTAL!**] the optional parameter `-j` translates the produced plan into a json file in the same path:
 
-```
+```json
 {
     "plan": [
         "step_0",

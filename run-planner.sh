@@ -41,7 +41,7 @@ if [ "$2" == "" ]; then
     planner="ff"
 fi
 
-if [ ! -f "planners/$planner" ] || [ ! -f "$planner" ]
+if [ ! -f "planners/$planner" ]
 then
   echo "The planner '$planner' not found."
   echo "The following planners exist:"
