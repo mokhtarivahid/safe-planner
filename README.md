@@ -18,7 +18,7 @@ SP can employ any off-the-shelf classical planner for problem solving. Currently
 
 SP has been implemented in `Python` and the following packages are required to install: 
 
-```
+```bash
 sudo apt install python-pip
 pip install ply graphviz
 ```
@@ -26,7 +26,7 @@ pip install ply graphviz
 
 Also install the following `Lua` libraries:
 
-```
+```bash
 sudo apt install -y lua-penlight lua-json luarocks lua-ansicolors libgv-lua
 sudo luarocks install ansicolors graphviz
 ```
@@ -88,21 +88,21 @@ More precisely, the following combinations are supported by Safe-Planner for mod
 
 ## Usage
 
-```
+```bash
 python3 main.py <DOMAIN> <PROBLEM> [-c <PLANNER>] [-d]
 ```
 
 For example, the following commands run Safe-Planner using classical planners FF, OPTIC and MADAGASCAR to solve a [`pickit`](domains/picki) problem:
 
-```
+```bash
 python3 main.py domains/pickit/domain.pddl domains/pickit/prob0.pddl -c ff
 ```
 
-```
+```bash
 python3 main.py domains/pickit/domain.pddl domains/pickit/prob0.pddl -c lpg-td
 ```
 
-```
+```bash
 python3 main.py domains/pickit/domain.pddl domains/pickit/prob0.pddl -c optic-clp
 ```
 
