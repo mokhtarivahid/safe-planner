@@ -424,7 +424,7 @@ the optional parameter `-d` translates the produced plan into a dot file in the 
 
 ## How to Refer
 
-You can use the following references if would like to refer **Safe-Planner**.
+The following references describe the algorithm of **Safe-Planner**.
 
 ```bibliography
 @inproceedings{vahid:2019:sp,
