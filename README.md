@@ -4,7 +4,7 @@
 
 SP can employ any off-the-shelf classical planner for problem solving. Currently, the classical planners [FF], [OPTIC], [MADAGASCAR], [VHPOP], and [LPG-TD] have been integrated. 
 
-**Note:** OPTIC, MADAGASCAR, VHPOP, and LPG-TD are termporal/partial-order planners and therefore the produced policies are also partial-order policies.
+**Note:** OPTIC, MADAGASCAR, VHPOP, and LPG-TD are termporal/partial-order planners and therefore the produced policies are also partial-order.
 
 [FF]: https://fai.cs.uni-saarland.de/hoffmann/ff.html
 [OPTIC]: https://nms.kcl.ac.uk/planning/software/optic.html
@@ -43,7 +43,8 @@ A useful introduction to learning PDDL is also available at https://fareskalabou
 
 #### PDDL supported
 
-Safe-Planner is strongly dependent on the employed external classical planner, so the given planning domains and problems are firstly required to be supported by the external classical planners.
+Safe-Planner is strongly dependent on the employed external classical planners, so the given planning domains and problems are firstly required to be supported by the external classical planners.
+
 Apart from the PDDL support of the external planners, Safe-Planner also supports limited but most useful features of the PDDL. Particularly, Safe-Planner supports the following PDDL requirements: `:strips`, `:typing`, `:equality`, `:negative-preconditions`, `:existential-preconditions`, `:universal-preconditions`, `:conditional-effects`, `:probabilistic-effects`.
 
 More precisely, the following combinations are supported by Safe-Planner for modeling action effects:
@@ -416,5 +417,29 @@ the optional parameter `-d` translates the produced plan into a dot file in the 
             }
         ]
     }
+}
+```
+
+
+
+## How to Refer
+
+You can use the following references if would like to refer **Safe-Planner**.
+
+```bibliography
+@inproceedings{vahid:2019:sp,
+  author    = {Mokhtari, Vahid and Sathya, Ajay and Decr\'e, Wilm and Borghesan, Gianni and Vochten, Maxim},
+  title     = {Planning for cyclic safe solutions in fully observable non-deterministic robotic tasks},
+  year      = {2019},
+  maintitle = {IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS 2019)},
+  booktitle = {4th Workshop on Semantic Policy and Action Representations for Autonomous Robots (SPAR)},
+  url       = {https://drive.google.com/file/d/1TZ1uL72j4xkNG7U2H4TYIUiUo_I5czlE/}
+}
+
+@InProceedings{vahid:2019:d3.1,
+  Title     = {{MULTIROB} -- {D}eliverable 3.1: design and implementation of the discrete coordinator inputs: declarative rules and skill prototypes},
+  Author    = {Mokhtari, Vahid  and Scioni, Enea and Borghesan, Gianni and Sathya, Ajay and Decr\'e, Wilm},
+  Booktitle = {Technical report, {MULTIROB-SBO} project at {KU Leuven}},
+  Year      = {2019}
 }
 ```

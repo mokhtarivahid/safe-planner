@@ -109,11 +109,6 @@ class Planner(object):
 
         while True:
 
-            if not self.verbose:
-                if self.planning_call > 0 and self.planning_call % 500 == 0:
-                    print(fg_yellow('(%s replanning) (%s unsolvable states) [%.3f s]' %\
-                        (self.planning_call, self.unsolvable_call, time.time() - self.planning_time)))
-
             # find a non-goal terminal state in the current policy
             state = self.find_open_terminal_state()
 
@@ -221,6 +216,12 @@ class Planner(object):
 
                 # increase the number of planning call
                 self.planning_call += 1
+
+                # verbosity: when verbosity is off !
+                if not self.verbose:
+                    if self.planning_call > 0 and self.planning_call % 500 == 0:
+                        print(fg_yellow('(%s replanning) (%s unsolvable states) [%.3f s]' %\
+                            (self.planning_call, self.unsolvable_call, time.time() - self.planning_time)))
 
                 # if no plan exists try the next domain
                 if plan == None:
@@ -678,7 +679,9 @@ class Planner(object):
                        'planning_call':self.planning_call,\
                        'unsolvable_call':self.unsolvable_call,\
                        'solvable': 'GOAL' in self.plan().keys() or\
-                                   'GOAL' in self.plan().values()}
+                                   'GOAL' in self.plan().values(),\
+                       'policy_length':len(self.policy),\
+                       'plan_length':len(self.plan())-1}
         if self.problem_file is not None:
             stat_file = '{}.stat'.format(os.path.splitext(self.problem_file)[0])
         else:

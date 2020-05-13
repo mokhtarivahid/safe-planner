@@ -2,6 +2,7 @@
 
 import argparse
 import os
+import subprocess
 
 # from color import fg_green, fg_red, fg_yellow, fg_blue, fg_voilet, fg_beige, bg_voilet, bg_beige
 from color import *
@@ -64,7 +65,8 @@ if __name__ == '__main__':
                 print(fg_yellow('-- path{} dot file: ').format(str(i+1)) + dot_file)
                 # os.system('xdot %s &' % dot_file)
             dot_file = gen_dot_plan(plan=paths[0])
-            os.system('xdot %s &' % dot_file)
+            subprocess.Popen(["xdot", dot_file])
+            # os.system('xdot %s &' % dot_file)
             print('')
 
     ## generate a graph of the policy as a dot file in graphviz
@@ -72,7 +74,8 @@ if __name__ == '__main__':
         plan = policy.plan(tree=True)
         dot_file = gen_dot_plan(plan=plan, del_effect=True, dot_file=args.problem)
         print(fg_yellow('-- dot file: ') + dot_file + '\n')
-        os.system('xdot %s &' % dot_file)
+        subprocess.Popen(["xdot", dot_file])
+        # os.system('xdot %s &' % dot_file)
         # os.system('dot -T pdf %s > %s.pdf &' % (dot_file, dot_file))
         # os.system('evince %s.pdf &' % dot_file)
 
@@ -82,7 +85,8 @@ if __name__ == '__main__':
         print(fg_yellow('-- plan_json_file:') + plan_json_file + fg_red(' [EXPERIMENTAL!]'))
         print(fg_yellow('-- actions_json_file:') + actions_json_file + fg_red(' [EXPERIMENTAL!]'))
         os.system('cd lua && lua json_multiagent_plan.lua ../%s &' % plan_json_file)
-        os.system('xdot %s.dot &' % plan_json_file)
+        subprocess.Popen(["xdot", plan_json_file])
+        # os.system('xdot %s.dot &' % plan_json_file)
 
     ## transform the policy into a json file
     if args.json:

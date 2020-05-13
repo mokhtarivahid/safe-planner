@@ -9,3 +9,4 @@ __pycache__/*
 *.gv
 *.pdf
 *.stat
+*.soln

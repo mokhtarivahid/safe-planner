@@ -273,7 +273,7 @@ class Planner(object):
                     for step in self.open_terminal_states.values() if step is not None]))))
 
 
-    def update_policy(self, policy1, policy2, preserve=False, verbose=False):
+    def update_policy(self, policy1, policy2, preserve=True, verbose=False):
         '''
         update policy1 by policy2 but skips already existed items
         @policy1 : the main given and the output policy
@@ -742,6 +742,7 @@ class Planner(object):
                 plan_str+= '\n'
             print(plan_str)
 
+
     def log_performance(self):
         '''stores the planner performance in a file next to given problem file'''
         # create a stat file
@@ -749,7 +750,10 @@ class Planner(object):
         performance = {'time':round(self.planning_time,3),\
                        'planning_call':self.planning_call,\
                        'unsolvable_call':self.unsolvable_call,\
-                       'solvable': self.plan()[0] is not None}
+                       'solvable': 'GOAL' in self.plan().keys() or\
+                                   'GOAL' in self.plan().values(),\
+                       'policy_length':len(self.policy),\
+                       'plan_length':len(self.plan())-1}
         if self.problem_file is not None:
             stat_file = '{}.stat'.format(os.path.splitext(self.problem_file)[0])
         else:
@@ -759,6 +763,7 @@ class Planner(object):
             json.dump(performance, outfile, indent=4)
 
         return stat_file
+
 
 ###############################################################################
 ## some functions

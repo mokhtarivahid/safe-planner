@@ -26,13 +26,13 @@ def parse():
 
 
 ###############################################################################
-def compilation(domain):
+def compilation(domain, sort=True, probability=0.5):
     '''given a non-deterministic domain object return 
        a list (set) of deterministic domains'''
 
     ## NOTE: currently, it is supposed that an action does not have both  
     ##       probabilistic and non-deterministic effects simultaneously; 
-    ##       but it has either probabilistic or non-deterministic effects.
+    ##       but instead it must have either probabilistic or non-deterministic effects.
 
     ## list of non-deterministic/probabilistic actions
     nd_actions = list()
@@ -53,8 +53,13 @@ def compilation(domain):
         ## make all possible combination of probabilistic effects
         probabilistic_effects = list()
         for prob_eff_lst in action.probabilistic:
+            # sort by the highest probability
+            if sort: prob_eff_lst = tuple(sorted(prob_eff_lst, key=lambda x: x[0], reverse=True))
             if sum([eff[0] for eff in prob_eff_lst]) == 1:
                 probabilistic_effects.append(prob_eff_lst)
+            elif sort:
+                probabilistic_effects.append(\
+                    tuple(sorted(tuple([(probability, Effect())])+prob_eff_lst, key=lambda x: x[0], reverse=True)))
             else:
                 probabilistic_effects.append(prob_eff_lst+tuple([(0, Effect())]))
 
@@ -90,8 +95,14 @@ def compilation(domain):
         ## if there is only one probabilistic/oneof effect, then we also need a neutral 
         ## effect, i.e., we add the action preconditions (literals only) as an action effect
         if not action.effects and len(deterministic_effects) == 1:
-            deterministic_effects.extend([Effect(literals=action.preconditions.literals)])
             # deterministic_effects.extend([Effect()])
+            # ideally empty effect should be added, however, some classical planners
+            # will fail when an actions has no effect, so, we add the precondition as
+            # the action's effect, that is, no effect will apply
+            if sort and action.probabilistic[0][0][0] < probability:
+                deterministic_effects.insert(0, Effect(literals=action.preconditions.literals))
+            else:
+                deterministic_effects.extend([Effect(literals=action.preconditions.literals)])
 
         ## add compiled action effects into deterministic_actions
         deterministic_actions.append(\

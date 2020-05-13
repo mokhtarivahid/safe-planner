@@ -58,21 +58,23 @@
  :precondition (and (grasped ?a ?o ?g1)(ontable ?o ?t)(empty ?o)
                     (graspable ?o ?g2)(graspable ?o ?g3)
                     (not(= ?g1 ?g2))(not(= ?g2 ?g3)))
- :effect       (and (oneof (and (lifted ?o)(not(ontable ?o ?t))
-                                (forall (?p - grasp_pose)
-                                    (when (obstructed ?p ?o) (not(obstructed ?p ?o)))))
-                           (and (ontable ?o ?t)(free ?a)(graspable ?o ?g1)(not(grasped ?a ?o ?g1))))))
+ :effect       (probabilistic
+                    4/5 (and (lifted ?o)(not(ontable ?o ?t))
+                            (forall (?p - grasp_pose)
+                                (when (obstructed ?p ?o) (not(obstructed ?p ?o)))))
+                    1/5 (and (ontable ?o ?t)(free ?a)(graspable ?o ?g1)(not(grasped ?a ?o ?g1)))))
 
 (:action pickup-filled
  :parameters   (?a - arm ?o - object ?g1 ?g2 ?g3 - grasp_pose ?t - table)
  :precondition (and (grasped ?a ?o ?g1)(ontable ?o ?t)(filled ?o)
                     (graspable ?o ?g2)(graspable ?o ?g3)
                     (not(= ?g1 ?g2))(not(= ?g2 ?g3)))
- :effect       (and (oneof (and (lifted ?o)(not(ontable ?o ?t))
-                                (forall (?p - grasp_pose)
-                                    (when (obstructed ?p ?o) (not(obstructed ?p ?o)))))
-                           (and (ontable ?o ?t)(free ?a)(graspable ?o ?g1)(not(grasped ?a ?o ?g1)))
-                           (and (ontable ?o ?t)(free ?a)(graspable ?o ?g1)(not(grasped ?a ?o ?g1))(not(filled ?o))(empty ?o)))))
+ :effect       (probabilistic
+                    3/5 (and (lifted ?o)(not(ontable ?o ?t))
+                             (forall (?p - grasp_pose)
+                                (when (obstructed ?p ?o) (not(obstructed ?p ?o)))))
+                    1/5 (and (ontable ?o ?t)(free ?a)(graspable ?o ?g1)(not(grasped ?a ?o ?g1)))
+                    1/5 (and (ontable ?o ?t)(free ?a)(graspable ?o ?g1)(not(grasped ?a ?o ?g1))(not(filled ?o))(empty ?o))))
 
 (:action dualarm-pickup
  :parameters   (?a ?b - arm ?o - object ?g1 ?g2 ?g3 - grasp_pose ?t - table)
