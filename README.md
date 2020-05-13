@@ -14,6 +14,15 @@ SP can employ any off-the-shelf classical planner for problem solving. Currently
 
 
 
+## Contents
+1. [Requirement](#requirement)
+2. [PPDDL](#ppddl)
+3. [Usage](#usage)
+4. [The planner's output](#the-planner's-output)
+5. [How to refer](#how-to-refer)
+
+
+
 ## Requirement
 
 SP has been implemented in `Python` and the following packages are required to install: 
@@ -422,7 +431,7 @@ the optional parameter `-d` translates the produced plan into a dot file in the 
 
 
 
-## How to Refer
+## How to refer
 
 The following references describe the algorithm of **Safe-Planner**.
 
