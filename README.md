@@ -102,7 +102,7 @@ More precisely, the following combinations are supported by Safe-Planner for mod
 python3 main.py <DOMAIN> <PROBLEM> [-c <PLANNER>] [-d]
 ```
 
-For example, the following commands run Safe-Planner using classical planners FF, OPTIC and LPG-TD to solve a [`pickit`](domains/picki) problem:
+For example, the following commands run Safe-Planner using classical planners FF, OPTIC and LPG-TD to solve a [`pickit`](domains/pickit) problem:
 
 ```bash
 python3 main.py domains/pickit/domain.pddl domains/pickit/prob0.pddl -c ff
@@ -131,7 +131,7 @@ python3 main.py domains/pickit/domain.pddl domains/pickit/prob0.pddl -c lpg-td
 
 
 
-##### Example 1: [`bus-fare`](benchmarks/prob_interesting/bus-fare) domain
+##### Example 1: [`bus-fare`](benchmarks/prob_interesting/bus-fare.pddl) domain
 
 
 ```bash
@@ -184,7 +184,7 @@ the optional parameter `-d` translates the produced plan into a dot file in the 
 }
 ```
 
-##### Example 2: [`pickit`](domains/picki) domain
+##### Example 2: [`pickit`](domains/pickit) domain
 
 ```bash
 $ python3 main.py domains/pickit/domain.pddl domains/pickit/prob0.pddl -c lpg-td -d -j
