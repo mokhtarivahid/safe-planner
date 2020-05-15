@@ -13,12 +13,12 @@ from compilation import compile
 
 class Planner(object):
 
-    def __init__(self, domain, problem, planner='ff', verbose=False):
+    def __init__(self, domain, problem, planner='ff', rank=False, verbose=False):
         '''
         @domain : path to pddl domain (string)
         @problem : path to pddl problem (string)
         @planner : name of the external planner (string)
-        @planner : name of the external planner (string)
+        @rank : if True, rank the compile classical planning domains
         @verbose : if True, prints out statistics 
         '''
         # store the given verbosity
@@ -53,7 +53,7 @@ class Planner(object):
 
             # compile and records the given non-deterministic domain into a list of deterministic domains
             if self.verbose: print(fg_green('\n[Compilation to non-deterministic domains]'))
-            self.working_dir = compile(self.domain, verbose=self.verbose)
+            self.working_dir = compile(self.domain, rank=rank, verbose=self.verbose)
 
             # parse pddl deterministic domains
             for domain in sorted(listdir_fullpath(self.working_dir)):
@@ -84,14 +84,24 @@ class Planner(object):
         # total number of calls to external planner
         self.planning_call = 0
 
-        # total number of seen unsolvable states
-        self.unsolvable_call = 0
-
         # planning time
         self.planning_time = time.time()
 
         # the main loop of the planner
-        self.find_policy()
+        self.find_safe_policy()
+
+        # in some problems policy might get stuck by loops, if so make the policy empty
+        if self.policy: 
+            for state, step in self.policy.items():
+                if state.is_true(self.problem.goals):
+                    break
+            else:
+                if self.verbose:
+                    print(fg_yellow('[unsolvable -- switch to ndp2!] (%s replanning) (%s unsolvable states) [%.3f s]' %\
+                    (self.planning_call, len(self.unsolvable_states), time.time() - self.planning_time)))
+                self.policy = OrderedDict()
+                self.unsolvable_states = defaultdict(set)
+                self.find_safe_policy_ndp2()
 
         self.planning_time = time.time() - self.planning_time
         print('')
@@ -99,7 +109,11 @@ class Planner(object):
         ###################################################################
 
 
-    def find_policy(self):
+    ###################################################################
+    #### safe-planner algorithm
+    ###################################################################
+
+    def find_safe_policy(self):
         '''main loop of the planner -- returns a policy if any exists'''
         # if the initial state already contains the goal (then the plan is empty)
         if self.problem.initial_state.is_true(self.problem.goals):
@@ -116,10 +130,10 @@ class Planner(object):
             if state is None: return
 
             # find a plan at the current state
-            policy = self.find_plan(state)
+            policy = self.find_safe_plan(state)
 
             # if a policy is found then merge it into the resulting self.policy
-            if policy is not None:
+            if policy and policy is not None:
                 self.policy = self.update_policy(self.policy, policy)
 
             # if no plan found at the initial state then no policy exists and finish the loop
@@ -133,41 +147,198 @@ class Planner(object):
             else:
                 # fully unsolvable state
                 self.unsolvable_states[state] = None
-                self.unsolvable_call += 1
 
                 # put in the self.unsolvable_states all states leading to 'state' and remove their path from self.policy
                 for (s, step) in [(s, step) for (s, step) in self.policy.items() \
                         if step is not None and state in self.apply_step(init=s, step=step)]:
                     # remove all states from 's' in self.policy
                     self.remove_path(s)
+                    # state is partially unsolvable
+                    self.unsolvable_states[s].update(set(step))
                     # verbosity
                     if self.verbose: 
                         print(fg_red2('  -- unsolvable by: %s %s' % \
                             (' '.join([str('('+' '.join(a)+')') for a in step]), u'\U0001F593')))
 
 
-    def find_open_terminal_state(self):
-        '''finds a non-goal terminal state in self.policy and returns if for expansion'''
-        for state, step in self.policy.items():
-            if step is not None:
-                for new_state in self.apply_step(init=state, step=step):
-                    if not new_state in self.policy and not new_state.is_true(self.problem.goals):
-                        if self.verbose: print(fg_yellow('\n-- expand an open terminal state produced by: ')+\
-                                            ' '.join([str('('+' '.join(a)+')') for a in step]))
-                        return new_state
-            elif not state.is_true(self.problem.goals):
-                if self.verbose: print(fg_yellow('\n-- expand an open terminal state'))
-                return state
-        # all terminal states are goal states
-        if self.policy: 
-            if self.verbose: print(fg_yellow('\n-- no more open terminal states %s' % u'\U0001F592'))
+    def find_safe_plan(self, init):
+        '''
+        extend the policy and make a plan from the given init state
+        @init : a given state that a plan is made on it
+        '''
+        # in some small problems, the state may become empty by the step application
+        if len(init) == 0:
+            if self.verbose: print(fg_red('  -- empty state %s' % u'\U0001F593'))
             return None
-        # policy is empty
-        if self.verbose: print(fg_yellow('\n-- expand the initial state'))
-        return self.problem.initial_state
+
+        # check if the given init state is already unsolvable
+        if init in self.unsolvable_states:
+            # then return failure (None) if it is fully unsolvable
+            if self.unsolvable_states[init] is None:
+                if self.verbose: print(fg_red('    -- already unsolvable %s' % u'\U0001F593'))
+                return None
+            # verbosity
+            if self.verbose: print(fg_red('    -- partially unsolvable %s  -- excluding: %s' % \
+                (u'\U0001F6C8', ' '.join([str('('+' '.join(a)+')') for a in self.unsolvable_states[init]]))))
+
+        state = init
+
+        # modify state such that plan does not start with an action in self.unsolvable_states[state]
+        # and create a pddl problem given retrieved 'state' as its initial state 
+        if state in self.unsolvable_states:
+            problem_pddl = pddl(self.problem, \
+                state=state.constrain_state(self.unsolvable_states[state]), \
+                path=self.working_dir)
+        else:
+            problem_pddl = pddl(self.problem, state=state, path=self.working_dir)
 
 
-    def find_plan(self, init):
+        for domain_pddl, domain_obj in self.domains.items():
+            # modify domain such that plan does not start with an action in self.unsolvable_states[state]
+            if state in self.unsolvable_states:
+                cons_domain_obj = domain_obj.constrain_domain(self.unsolvable_states[state])
+            else:
+                cons_domain_obj = domain_obj
+            # create a pddl file of the domain object
+            cons_domain_pddl = pddl(cons_domain_obj)
+
+
+            if self.verbose: 
+                print(fg_yellow2('    -- problem:') + problem_pddl)
+                print(fg_yellow2('    -- domain:') + cons_domain_pddl)
+
+            # call the external classical planner
+            plan = call_planner(cons_domain_pddl, problem_pddl, self.planner, verbose=self.verbose)
+
+            # increase the number of planning call
+            self.planning_call += 1
+
+            # verbosity: when verbosity is off !
+            if not self.verbose:
+                if self.planning_call > 0 and self.planning_call % 500 == 0:
+                    print(fg_yellow('(%s replanning) (%s unsolvable states) [%.3f s]' %\
+                        (self.planning_call, len(self.unsolvable_states), time.time() - self.planning_time)))
+
+            # if no plan exists try the next domain
+            if plan == None:
+                if self.verbose: print(fg_red('      -- no plan exists %s' % u'\U0001F593'))
+                continue
+
+            # verbosity -- printout the resulting plan
+            # if self.verbose == 1: print_classical_plan(plan)
+            if self.verbose == 1: print(fg_yellow2('    -- plan:'))
+
+            # make policy image of the plan and append it to the current policy 
+            # if the plan has unsolvable states stop appending and continue planning 
+            # from the last unsolvable state in the plan
+            return self.safe_policy_image(domain_pddl, domain_obj, state, plan)
+
+        # no plan exists at @init that avoids unsolvable states
+        return None
+
+
+    def safe_policy_image(self, domain, domain_obj, state, plan):
+        '''
+        return a safe policy image of @plan using @domain and initial 
+        @state up to a state in unsolvable_states; or a goal state
+        @domain : the domain pddl file used to generate the plan 
+        @domain_obj : the domain object used to generate the plan 
+        @state : the initial state of the plan
+        @plan : the given plan
+        '''
+        policy = OrderedDict()
+
+        for i, step in enumerate(plan):
+            # check if the state is already an unsolvable state with the current step
+            if state in self.unsolvable_states and self.unsolvable_states[state] is not None and \
+                set(step).issubset(self.unsolvable_states[state]):
+                # verbosity
+                if self.verbose: 
+                    for stp in plan[i:]:
+                        print('            '+' '.join([str('('+' '.join(action)+')') for action in stp])+fg_red(' '+u'\U0001F5D9'))
+                    print(fg_red('      -- no valid progress %s  -- lead to partially unsolvable state by: %s' \
+                    % (u'\U0001F6C8', ' '.join([str('('+' '.join(a)+')') for a in step]))))
+                return policy
+
+            # make full grounded specification of actions and apply them in the state
+            new_state = self.apply_step(init=state, step=step, domain=domain_obj)
+
+            # check if the new_state is already an unsolvable state
+            if new_state in self.unsolvable_states and self.unsolvable_states[new_state] is None:
+                # verbosity
+                if self.verbose: 
+                    for stp in plan[i:]:
+                        print('            '+' '.join([str('('+' '.join(action)+')') for action in stp])+fg_red(' '+u'\U0001F5D9'))
+                    print(fg_red('      -- no valid progress %s  -- already unsolvable state by: %s' \
+                    % (u'\U0001F6C8', ' '.join([str('('+' '.join(a)+')') for a in step]))))
+                # state is partially unsolvable
+                self.unsolvable_states[state].update(set(step))
+                return policy
+
+            if self.verbose:
+                print('            '+' '.join([str('('+' '.join(action)+')') for action in step])+fg_yellow2(' '+u'\U0001F5F8'))
+
+            # add the current step into the current policy
+            policy[state] = step
+            state = new_state
+
+        policy[state] = None
+        return policy
+
+
+    ###################################################################
+    #### NDP2 algorithm
+    ###################################################################
+
+    def find_safe_policy_ndp2(self):
+        '''main loop of the planner -- returns a policy if any exists'''
+        # if the initial state already contains the goal (then the plan is empty)
+        if self.problem.initial_state.is_true(self.problem.goals):
+            self.policy[self.problem.initial_state] = None
+            if self.verbose: print(fg_yellow('[Initial state already contains the goal!]'))
+            return
+
+        while True:
+
+            # find a non-goal terminal state in the current policy
+            state = self.find_open_terminal_state()
+
+            # if no non-goal terminal state exists then return the current policy and finish the for-loop
+            if state is None: return
+
+            # find a plan at the current state
+            policy = self.find_safe_plan_ndp2(state)
+
+            # if a policy is found then merge it into the resulting self.policy
+            if policy and policy is not None:
+                self.policy = self.update_policy(self.policy, policy)
+
+            # if no plan found at the initial state then no policy exists and finish the loop
+            elif state == self.problem.initial_state: 
+                if self.verbose: print(fg_red('\n-- no plan at the initial state %s' % u'\U0001F593'))
+                return
+
+            # otherwise; the current open terminal state is unsolvable 
+            # add this state and all states leading to this state into unsolvable_states 
+            # and remove those states from self.policy
+            else:
+                # fully unsolvable state
+                self.unsolvable_states[state] = None
+
+                # put in the self.unsolvable_states all states leading to 'state' and remove their path from self.policy
+                for (s, step) in [(s, step) for (s, step) in self.policy.items() \
+                        if step is not None and state in self.apply_step(init=s, step=step)]:
+                    # remove all states from 's' in self.policy
+                    self.remove_path(s)
+                    # state is partially unsolvable
+                    self.unsolvable_states[s].update(set(step))
+                    # verbosity
+                    if self.verbose: 
+                        print(fg_red2('  -- unsolvable by: %s %s' % \
+                            (' '.join([str('('+' '.join(a)+')') for a in step]), u'\U0001F593')))
+
+
+    def find_safe_plan_ndp2(self, init):
         '''
         extend the policy and make a plan from the given init state
         @init : a given state that a plan is made on it
@@ -197,13 +368,19 @@ class Planner(object):
 
             # modify state such that plan does not start with an action in self.unsolvable_states[state]
             # and create a pddl problem given retrieved 'state' as its initial state 
-            problem_pddl = pddl(self.problem, \
-                state=state.constrain_state(self.unsolvable_states[state]), \
-                path=self.working_dir)
+            if state in self.unsolvable_states:
+                problem_pddl = pddl(self.problem, \
+                    state=state.constrain_state(self.unsolvable_states[state]), \
+                    path=self.working_dir)
+            else:
+                problem_pddl = pddl(self.problem, state=state, path=self.working_dir)
 
             for domain_pddl, domain_obj in self.domains.items():
                 # modify domain such that plan does not start with an action in self.unsolvable_states[state]
-                cons_domain_obj = domain_obj.constrain_domain(self.unsolvable_states[state])
+                if state in self.unsolvable_states:
+                    cons_domain_obj = domain_obj.constrain_domain(self.unsolvable_states[state])
+                else:
+                    cons_domain_obj = domain_obj
                 # create a pddl file of the domain object
                 cons_domain_pddl = pddl(cons_domain_obj)
 
@@ -221,7 +398,7 @@ class Planner(object):
                 if not self.verbose:
                     if self.planning_call > 0 and self.planning_call % 500 == 0:
                         print(fg_yellow('(%s replanning) (%s unsolvable states) [%.3f s]' %\
-                            (self.planning_call, self.unsolvable_call, time.time() - self.planning_time)))
+                            (self.planning_call, len(self.unsolvable_states), time.time() - self.planning_time)))
 
                 # if no plan exists try the next domain
                 if plan == None:
@@ -234,7 +411,7 @@ class Planner(object):
                 # make policy image of the plan and append it to the current policy 
                 # if the plan has unsolvable states stop appending and continue planning 
                 # from the last unsolvable state in the plan
-                state, policy = self.safe_policy_image(policy, domain_pddl, domain_obj, state, plan)
+                state, policy = self.safe_policy_image_ndp2(policy, domain_pddl, domain_obj, state, plan)
 
                 break
             # for-loop didn't break, that is, no plan was found
@@ -242,14 +419,13 @@ class Planner(object):
                 if not policy: return None
                 state, step = policy.popitem()
                 self.unsolvable_states[state] = None
-                self.unsolvable_call += 1
 
                 if not policy: return None
                 state, step = policy.popitem()
                 self.unsolvable_states[state].update(set(step))
 
 
-    def safe_policy_image(self, policy, domain, domain_obj, state, plan):
+    def safe_policy_image_ndp2(self, policy, domain, domain_obj, state, plan):
         '''
         append a policy image of @plan to @policy using @domain and 
         initial @state up to a state in unsolvable_states; or a goal state
@@ -271,7 +447,6 @@ class Planner(object):
                         if s in self.unsolvable_states and self.unsolvable_states[s] is None]):
                 # state is partially unsolvable
                 self.unsolvable_states[state].update(set(step))
-                self.unsolvable_call += 1
 
                 # verbosity
                 if self.verbose: print(fg_red('      -- no valid plan %s  -- has some already unsolvable state by: %s' \
@@ -288,6 +463,37 @@ class Planner(object):
         policy[state] = None
         return state, policy
 
+    ###################################################################
+
+    def find_open_terminal_state(self):
+        '''finds a non-goal terminal state in self.policy and returns if for expansion'''
+        for state, step in self.policy.items():
+            if step is not None:
+                for new_state in self.apply_step(init=state, step=step):
+                    if not new_state in self.policy and not new_state.is_true(self.problem.goals):
+                        if self.verbose: print(fg_yellow('\n-- expand an open terminal state produced by: ')+\
+                                            ' '.join([str('('+' '.join(a)+')') for a in step]))
+                        return new_state
+            elif not state.is_true(self.problem.goals):
+                if self.verbose: print(fg_yellow('\n-- expand an open terminal state'))
+                return state
+        # # all terminal states are goal states
+        # if self.policy: 
+        #     for state, step in self.policy.items():
+        #         if state.is_true(self.problem.goals):
+        #             break
+        #     else:
+        #         if self.verbose: print(fg_red('\n-- there are no goal states %s' % u'\U0001F593'))
+        #         # return self.problem.initial_state
+        #         exit()
+        # all terminal states are goal states
+        if self.policy: 
+            if self.verbose: print(fg_yellow('\n-- no more open terminal states %s' % u'\U0001F592'))
+            return None
+        # policy is empty
+        if self.verbose: print(fg_yellow('\n-- expand the initial state'))
+        return self.problem.initial_state
+
 
     def update_policy(self, policy1, policy2, preserve=False):
         '''
@@ -301,8 +507,36 @@ class Planner(object):
             if state not in policy1:
                 policy1[state] = step
             elif not preserve:
+                # for s in self.apply_step(state, policy1[state]):
+                #     self.remove_path2(s, state)
                 policy1[state] = step
         return policy1
+
+
+    def remove_path2(self, state, goal):
+        '''
+        remove all path starting from @state in self.policy
+        '''
+        if state == goal:
+            return
+        if state in self.policy:
+            step = self.policy[state]
+            if self.verbose and step is not None: 
+                print(fg_yellow('    -- removed from policy: ') + \
+                    ' '.join([str('('+' '.join(a)+')') for a in step]))
+            del self.policy[state]
+            if step == None: return
+
+            # add to unsolvable_states
+            if state in self.unsolvable_states and self.unsolvable_states[state] is not None: 
+                # partially unsolvable state
+                self.unsolvable_states[state].update(set(step))
+
+            for s in self.apply_step(init=state, step=step):
+                ## exclude states that in some domains a non-deterministic action 
+                ## leads to the previous state (the state before action application)
+                if s in self.policy:
+                    self.remove_path2(s, goal)
 
 
     def remove_path(self, state):
@@ -677,7 +911,7 @@ class Planner(object):
         import json
         performance = {'time':round(self.planning_time,3),\
                        'planning_call':self.planning_call,\
-                       'unsolvable_call':self.unsolvable_call,\
+                       'unsolvable_states':len(self.unsolvable_states),\
                        'solvable': 'GOAL' in self.plan().keys() or\
                                    'GOAL' in self.plan().values(),\
                        'policy_length':len(self.policy),\

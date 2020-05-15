@@ -13,12 +13,12 @@ from compilation import compile
 
 class Planner(object):
 
-    def __init__(self, domain, problem, planner='ff', verbose=False):
+    def __init__(self, domain, problem, planner='ff', rank=False, verbose=False):
         '''
         @domain : path to pddl domain (string)
         @problem : path to pddl problem (string)
         @planner : name of the external planner (string)
-        @planner : name of the external planner (string)
+        @rank : if True, rank the compile classical planning domains
         @verbose : if True, prints out statistics 
         '''
 
@@ -51,7 +51,7 @@ class Planner(object):
 
             ## compile and records the given non-deterministic domain into a list of deterministic domains
             if verbose: print(fg_green('\n[Compilation to non-deterministic domains]'))
-            self.working_dir = compile(self.domain, verbose=verbose)
+            self.working_dir = compile(self.domain, rank=rank, verbose=verbose)
 
             ## parse deterministic pddl domains
             for domain in sorted(listdir_fullpath(self.working_dir)):

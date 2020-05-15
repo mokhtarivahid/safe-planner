@@ -5,7 +5,7 @@
   (:objects 
             left-arm right-arm - arm
             surface-left surface-right ; - surface
-            _handover-left _handover-right ; - space
+            handover-left handover-right ; - space
             bin ; - container
             package ; - package
             camera ; - camera
@@ -18,8 +18,8 @@
             (arm right-arm)
             (surface surface-left)
             (surface surface-right)
-            (space _handover-left)
-            (space _handover-right)
+            (space handover-left)
+            (space handover-right)
             (container bin)
             (package package)
             (camera camera)
@@ -32,7 +32,7 @@
             (unknown_orientation obj2)
 
             ;; arm_canreach
-            (arm_canreach left-arm _handover-left)
+            (arm_canreach left-arm handover-left)
             (arm_canreach left-arm surface-left)
             (arm_canreach left-arm bin)
             (arm_canreach left-arm camera)
@@ -40,7 +40,7 @@
             (arm_canreach left-arm obj1)
             (arm_canreach left-arm obj2)
 
-            (arm_canreach right-arm _handover-right)
+            (arm_canreach right-arm handover-right)
             (arm_canreach right-arm surface-right)
             (arm_canreach right-arm bin)
             (arm_canreach right-arm camera)
@@ -53,8 +53,8 @@
             (arm_free right-arm)
 
             ;; arm_at
-            (arm_at left-arm _handover-left)
-            (arm_at right-arm _handover-right)
+            (arm_at left-arm handover-left)
+            (arm_at right-arm handover-right)
 
             ;; object_in
             (object_in obj1 bin)

@@ -26,7 +26,7 @@ def parse():
 
 
 ###############################################################################
-def compilation(domain, sort=True, probability=0.5):
+def compilation(domain, rank=False, probability=0.35):
     '''given a non-deterministic domain object return 
        a list (set) of deterministic domains'''
 
@@ -53,11 +53,11 @@ def compilation(domain, sort=True, probability=0.5):
         ## make all possible combination of probabilistic effects
         probabilistic_effects = list()
         for prob_eff_lst in action.probabilistic:
-            # sort by the highest probability
-            if sort: prob_eff_lst = tuple(sorted(prob_eff_lst, key=lambda x: x[0], reverse=True))
+            # rank by the highest probability
+            if rank: prob_eff_lst = tuple(sorted(prob_eff_lst, key=lambda x: x[0], reverse=True))
             if sum([eff[0] for eff in prob_eff_lst]) == 1:
                 probabilistic_effects.append(prob_eff_lst)
-            elif sort:
+            elif rank:
                 probabilistic_effects.append(\
                     tuple(sorted(tuple([(probability, Effect())])+prob_eff_lst, key=lambda x: x[0], reverse=True)))
             else:
@@ -99,7 +99,7 @@ def compilation(domain, sort=True, probability=0.5):
             # ideally empty effect should be added, however, some classical planners
             # will fail when an actions has no effect, so, we add the precondition as
             # the action's effect, that is, no effect will apply
-            if sort and action.probabilistic[0][0][0] < probability:
+            if rank and action.probabilistic[0][0][0] < probability:
                 deterministic_effects.insert(0, Effect(literals=action.preconditions.literals))
             else:
                 deterministic_effects.extend([Effect(literals=action.preconditions.literals)])
@@ -125,7 +125,7 @@ def compilation(domain, sort=True, probability=0.5):
 
 
 ###############################################################################
-def compile(domain, verbose=False):
+def compile(domain, rank=False, verbose=False):
     """
     given the path to a non-deterministic domain, compiles it 
     into a set of deterministic domains and creates pddl files 
@@ -137,7 +137,7 @@ def compile(domain, verbose=False):
         print(fg_yellow('-- \'{}\' is assumed as a deterministic domain'.format(domain.name)))
         return None
 
-    (deterministic_domains, nd_actions) = compilation(domain)
+    (deterministic_domains, nd_actions) = compilation(domain, rank)
 
     ## create the directory for compiled deterministic domains 
     domains_dir = '/tmp/pyppddl/{}{}/'.format(domain.name, str(int(time.time()*1000000)))

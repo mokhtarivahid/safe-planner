@@ -12,7 +12,7 @@ from json_ma_plan import json_ma_plan
 from json_plan import json_plan
 
 def parse():
-    usage = 'python3 main.py <DOMAIN> <PROBLEM> [-c <PLANNER>] [-p] [-d] [-j] [-s] [-v N] [-h]'
+    usage = 'python3 main.py <DOMAIN> <PROBLEM> [-c <PLANNER>] [-r] [-p] [-d] [-j] [-s] [-v N] [-h]'
     description = "Safe-Planner is a non-deterministic planner for PPDDL."
     parser = argparse.ArgumentParser(usage=usage, description=description)
 
@@ -20,6 +20,8 @@ def parse():
     parser.add_argument('problem', nargs='?', type=str, help='path to a PDDL problem file')
     parser.add_argument("-c", "--planner", type=str, default="ff", #choices=os.listdir('planners'),
         help="external classical planner: ff, m, optic-clp, lpg-td, vhpop, ... (default=ff)")
+    parser.add_argument("-r", "--rank", help="rank the compiled classical planning domains \
+        by higher probabilistic outcomes", action="store_true")
     parser.add_argument("-p", "--path", help="print out possible paths of the produced policy", 
         action="store_true")
     parser.add_argument("-d", "--dot", help="draw a graph of the produced policy into a dot file", 
@@ -44,7 +46,7 @@ if __name__ == '__main__':
     	exit()
 
     ## make a policy given domain and problem
-    policy = Planner(args.domain, args.problem, args.planner, args.verbose)
+    policy = Planner(args.domain, args.problem, args.planner, args.rank, args.verbose)
 
     ## transform the produced policy into a contingency plan
     plan = policy.plan()
@@ -74,7 +76,7 @@ if __name__ == '__main__':
         plan = policy.plan(tree=True)
         dot_file = gen_dot_plan(plan=plan, del_effect=True, dot_file=args.problem)
         print(fg_yellow('-- dot file: ') + dot_file + '\n')
-        subprocess.Popen(["xdot", dot_file])
+        # subprocess.Popen(["xdot", dot_file])
         # os.system('xdot %s &' % dot_file)
         # os.system('dot -T pdf %s > %s.pdf &' % (dot_file, dot_file))
         # os.system('evince %s.pdf &' % dot_file)
@@ -100,4 +102,4 @@ if __name__ == '__main__':
 
     print('\nPlanning time: %.3f s' % policy.planning_time)
     print('Total number of replannings: %i' % policy.planning_call)
-    print('Total number of calls to unsolvable states: %i' % policy.unsolvable_call)
+    print('Total number of unsolvable states: %i' % len(policy.unsolvable_states))

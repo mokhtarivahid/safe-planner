@@ -437,17 +437,17 @@ The following references describe the algorithm of **Safe-Planner**.
 
 ```bibliography
 @inproceedings{vahid:2019:sp,
-  author    = {Mokhtari, Vahid and Sathya, Ajay and Decr\'e, Wilm and Borghesan, Gianni and Vochten, Maxim},
-  title     = {Planning for cyclic safe solutions in fully observable non-deterministic robotic tasks},
-  year      = {2019},
-  maintitle = {IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS 2019)},
-  booktitle = {4th Workshop on Semantic Policy and Action Representations for Autonomous Robots (SPAR)},
-  url       = {https://drive.google.com/file/d/1TZ1uL72j4xkNG7U2H4TYIUiUo_I5czlE/}
+  Author    = {Mokhtari, Vahid and Sathya, Ajay and Decr\'e, Wilm and Borghesan, Gianni and Vochten, Maxim},
+  Title     = {Planning for cyclic safe solutions in fully observable non-deterministic robotic tasks},
+  Maintitle = {IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS 2019)},
+  Booktitle = {4th Workshop on Semantic Policy and Action Representations for Autonomous Robots (SPAR)},
+  Url       = {https://drive.google.com/file/d/1TZ1uL72j4xkNG7U2H4TYIUiUo_I5czlE/},
+  Year      = {2019}
 }
 
-@InProceedings{vahid:2019:d3.1,
+@inproceedings{vahid:2019:d3.1,
   Title     = {{MULTIROB} -- {D}eliverable 3.1: design and implementation of the discrete coordinator inputs: declarative rules and skill prototypes},
-  Author    = {Mokhtari, Vahid  and Scioni, Enea and Borghesan, Gianni and Sathya, Ajay and Decr\'e, Wilm},
+  Author    = {Mokhtari, Vahid and Scioni, Enea and Borghesan, Gianni and Sathya, Ajay and Decr\'e, Wilm},
   Booktitle = {Technical report, {MULTIROB-SBO} project at {KU Leuven}},
   Year      = {2019}
 }
