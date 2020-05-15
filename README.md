@@ -1,6 +1,6 @@
 # Safe-Planner - a Non-Deterministic Planner by Compilation into Classical Problems
 
-**Safe-Planner (SP)** is an off-line non-deterministic planning algorithm based on replanning which compiles a **Fully Observable Non-Deterministic (FOND)** planning problem into a set of classical planning problems which can be solved using a classical problem solver. SP then merges the obtained classical solutions and forms a non-deterministic solution policy to the original non-deterministic problem. SP avoids dead-end states by simulating the execution during the policy generation and therefore it generates safe policies. The execution of a safe policy is guaranteed to terminate in a goal state for all potential outcomes of the actions in the non-deterministic environment (if any exists).
+**Safe-Planner (SP)** is an off-line non-deterministic planning algorithm based on replanning that compiles a **Fully Observable Non-Deterministic (FOND)** planning problem into a set of classical planning problems which can be solved using a classical problem solver. SP then merges the obtained classical solutions and forms a non-deterministic solution policy to the original non-deterministic problem. SP avoids dead-end states by simulating the execution during the policy generation and therefore it generates safe policies. The execution of a safe policy is guaranteed to terminate in a goal state for all potential outcomes of the actions in the non-deterministic environment (if any exists).
 
 SP can employ any off-the-shelf classical planner for problem solving. Currently, the classical planners [FF], [OPTIC], [MADAGASCAR], [VHPOP], and [LPG-TD] have been integrated. 
 
@@ -102,18 +102,18 @@ More precisely, the following combinations are supported by Safe-Planner for mod
 python3 main.py <DOMAIN> <PROBLEM> [-c <PLANNER>] [-d]
 ```
 
-For example, the following commands run Safe-Planner using classical planners FF, OPTIC and MADAGASCAR to solve a [`pickit`](domains/picki) problem:
+For example, the following commands run Safe-Planner using classical planners FF, OPTIC and LPG-TD to solve a [`pickit`](domains/picki) problem:
 
 ```bash
 python3 main.py domains/pickit/domain.pddl domains/pickit/prob0.pddl -c ff
 ```
 
 ```bash
-python3 main.py domains/pickit/domain.pddl domains/pickit/prob0.pddl -c lpg-td
+python3 main.py domains/pickit/domain.pddl domains/pickit/prob0.pddl -c optic-clp
 ```
 
 ```bash
-python3 main.py domains/pickit/domain.pddl domains/pickit/prob0.pddl -c optic-clp
+python3 main.py domains/pickit/domain.pddl domains/pickit/prob0.pddl -c lpg-td
 ```
 
 
