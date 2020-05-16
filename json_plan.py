@@ -32,7 +32,7 @@ def json_plan(policy):
     plan_json = OrderedDict()
     for level, step in policy.plan().items():
 
-        if level is 'GOAL' or step is None or step is 'GOAL': continue
+        if level == 'GOAL' or step == None or step == 'GOAL': continue
 
         plan_json.setdefault('plan', []).append('step_{}'.format(str(level)))
 
@@ -50,7 +50,7 @@ def json_plan(policy):
                  }) )
 
         for (conditions, jump) in outcomes:
-            if jump is 'GOAL':
+            if jump == 'GOAL':
                 jump_str = 'GOAL'
             else:
                 jump_str = 'step_{}'.format(str(jump))

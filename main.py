@@ -52,7 +52,7 @@ if __name__ == '__main__':
     plan = policy.plan()
 
     ## print out the plan in a readable form
-    policy.print_plan(plan, del_effects_included=False)
+    policy.print_plan(plan, del_effects_included=True, det_effects_included=False)
 
     ## print out sub-paths in the plan
     if args.path: 

@@ -37,10 +37,12 @@ tokens = (
     'EQUALITY_KEY',
     'TYPING_KEY',
     'PROBABILISTIC_EFFECTS_KEY',
+    'NON_DETERMINISTIC_KEY',
     'CONDITIONAL_EFFECTS_KEY',
     'EXISTENTIAL_PRECONDITIONS_KEY',
     'NEGATIVE_PRECONDITIONS_KEY',
     'UNIVERSAL_PRECONDITIONS_KEY',
+    'DISJUNCTIVE_PRECONDITIONS_KEY',
     'TYPES_KEY',
     'PREDICATES_KEY',
     'ACTION_KEY',
@@ -82,6 +84,8 @@ reserved = {
     ':universal-preconditions'  : 'UNIVERSAL_PRECONDITIONS_KEY',
     ':conditional-effects'      : 'CONDITIONAL_EFFECTS_KEY',
     ':probabilistic-effects'    : 'PROBABILISTIC_EFFECTS_KEY',
+    ':non-deterministic'        : 'NON_DETERMINISTIC_KEY',
+    ':disjunctive-preconditions': 'DISJUNCTIVE_PRECONDITIONS_KEY', 
     ':types'                    : 'TYPES_KEY',
     ':predicates'               : 'PREDICATES_KEY',
     ':action'                   : 'ACTION_KEY',
@@ -224,10 +228,12 @@ def p_require_key(p):
                    | EQUALITY_KEY
                    | TYPING_KEY
                    | PROBABILISTIC_EFFECTS_KEY
+                   | NON_DETERMINISTIC_KEY
                    | CONDITIONAL_EFFECTS_KEY
                    | EXISTENTIAL_PRECONDITIONS_KEY
                    | NEGATIVE_PRECONDITIONS_KEY
-                   | UNIVERSAL_PRECONDITIONS_KEY'''
+                   | UNIVERSAL_PRECONDITIONS_KEY
+                   | DISJUNCTIVE_PRECONDITIONS_KEY'''
     p[0] = str(p[1])
 
 
@@ -414,7 +420,7 @@ def p_effect_def(p):
           for e in eff:
             if 'FORALL_KEY' in e: for_lst.append(tuple(e[1:]))
             elif 'WHEN_KEY' in e: whn_lst.append(tuple(e[1:]))
-            else: lit_lst.append(e)
+            elif e: lit_lst.append(e)
           nd_lst.append(Effect(tuple(lit_lst), tuple(for_lst), tuple(whn_lst)))
         oneof.append(tuple(nd_lst))
       else:
@@ -437,9 +443,12 @@ def p_effect(p):
               | conditional_for_eff
               | conditional_when_eff
               | LPAREN PROBABILISTIC_KEY prob_effect_lst RPAREN
-              | LPAREN ONEOF_KEY nd_effect_lst RPAREN'''
+              | LPAREN ONEOF_KEY nd_effect_lst RPAREN
+              | LPAREN AND_KEY RPAREN'''
     if len(p) == 2:
       p[0] = p[1]
+    elif len(p) == 4:
+      p[0] = ()
     elif len(p) == 5 and type(p[3][0][0]) == float:
       p[0] = ('PROBABILITY', tuple(p[3]))
     elif len(p) == 5:

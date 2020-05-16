@@ -34,13 +34,6 @@ def call_ff(domain, problem, args='', verbose=0):
     # shell = ''.join(map(chr, output))
     shell = to_str(output)
 
-    if verbose == 2: 
-        print(fg_voilet('\n-- planner stdout'))
-        print(shell)
-        if to_str(err):
-            print(fg_voilet('-- planner stderr'))
-            print(to_str(err))
-
     ## if no solution exists try the next domain ##
     if "goal can be simplified to FALSE" in shell or "problem proven unsolvable" in shell:
         return None
@@ -51,7 +44,9 @@ def call_ff(domain, problem, args='', verbose=0):
 
     ## if solution already exists in the problem ##
     if "predicate" in shell or "type mismatch" in shell or\
-       "undeclared variable" in shell or "declared to use unknown" in shell:
+       "undeclared variable" in shell or "declared to use unknown" in shell or\
+       "unknown constant" in shell or 'check input files' in shell or\
+       'too many constants!' in shell:
         print(fg_yellow("[planning failed due to some error in the pddl description]"))
         print(fg_voilet('\n-- planner stdout'))
         print(shell)
@@ -59,6 +54,13 @@ def call_ff(domain, problem, args='', verbose=0):
             print(fg_voilet('-- planner stderr'))
             print(to_str(err))
         exit()
+
+    if verbose == 2: 
+        print(fg_voilet('\n-- planner stdout'))
+        print(shell)
+        if to_str(err):
+            print(fg_voilet('-- planner stderr'))
+            print(to_str(err))
 
     ## refine the output screen and build a plan of actions' signatures ##
     shell = shell[shell.find('step')+len('step'):shell.rfind('time spent')].strip()  # extract plan
@@ -137,7 +139,7 @@ def call_optic_clp(domain, problem, args='-b -N', verbose=0):
 
     ## if solution already exists in the problem ##
     if ("; Plan empty" in shell and "; Plan found" in shell) \
-        or "The empty plan is optimal" is shell:
+        or "The empty plan is optimal" in shell:
         return list()
 
     ## refine the output screen and build a plan of actions' signatures ##

@@ -49,7 +49,8 @@ class Planner(object):
         self.working_dir = None
 
         # if the domain is non-deterministic/probabilistic
-        if ":probabilistic-effects" in self.domain.requirements:
+        if ':probabilistic-effects' in self.domain.requirements or \
+           ':non-deterministic' in self.domain.requirements:
 
             # compile and records the given non-deterministic domain into a list of deterministic domains
             if self.verbose: print(fg_green('\n[Compilation to non-deterministic domains]'))
@@ -154,7 +155,8 @@ class Planner(object):
                     # remove all states from 's' in self.policy
                     self.remove_path(s)
                     # state is partially unsolvable
-                    self.unsolvable_states[s].update(set(step))
+                    if self.unsolvable_states[s] is not None:
+                        self.unsolvable_states[s].update(set(step))
                     # verbosity
                     if self.verbose: 
                         print(fg_red2('  -- unsolvable by: %s %s' % \
@@ -331,7 +333,8 @@ class Planner(object):
                     # remove all states from 's' in self.policy
                     self.remove_path(s)
                     # state is partially unsolvable
-                    self.unsolvable_states[s].update(set(step))
+                    if self.unsolvable_states[s] is not None:
+                        self.unsolvable_states[s].update(set(step))
                     # verbosity
                     if self.verbose: 
                         print(fg_red2('  -- unsolvable by: %s %s' % \
@@ -715,7 +718,7 @@ class Planner(object):
         return plan
 
 
-    def print_plan(self, plan=None, del_effects_included=False):
+    def print_plan(self, plan=None, del_effects_included=False, det_effects_included=False):
         '''
         print the plan in a more readable form
         '''
@@ -752,6 +755,17 @@ class Planner(object):
                                     ' '.join(['({0})'.format(' '.join(map(str, c))) for c in del_list]), \
                                     jump_str))
                         # otherwise, exclude delete list in the representation of the plan
+                        else:
+                            plan_str+= fg_yellow(' -- ({}) {}'.format( \
+                                    ' '.join(['({0})'.format(' '.join(map(str, c))) for c in add_list]), \
+                                    jump_str))
+                    elif det_effects_included:
+                        (add_list, del_list) = conditions
+                        if del_effects_included and len(del_list) > 0:
+                            plan_str+= fg_yellow(' -- ({})({}) {}'.format( \
+                                    ' '.join(['({0})'.format(' '.join(map(str, c))) for c in add_list]), \
+                                    ' '.join(['({0})'.format(' '.join(map(str, c))) for c in del_list]), \
+                                    jump_str))
                         else:
                             plan_str+= fg_yellow(' -- ({}) {}'.format( \
                                     ' '.join(['({0})'.format(' '.join(map(str, c))) for c in add_list]), \

@@ -26,7 +26,7 @@ def parse():
 
 
 ###############################################################################
-def compilation(domain, rank=False, probability=0.35):
+def compilation(domain, rank=False, probability=0.5):
     '''given a non-deterministic domain object return 
        a list (set) of deterministic domains'''
 
@@ -99,7 +99,7 @@ def compilation(domain, rank=False, probability=0.35):
             # ideally empty effect should be added, however, some classical planners
             # will fail when an actions has no effect, so, we add the precondition as
             # the action's effect, that is, no effect will apply
-            if rank and action.probabilistic[0][0][0] < probability:
+            if rank and action.probabilistic and action.probabilistic[0][0][0] < probability:
                 deterministic_effects.insert(0, Effect(literals=action.preconditions.literals))
             else:
                 deterministic_effects.extend([Effect(literals=action.preconditions.literals)])
@@ -116,7 +116,7 @@ def compilation(domain, rank=False, probability=0.35):
 
     ## return a list of deterministic domains
     return ([Domain(name = domain.name, \
-                requirements = tuple(set(domain.requirements)^set([':probabilistic-effects'])), \
+                requirements = tuple(set(domain.requirements) - set([':probabilistic-effects',':non-deterministic'])), \
                 types = domain.types, \
                 predicates = domain.predicates, \
                 constants = domain.constants, \
@@ -132,7 +132,8 @@ def compile(domain, rank=False, verbose=False):
     as well as a file containing probabilistic actions names
     """
 
-    if not ':probabilistic-effects' in domain.requirements:
+    if not (':probabilistic-effects' in domain.requirements or\
+            ':non-deterministic' in domain.requirements):
         print(fg_yellow('-- the \':probabilistic-effects\' requirement is not present'))
         print(fg_yellow('-- \'{}\' is assumed as a deterministic domain'.format(domain.name)))
         return None
