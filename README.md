@@ -124,9 +124,9 @@ SP represent a policy as a sequence of numbered steps such that:
 
 - Each step contains either a single action or a set of actions in one of the following formats:
 
-    `number : (a set of actions) -- () number/GOAL`
-    `number : (a set of actions) -- ((add_list)) number/GOAL ...`
-    `number : (a set of actions) -- ((add_list)(del_list)) number/GOAL ...`
+    ```number : (a set of actions) -- () number/GOAL```
+    ```number : (a set of actions) -- ((add_list)) number/GOAL ...```
+    ```number : (a set of actions) -- ((add_list)(del_list)) number/GOAL ...```
 
 - Each number represents the order/level of the execution of each step; 
 - The set of actions at each step are followed (following `--`) by tuples of conditions under which next steps are chosen; 
