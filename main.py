@@ -52,14 +52,14 @@ if __name__ == '__main__':
     plan = policy.plan()
 
     ## print out the plan in a readable form
-    policy.print_plan(plan, del_effects_included=True, det_effects_included=False)
+    policy.print_plan(del_effect_inc=True, det_effect_inc=False)
 
     ## print out sub-paths in the plan
     if args.path: 
         paths = policy.get_paths(plan)
-        policy.print_paths(paths=paths, del_effects_included=True)
+        policy.print_paths(paths=paths, del_effect_inc=True)
         # for path in paths:
-        #     policy.print_plan(plan=path, del_effects_included=True)
+        #     policy.print_plan(plan=path, del_effect_inc=True)
         ## generate graphs of sub-paths too
         if args.dot:
             for i, path in enumerate(paths):

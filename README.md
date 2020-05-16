@@ -120,14 +120,22 @@ python3 main.py domains/pickit/domain.pddl domains/pickit/prob0.pddl -c lpg-td
 
 ## The planner's output
 
-- The output plan is a sequence of steps (i.e., each step may contain more than one action). 
-- The numbers represent the order of the execution of the steps. 
-- Steps in each line is followed by some conditions under which the next step is chosen. 
-- Empty conditions are true conditions and only appear for deterministic actions/steps. 
-- Steps containing nondeterministic actions have more than one conditions. 
-- Conditions are the different possible outcomes of that nondeterministic step. 
-- Conditions include a tuple of _add_list_ of that step, that is, the effects added to a new state.
-- The number after each condition represents the next step for the execution.
+SP represent a policy as a sequence of numbered steps such that:
+
+- Each step contains either a single action or a set of actions in one of the following formats:
+
+    `number : (a set of actions) -- () number/GOAL`
+    `number : (a set of actions) -- ((add_list)) number/GOAL ...`
+    `number : (a set of actions) -- ((add_list)(del_list)) number/GOAL ...`
+
+- Each number represents the order/level of the execution of each step; 
+- The set of actions at each step are followed (following `--`) by tuples of conditions under which next steps are chosen; 
+- Empty conditions are true conditions and only appear for deterministic actions/steps; 
+- Steps containing nondeterministic actions have more than one conditions; 
+- Conditions are the different possible outcomes of a nondeterministic step; 
+- Conditions include a tuple of _add_list_ and a tuple of _del_list_ (if any) of a nondeterministic step, that is, the effects added to a new state and the effects removed from the old state after the step is applied;
+- The number after each condition represents the next step for the execution;
+- The keyword `GOAL`  after a condition means the goal is achieved by that step.
 
 
 
@@ -138,8 +146,8 @@ python3 main.py domains/pickit/domain.pddl domains/pickit/prob0.pddl -c lpg-td
 $ python main.py benchmarks/prob_interesting/bus-fare.pddl -j -d
 
 @ PLAN
- 0 : (wash-car-1) -- ((have-1-coin )) 0 -- ((have-2-coin )) 1
- 1 : (bet-coin-2) -- ((have-1-coin )) 0 -- ((have-3-coin )) 2
+ 0 : (wash-car-1) -- ((have-1-coin )) 0 -- ((have-2-coin ))((have-1-coin )) 1
+ 1 : (bet-coin-2) -- ((have-1-coin ))((have-2-coin )) 0 -- ((have-3-coin ))((have-2-coin )) 2
  2 : (buy-fare) -- () GOAL
 ```
 
@@ -192,14 +200,14 @@ $ python3 main.py domains/pickit/domain.pddl domains/pickit/prob0.pddl -c lpg-td
 @ PLAN
  0 : (move_to_grasp arm1 stand1 box1 cap1) (move_to_grasp arm2 stand2 box2 base1) -- () 1
  1 : (vacuum_object arm1 cap1 box1) (vacuum_object arm2 base1 box2) -- () 2
- 2 : (carry_to_camera arm1 box1 camera1 cap1) -- () 3
- 3 : (check_orientation arm1 cap1 camera1) -- ((downward cap1)) 4 -- ((upward cap1)) 5
- 4 : (carry_to_stand arm1 camera1 stand1 cap1) -- () 6
- 5 : (rotate arm1 cap1) (carry_to_stand arm1 camera1 stand1 cap1) -- () 6
- 6 : (put_object arm1 cap1 stand1) (carry_to_camera arm2 box2 camera1 base1) -- () 7
- 7 : (grip_object arm1 cap1 stand1) (check_orientation arm2 base1 camera1) -- ((arm_gripped arm1 cap1) (upward base1)) 8 -- ((arm_gripped arm1 cap1) (downward base1)) 9
- 8 : (rotate arm2 base1) (carry_to_stand arm2 camera1 stand2 base1) (carry_to_assemble arm1 stand1 assembly_pose1 cap1) -- () 10
- 9 : (carry_to_stand arm2 camera1 stand2 base1) (carry_to_assemble arm1 stand1 assembly_pose1 cap1) -- () 10
+ 2 : (carry_to_camera arm1 box1 camera1 cap1) (carry_to_stand arm2 box2 stand2 base1) -- () 3
+ 3 : (check_orientation arm1 cap1 camera1) -- ((upward cap1))((unknown_orientation cap1)) 4 -- ((downward cap1))((unknown_orientation cap1)) 5
+ 4 : (rotate arm1 cap1) (carry_to_stand arm1 camera1 stand1 cap1) -- () 6
+ 5 : (carry_to_stand arm1 camera1 stand1 cap1) -- () 6
+ 6 : (put_object arm1 cap1 stand1) (carry_to_camera arm2 stand2 camera1 base1) -- () 7
+ 7 : (grip_object arm1 cap1 stand1) (check_orientation arm2 base1 camera1) -- ((downward base1))((unknown_orientation base1)) 8 -- ((upward base1))((unknown_orientation base1)) 9
+ 8 : (carry_to_stand arm2 camera1 stand2 base1) (carry_to_assemble arm1 stand1 assembly_pose1 cap1) -- () 10
+ 9 : (rotate arm2 base1) (carry_to_stand arm2 camera1 stand2 base1) (carry_to_assemble arm1 stand1 assembly_pose1 cap1) -- () 10
 10 : (put_object arm2 base1 stand2) -- () 11
 11 : (grip_object arm2 base1 stand2) -- () 12
 12 : (carry_to_assemble arm2 stand2 assembly_pose2 base1) -- () 13

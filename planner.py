@@ -641,7 +641,7 @@ class Planner(object):
         return states
 
 
-    def plan(self, tree=False):
+    def plan(self, tree=False, det_effect_inc=True):
         '''
         return an ordered dict as the final plan:
         the keys represent the steps of actions in the plan,
@@ -695,7 +695,7 @@ class Planner(object):
                         if self.verbose: print(bg_red('[Goal is not achieved!]'))
                         plan[i] = None
                 else:
-                    states = self.apply_step(init=state, step=step, det_effect_inc=True)
+                    states = self.apply_step(init=state, step=step, det_effect_inc=det_effect_inc)
 
                     next_steps = list()
                     for s, c in states.items():
@@ -718,12 +718,12 @@ class Planner(object):
         return plan
 
 
-    def print_plan(self, plan=None, del_effects_included=False, det_effects_included=False):
+    def print_plan(self, plan=None, del_effect_inc=False, det_effect_inc=False):
         '''
         print the plan in a more readable form
         '''
         if plan == None:
-            plan = self.plan()
+            plan = self.plan(det_effect_inc=det_effect_inc)
 
         print(bg_yellow('@ PLAN'))
 
@@ -749,7 +749,7 @@ class Planner(object):
                     # if len(conditions) > 0: 
                         (add_list, del_list) = conditions
                         # if there is non-deterministic delete list in outcomes
-                        if del_effects_included and len(del_list) > 0:
+                        if del_effect_inc and len(del_list) > 0:
                             plan_str+= fg_yellow(' -- ({})({}) {}'.format( \
                                     ' '.join(['({0})'.format(' '.join(map(str, c))) for c in add_list]), \
                                     ' '.join(['({0})'.format(' '.join(map(str, c))) for c in del_list]), \
@@ -759,9 +759,9 @@ class Planner(object):
                             plan_str+= fg_yellow(' -- ({}) {}'.format( \
                                     ' '.join(['({0})'.format(' '.join(map(str, c))) for c in add_list]), \
                                     jump_str))
-                    elif det_effects_included:
+                    elif det_effect_inc:
                         (add_list, del_list) = conditions
-                        if del_effects_included and len(del_list) > 0:
+                        if del_effect_inc and len(del_list) > 0:
                             plan_str+= fg_yellow(' -- ({})({}) {}'.format( \
                                     ' '.join(['({0})'.format(' '.join(map(str, c))) for c in add_list]), \
                                     ' '.join(['({0})'.format(' '.join(map(str, c))) for c in del_list]), \
@@ -868,7 +868,7 @@ class Planner(object):
         return paths
 
 
-    def print_paths(self, plan=None, paths=None, del_effects_included=False):
+    def print_paths(self, plan=None, paths=None, del_effect_inc=False):
         '''
         print the paths of plan in a more readable form
         '''
@@ -903,7 +903,7 @@ class Planner(object):
                     if len([action.sig for action in actions if action.sig[0] in self.prob_actions]) > 0:
                         (add_list, del_list) = conditions
                         # if there is non-deterministic delete list in outcomes
-                        if del_effects_included and len(del_list) > 0:
+                        if del_effect_inc and len(del_list) > 0:
                             plan_str+= fg_yellow(' -- ({})({}) {}'.format( \
                                     ' '.join(['({0})'.format(' '.join(map(str, c))) for c in add_list]), \
                                     ' '.join(['({0})'.format(' '.join(map(str, c))) for c in del_list]), \
