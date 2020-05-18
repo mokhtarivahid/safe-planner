@@ -89,9 +89,14 @@ def compilation(domain, rank=False, probability=0.5):
                         action.effects.when+tuple(when_lst))
                 if eff: deterministic_effects.append(eff)
 
-        ## include also the action effects if the total probability is less than 1.0
-        if action.effects and len(deterministic_effects) == 0: 
-            deterministic_effects.extend([action.effects])
+        ## include also the action (deterministic) effects if the total probability is less than 1.0
+        ## or if there is only one probabilistic/oneof effect
+        if action.effects and ( len(deterministic_effects) == 0 or len(deterministic_effects) == 1): 
+            if rank and action.probabilistic and action.probabilistic[0][0][0] < probability:
+                deterministic_effects.insert(0, action.effects)
+            else:
+                deterministic_effects.extend([action.effects])
+
         ## if there is only one probabilistic/oneof effect, then we also need a neutral 
         ## effect, i.e., we add the action preconditions (literals only) as an action effect
         if not action.effects and len(deterministic_effects) == 1:

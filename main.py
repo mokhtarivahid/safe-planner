@@ -97,9 +97,12 @@ if __name__ == '__main__':
         print(fg_yellow('-- json file: ') + json_file + fg_red(' [EXPERIMENTAL!]\n'))
 
     if args.store:
-        stat_file = policy.log_performance()
+        stat_file = policy.log_performance(plan)
         print(fg_yellow('-- planner performance: ') + stat_file)
 
-    print('\nPlanning time: %.3f s' % policy.planning_time)
-    print('Total number of replannings: %i' % policy.planning_call)
+    print('\nPlanning domain: %s' % policy.domain_file)
+    print('Planning problem: %s' % policy.problem_file)
+    print('Planning time: %.3f s' % policy.planning_time)
+    print('Total number of replannings (single-outcome): %i' % policy.singlesoutcome_planning_call)
+    print('Total number of actual replannings (all-outcome): %i' % policy.alloutcome_planning_call)
     print('Total number of unsolvable states: %i' % len(policy.unsolvable_states))

@@ -126,23 +126,23 @@ SP represent a policy as a sequence of numbered steps such that:
 
     ```number : (a set of actions) -- () number/GOAL```
 
-    ```number : (a set of actions) -- ((add_list)) number/GOAL ...```
+    ```number : (a set of actions) -- (add_list) number/GOAL ...```
 
-    ```number : (a set of actions) -- ((add_list)(del_list)) number/GOAL ...```
+    ```number : (a set of actions) -- (add_list)(del_list) number/GOAL ...```
 
 - Each number represents the order/level of the execution of each step; 
 
 - The set of actions at each step are followed (following `--`) by tuples of conditions under which next steps are chosen; 
 
-- Empty conditions are true conditions and only appear for deterministic actions/steps; 
+- Empty conditions `()` are true conditions and only appear for deterministic actions/steps; 
 
-- Steps containing nondeterministic actions have more than one conditions; 
+- Steps containing nondeterministic actions have more than one conditions each one after one `--`; 
 
 - Conditions are the different possible outcomes of a nondeterministic step; 
 
-- Conditions include a tuple of _add_list_ and a tuple of _del_list_ (if any) of a nondeterministic step, that is, the effects added to a new state and the effects removed from the old state after the step is applied;
+- Conditions include a tuple of `(add_list)` and a tuple of `(del_list)` (if any) of a nondeterministic step, that is, the effects added to a new state and the effects removed from the old state after the step is applied;
 
-- The number after each condition represents the next step for the execution;
+- The `number` after each condition represents the next step for the execution;
 
 - The keyword `GOAL`  after a condition means the goal is achieved by that step.
 

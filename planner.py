@@ -83,7 +83,8 @@ class Planner(object):
         self.unsolvable_states = defaultdict(set)
 
         # total number of calls to external planner
-        self.planning_call = 0
+        self.singlesoutcome_planning_call = 0
+        self.alloutcome_planning_call = 0
 
         # planning time
         self.planning_time = time.time()
@@ -99,7 +100,7 @@ class Planner(object):
             else:
                 if self.verbose:
                     print(fg_yellow('[unsolvable -- switch to ndp2!] (%s replanning) (%s unsolvable states) [%.3f s]' %\
-                    (self.planning_call, len(self.unsolvable_states), time.time() - self.planning_time)))
+                    (self.singlesoutcome_planning_call, len(self.unsolvable_states), time.time() - self.planning_time)))
                 self.policy = OrderedDict()
                 self.unsolvable_states = defaultdict(set)
                 self.find_safe_policy_ndp2()
@@ -194,6 +195,8 @@ class Planner(object):
         else:
             problem_pddl = pddl(self.problem, state=state, path=self.working_dir)
 
+        # increase the number of planning call
+        self.alloutcome_planning_call += 1
 
         for domain_pddl, domain_obj in self.domains.items():
             # modify domain such that plan does not start with an action in self.unsolvable_states[state]
@@ -213,13 +216,13 @@ class Planner(object):
             plan = call_planner(cons_domain_pddl, problem_pddl, self.planner, verbose=self.verbose)
 
             # increase the number of planning call
-            self.planning_call += 1
+            self.singlesoutcome_planning_call += 1
 
             # verbosity: when verbosity is off !
             if not self.verbose:
-                if self.planning_call > 0 and self.planning_call % 500 == 0:
+                if self.singlesoutcome_planning_call > 0 and self.singlesoutcome_planning_call % 500 == 0:
                     print(fg_yellow('(%s replanning) (%s unsolvable states) [%.3f s]' %\
-                        (self.planning_call, len(self.unsolvable_states), time.time() - self.planning_time)))
+                        (self.singlesoutcome_planning_call, len(self.unsolvable_states), time.time() - self.planning_time)))
 
             # if no plan exists try the next domain
             if plan == None:
@@ -378,6 +381,9 @@ class Planner(object):
             else:
                 problem_pddl = pddl(self.problem, state=state, path=self.working_dir)
 
+            # increase the number of planning call
+            self.alloutcome_planning_call += 1
+
             for domain_pddl, domain_obj in self.domains.items():
                 # modify domain such that plan does not start with an action in self.unsolvable_states[state]
                 if state in self.unsolvable_states:
@@ -395,13 +401,13 @@ class Planner(object):
                 plan = call_planner(cons_domain_pddl, problem_pddl, self.planner, verbose=self.verbose)
 
                 # increase the number of planning call
-                self.planning_call += 1
+                self.singlesoutcome_planning_call += 1
 
                 # verbosity: when verbosity is off !
                 if not self.verbose:
-                    if self.planning_call > 0 and self.planning_call % 500 == 0:
+                    if self.singlesoutcome_planning_call > 0 and self.singlesoutcome_planning_call % 500 == 0:
                         print(fg_yellow('(%s replanning) (%s unsolvable states) [%.3f s]' %\
-                            (self.planning_call, len(self.unsolvable_states), time.time() - self.planning_time)))
+                            (self.singlesoutcome_planning_call, len(self.unsolvable_states), time.time() - self.planning_time)))
 
                 # if no plan exists try the next domain
                 if plan == None:
@@ -751,24 +757,24 @@ class Planner(object):
                         # if there is non-deterministic delete list in outcomes
                         if del_effect_inc and len(del_list) > 0:
                             plan_str+= fg_yellow(' -- ({})({}) {}'.format( \
-                                    ' '.join(['({0})'.format(' '.join(map(str, c))) for c in add_list]), \
-                                    ' '.join(['({0})'.format(' '.join(map(str, c))) for c in del_list]), \
+                                    ''.join(['({0})'.format(' '.join(map(str, c))) for c in add_list]), \
+                                    ''.join(['({0})'.format(' '.join(map(str, c))) for c in del_list]), \
                                     jump_str))
                         # otherwise, exclude delete list in the representation of the plan
                         else:
                             plan_str+= fg_yellow(' -- ({}) {}'.format( \
-                                    ' '.join(['({0})'.format(' '.join(map(str, c))) for c in add_list]), \
+                                    ''.join(['({0})'.format(' '.join(map(str, c))) for c in add_list]), \
                                     jump_str))
                     elif det_effect_inc:
                         (add_list, del_list) = conditions
                         if del_effect_inc and len(del_list) > 0:
                             plan_str+= fg_yellow(' -- ({})({}) {}'.format( \
-                                    ' '.join(['({0})'.format(' '.join(map(str, c))) for c in add_list]), \
-                                    ' '.join(['({0})'.format(' '.join(map(str, c))) for c in del_list]), \
+                                    ''.join(['({0})'.format(' '.join(map(str, c))) for c in add_list]), \
+                                    ''.join(['({0})'.format(' '.join(map(str, c))) for c in del_list]), \
                                     jump_str))
                         else:
                             plan_str+= fg_yellow(' -- ({}) {}'.format( \
-                                    ' '.join(['({0})'.format(' '.join(map(str, c))) for c in add_list]), \
+                                    ''.join(['({0})'.format(' '.join(map(str, c))) for c in add_list]), \
                                     jump_str))
                     else:
                         plan_str+= fg_yellow(' -- () {}'.format(jump_str))
@@ -919,17 +925,18 @@ class Planner(object):
             print(plan_str)
 
 
-    def log_performance(self):
+    def log_performance(self, plan):
         '''stores the planner performance in a file next to given problem file'''
         # create a stat file
         import json
         performance = {'time':round(self.planning_time,3),\
-                       'planning_call':self.planning_call,\
+                       'planning_call_singlesoutcome':self.singlesoutcome_planning_call,\
+                       'planning_call_alloutcome':self.alloutcome_planning_call,\
                        'unsolvable_states':len(self.unsolvable_states),\
-                       'solvable': 'GOAL' in self.plan().keys() or\
-                                   'GOAL' in self.plan().values(),\
+                       'solvable': 'GOAL' in plan.keys() or\
+                                   'GOAL' in plan.values(),\
                        'policy_length':len(self.policy),\
-                       'plan_length':len(self.plan())-1}
+                       'plan_length':len(plan)-1}
         if self.problem_file is not None:
             stat_file = '{}.stat'.format(os.path.splitext(self.problem_file)[0])
         else:
