@@ -124,21 +124,21 @@ SP represent a policy as a sequence of numbered steps such that:
 
 - Each step contains either a single action or a set of actions in one of the following formats:
 
-    ```number : (a set of actions) -- () number/GOAL```
+    ```number : (actions) -- () number/GOAL```
 
-    ```number : (a set of actions) -- (add_list) number/GOAL ...```
+    ```number : (actions) -- (add_list) number/GOAL ...```
 
-    ```number : (a set of actions) -- (add_list)(del_list) number/GOAL ...```
+    ```number : (actions) -- (add_list) (del_list) number/GOAL ...```
 
-- Each number represents the order/level of the execution of each step; 
+- Each `number` represents the order/level of the execution of each step; 
 
-- The set of actions at each step are followed (following `--`) by tuples of conditions under which next steps are chosen; 
+- The set of actions `(actions)` at each step are followed by tuples of conditions under which next steps are chosen (each condition comes after one `--`)  ; 
 
-- Empty conditions `()` are true conditions and only appear for deterministic actions/steps; 
+- Conditions are the different possible outcomes of actions in a step; 
 
-- Steps containing nondeterministic actions have more than one conditions each one after one `--`; 
+- Empty conditions `()` are true conditions and only appear for deterministic actions in a step; 
 
-- Conditions are the different possible outcomes of a nondeterministic step; 
+- Steps containing nondeterministic actions have more than one conditions;
 
 - Conditions include a tuple of `(add_list)` and a tuple of `(del_list)` (if any) of a nondeterministic step, that is, the effects added to a new state and the effects removed from the old state after the step is applied;
 

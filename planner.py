@@ -756,7 +756,7 @@ class Planner(object):
                         (add_list, del_list) = conditions
                         # if there is non-deterministic delete list in outcomes
                         if del_effect_inc and len(del_list) > 0:
-                            plan_str+= fg_yellow(' -- ({})({}) {}'.format( \
+                            plan_str+= fg_yellow(' -- ({}) ({}) {}'.format( \
                                     ''.join(['({0})'.format(' '.join(map(str, c))) for c in add_list]), \
                                     ''.join(['({0})'.format(' '.join(map(str, c))) for c in del_list]), \
                                     jump_str))
@@ -768,7 +768,7 @@ class Planner(object):
                     elif det_effect_inc:
                         (add_list, del_list) = conditions
                         if del_effect_inc and len(del_list) > 0:
-                            plan_str+= fg_yellow(' -- ({})({}) {}'.format( \
+                            plan_str+= fg_yellow(' -- ({}) ({}) {}'.format( \
                                     ''.join(['({0})'.format(' '.join(map(str, c))) for c in add_list]), \
                                     ''.join(['({0})'.format(' '.join(map(str, c))) for c in del_list]), \
                                     jump_str))
