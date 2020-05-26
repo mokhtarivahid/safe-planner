@@ -1,0 +1,9 @@
+problem,planning_time,singlesoutcome_planning_call,alloutcome_planning_call,unsolvable_states,solvable,policy_length,plan_length
+doors-0,0.448,69,6,2,1,8,9
+doors-0,1.259,142,16,4,1,18,21
+doors-0,2.819,221,32,6,1,38,45
+doors-0,7.358,312,60,8,1,78,93
+doors-0,24.104,428,113,10,1,158,189
+doors-0,92.138,590,212,12,1,318,381
+doors-0,365.506,849,408,14,1,638,765
+doors-0,1519.677,1301,797,16,1,1278,1533

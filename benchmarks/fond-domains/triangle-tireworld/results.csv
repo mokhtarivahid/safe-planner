@@ -1,0 +1,4 @@
+problem,planning_time,singlesoutcome_planning_call,alloutcome_planning_call,unsolvable_states,solvable,policy_length,plan_length
+triangle-tire-1,0.105,15,13,5,1,30,37
+triangle-tire-2,4.352,207,181,45,1,510,637
+triangle-tire-3,801.293,2415,2293,205,1,8190,10237

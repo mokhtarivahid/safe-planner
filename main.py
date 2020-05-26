@@ -67,7 +67,7 @@ if __name__ == '__main__':
                 print(fg_yellow('-- path{} dot file: ').format(str(i+1)) + dot_file)
                 # os.system('xdot %s &' % dot_file)
             dot_file = gen_dot_plan(plan=paths[0])
-            subprocess.Popen(["xdot", dot_file])
+            # subprocess.Popen(["xdot", dot_file])
             # os.system('xdot %s &' % dot_file)
             print('')
 
@@ -103,6 +103,6 @@ if __name__ == '__main__':
     print('\nPlanning domain: %s' % policy.domain_file)
     print('Planning problem: %s' % policy.problem_file)
     print('Planning time: %.3f s' % policy.planning_time)
-    print('Total number of replannings (single-outcome): %i' % policy.singlesoutcome_planning_call)
+    print('Total number of replannings (single-outcome): %i' % policy.singleoutcome_planning_call)
     print('Total number of actual replannings (all-outcome): %i' % policy.alloutcome_planning_call)
     print('Total number of unsolvable states: %i' % len(policy.unsolvable_states))

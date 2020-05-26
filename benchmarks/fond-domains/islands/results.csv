@@ -1,0 +1,11 @@
+problem,planning_time,singlesoutcome_planning_call,alloutcome_planning_call,unsolvable_states,solvable,policy_length,plan_length
+islands-0,0.728,85,75,29,1,22,5
+islands-0,0.721,85,75,29,1,22,5
+islands-0,5.838,585,526,167,1,114,21
+islands-0,13.817,1249,1134,309,1,200,20
+islands-0,1642.371,46702,44172,6321,1,3799,756
+islands-0,1581.182,70412,67956,5187,1,2739,199
+islands-0,3.384,341,321,96,1,82,22
+islands-0,246.157,17360,16990,1973,1,1650,942
+islands-0,22.054,1888,1845,335,1,312,113
+islands-0,123.650,8397,8314,840,1,809,617

@@ -26,7 +26,7 @@ def parse():
 
 
 ###############################################################################
-def compilation(domain, rank=False, probability=0.5):
+def compilation(domain, rank=False, probability=0.4):
     '''given a non-deterministic domain object return 
        a list (set) of deterministic domains'''
 

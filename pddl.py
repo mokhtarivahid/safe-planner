@@ -89,7 +89,8 @@ def to_pddl(object, state=None, goals=None):
     ## translate a Domain object into a pddl string
     elif type(object) is Domain:
         pddl_str  = '(define (domain {0})\n\n'.format(object.name)
-        pddl_str += '  (:requirements {0})\n\n'.format(' '.join(object.requirements))
+        if object.requirements:
+            pddl_str += '  (:requirements {0})\n\n'.format(' '.join(object.requirements))
         if len(object.types) > 0:
             typed_str = '\n          '.join(['{} - {}'.format(' '.join(map(str,v)), k) for k,v in object.types.items() if v])
             untyped_str = ' '.join([k for k,v in object.types.items() if not v])

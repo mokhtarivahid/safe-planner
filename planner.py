@@ -3,6 +3,7 @@
 from collections import OrderedDict, defaultdict
 import os, time
 from itertools import product
+import subprocess
 
 from color import fg_green, fg_red, fg_red2, fg_yellow, fg_yellow2, fg_blue, fg_voilet, fg_beige, bg_green, bg_red, bg_yellow, bg_blue, bg_voilet
 from pddlparser import PDDLParser
@@ -83,7 +84,7 @@ class Planner(object):
         self.unsolvable_states = defaultdict(set)
 
         # total number of calls to external planner
-        self.singlesoutcome_planning_call = 0
+        self.singleoutcome_planning_call = 0
         self.alloutcome_planning_call = 0
 
         # planning time
@@ -92,15 +93,29 @@ class Planner(object):
         # the main loop of the planner
         self.find_safe_policy()
 
+        # # in some problems policy might get stuck by loops, if so make the policy empty
+        # if self.policy: 
+        #     for state, step in self.policy.items():
+        #         print(step)
+        #         if state.is_true(self.problem.goals):
+        #             break
+        #     else:
+        #         if self.verbose:
+        #             print(fg_yellow('[unsolvable -- switch to ndp2!] (%s:%s replanning) (%s unsolvable states) [%.3f s]' %\
+        #             (self.alloutcome_planning_call, self.singleoutcome_planning_call, \
+        #                 len(self.unsolvable_states), time.time() - self.planning_time)))
+        #         self.policy = OrderedDict()
+        #         self.unsolvable_states = defaultdict(set)
+        #         self.find_safe_policy_ndp2()
+
         # in some problems policy might get stuck by loops, if so make the policy empty
         if self.policy: 
-            for state, step in self.policy.items():
-                if state.is_true(self.problem.goals):
-                    break
-            else:
+            plan = self.plan()
+            if not ('GOAL' in plan.keys() or 'GOAL' in plan.values()):
                 if self.verbose:
-                    print(fg_yellow('[unsolvable -- switch to ndp2!] (%s replanning) (%s unsolvable states) [%.3f s]' %\
-                    (self.singlesoutcome_planning_call, len(self.unsolvable_states), time.time() - self.planning_time)))
+                    print(fg_yellow('[unsolvable -- switch to ndp2!] (%s:%s replanning) (%s unsolvable states) [%.3f s]' %\
+                    (self.alloutcome_planning_call, self.singleoutcome_planning_call, \
+                        len(self.unsolvable_states), time.time() - self.planning_time)))
                 self.policy = OrderedDict()
                 self.unsolvable_states = defaultdict(set)
                 self.find_safe_policy_ndp2()
@@ -186,6 +201,17 @@ class Planner(object):
 
         state = init
 
+        # increase the number of planning call
+        self.alloutcome_planning_call += 1
+
+        # verbosity: when verbosity is off: remove recorded files periodically!
+        if not self.verbose:
+            if self.alloutcome_planning_call > 500 and self.alloutcome_planning_call % 500 == 0:
+                try:
+                    os.system('rm -fr ' + self.working_dir + '*')
+                except OSError as e:
+                    print("Error: %s : %s" % (dir_path, e.strerror))
+
         # modify state such that plan does not start with an action in self.unsolvable_states[state]
         # and create a pddl problem given retrieved 'state' as its initial state 
         if state in self.unsolvable_states:
@@ -195,9 +221,6 @@ class Planner(object):
         else:
             problem_pddl = pddl(self.problem, state=state, path=self.working_dir)
 
-        # increase the number of planning call
-        self.alloutcome_planning_call += 1
-
         for domain_pddl, domain_obj in self.domains.items():
             # modify domain such that plan does not start with an action in self.unsolvable_states[state]
             if state in self.unsolvable_states:
@@ -205,7 +228,7 @@ class Planner(object):
             else:
                 cons_domain_obj = domain_obj
             # create a pddl file of the domain object
-            cons_domain_pddl = pddl(cons_domain_obj)
+            cons_domain_pddl = pddl(cons_domain_obj, path=self.working_dir)
 
 
             if self.verbose: 
@@ -216,13 +239,14 @@ class Planner(object):
             plan = call_planner(cons_domain_pddl, problem_pddl, self.planner, verbose=self.verbose)
 
             # increase the number of planning call
-            self.singlesoutcome_planning_call += 1
+            self.singleoutcome_planning_call += 1
 
             # verbosity: when verbosity is off !
             if not self.verbose:
-                if self.singlesoutcome_planning_call > 0 and self.singlesoutcome_planning_call % 500 == 0:
-                    print(fg_yellow('(%s replanning) (%s unsolvable states) [%.3f s]' %\
-                        (self.singlesoutcome_planning_call, len(self.unsolvable_states), time.time() - self.planning_time)))
+                if self.singleoutcome_planning_call > 0 and self.singleoutcome_planning_call % 500 == 0:
+                    print(fg_yellow('(%s:%s replanning) (%s unsolvable states) [%.3f s]' %\
+                        (self.alloutcome_planning_call, self.singleoutcome_planning_call, \
+                            len(self.unsolvable_states), time.time() - self.planning_time)))
 
             # if no plan exists try the next domain
             if plan == None:
@@ -372,6 +396,17 @@ class Planner(object):
             if state.is_true(self.problem.goals):
                 return policy
 
+            # increase the number of planning call
+            self.alloutcome_planning_call += 1
+
+            # verbosity: when verbosity is off: remove recorded files!
+            if not self.verbose:
+                if self.alloutcome_planning_call > 500 and self.alloutcome_planning_call % 500 == 0:
+                    try:
+                        os.system('rm -fr ' + self.working_dir + '*')
+                    except OSError as e:
+                        print("Error: %s : %s" % (dir_path, e.strerror))
+
             # modify state such that plan does not start with an action in self.unsolvable_states[state]
             # and create a pddl problem given retrieved 'state' as its initial state 
             if state in self.unsolvable_states:
@@ -381,9 +416,6 @@ class Planner(object):
             else:
                 problem_pddl = pddl(self.problem, state=state, path=self.working_dir)
 
-            # increase the number of planning call
-            self.alloutcome_planning_call += 1
-
             for domain_pddl, domain_obj in self.domains.items():
                 # modify domain such that plan does not start with an action in self.unsolvable_states[state]
                 if state in self.unsolvable_states:
@@ -391,7 +423,7 @@ class Planner(object):
                 else:
                     cons_domain_obj = domain_obj
                 # create a pddl file of the domain object
-                cons_domain_pddl = pddl(cons_domain_obj)
+                cons_domain_pddl = pddl(cons_domain_obj, path=self.working_dir)
 
                 if self.verbose: 
                     print(fg_yellow2('    -- problem:') + problem_pddl)
@@ -401,13 +433,14 @@ class Planner(object):
                 plan = call_planner(cons_domain_pddl, problem_pddl, self.planner, verbose=self.verbose)
 
                 # increase the number of planning call
-                self.singlesoutcome_planning_call += 1
+                self.singleoutcome_planning_call += 1
 
                 # verbosity: when verbosity is off !
                 if not self.verbose:
-                    if self.singlesoutcome_planning_call > 0 and self.singlesoutcome_planning_call % 500 == 0:
-                        print(fg_yellow('(%s replanning) (%s unsolvable states) [%.3f s]' %\
-                            (self.singlesoutcome_planning_call, len(self.unsolvable_states), time.time() - self.planning_time)))
+                    if self.singleoutcome_planning_call > 0 and self.singleoutcome_planning_call % 500 == 0:
+                        print(fg_yellow('(%s:%s replanning) (%s unsolvable states) [%.3f s]' %\
+                            (self.alloutcome_planning_call, self.singleoutcome_planning_call, \
+                                len(self.unsolvable_states), time.time() - self.planning_time)))
 
                 # if no plan exists try the next domain
                 if plan == None:
@@ -517,7 +550,7 @@ class Planner(object):
                 policy1[state] = step
             elif not preserve:
                 # for s in self.apply_step(state, policy1[state]):
-                #     self.remove_path2(s, state)
+                #     self.remove_path(s)
                 policy1[state] = step
         return policy1
 
@@ -930,7 +963,7 @@ class Planner(object):
         # create a stat file
         import json
         performance = {'time':round(self.planning_time,3),\
-                       'planning_call_singlesoutcome':self.singlesoutcome_planning_call,\
+                       'planning_call_singlesoutcome':self.singleoutcome_planning_call,\
                        'planning_call_alloutcome':self.alloutcome_planning_call,\
                        'unsolvable_states':len(self.unsolvable_states),\
                        'solvable': 'GOAL' in plan.keys() or\
@@ -944,6 +977,17 @@ class Planner(object):
 
         with open(stat_file, 'w') as outfile:
             json.dump(performance, outfile, indent=4)
+
+        # append into a csv file for average performance of all problems in the domain directory
+        # csv_file = '{}/{}.csv'.format(os.path.dirname(self.domain_file),self.domain.name)
+        csv_file = '{}/results.csv'.format(os.path.dirname(self.domain_file))
+        if os.path.exists(csv_file):
+            with open(csv_file, 'a') as outfile:
+                outfile.write('%s,%s,%.3f,%i,%i,%i,%i,%i,%i\n'%\
+                    (os.path.basename(self.problem_file),self.problem.problem, \
+                        self.planning_time, self.singleoutcome_planning_call, \
+                        self.alloutcome_planning_call, len(self.unsolvable_states), \
+                        'GOAL' in plan.keys() or 'GOAL' in plan.values(), len(self.policy), len(plan)-1 ))
 
         return stat_file
 

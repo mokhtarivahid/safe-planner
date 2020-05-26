@@ -62,14 +62,14 @@ class State(object):
         Apply a deterministic action to this state to produce a new state.
         '''
         new_preds = set(self.predicates)
-        new_preds |= set(action.effects.add_effects)
         new_preds -= set(action.effects.del_effects)
+        new_preds |= set(action.effects.add_effects)
         ## apply conditional when effect
         for effect in action.effects.when_effects:
             (pos_cnd_lst, neg_cnd_lst, pos_eff_lst, neg_eff_lst) = effect
             if self.is_true(pos_cnd_lst, neg_cnd_lst):
-                new_preds |= set(pos_eff_lst)
                 new_preds -= set(neg_eff_lst)
+                new_preds |= set(pos_eff_lst)
         ## apply conditional forall effect
         for effect in action.effects.forall_effects:
             ## (forall (var_lst) (effects))
@@ -80,8 +80,8 @@ class State(object):
                 param_lists = [self.objects[t] for t in types]
                 for params in product(*param_lists):
                     ground = _grounder(arg_names, params)
-                    new_preds |= set([ground(eff) for eff in pos_eff_lst])
                     new_preds -= set([ground(eff) for eff in neg_eff_lst])
+                    new_preds |= set([ground(eff) for eff in pos_eff_lst])
             ## (forall (var_lst) (when (cnd) (effects)))
             elif len(effect) == 5:
                 ## first ground var_list in the state
@@ -91,8 +91,8 @@ class State(object):
                 for params in product(*param_lists):
                     ground = _grounder(arg_names, params)
                     if self.is_true([ground(eff) for eff in pos_cnd_lst], [ground(eff) for eff in neg_cnd_lst]):
-                        new_preds |= set([ground(eff) for eff in pos_eff_lst])
                         new_preds -= set([ground(eff) for eff in neg_eff_lst])
+                        new_preds |= set([ground(eff) for eff in pos_eff_lst])
     
         return State(new_preds)
 
@@ -106,14 +106,14 @@ class State(object):
         def application(predicates, effects):
             '''apply @effects in @predicates'''
             new_preds = set(predicates)
-            new_preds |= set(effects.add_effects)
             new_preds -= set(effects.del_effects)
+            new_preds |= set(effects.add_effects)
             ## apply conditional when effect
             for effect in effects.when_effects:
                 (pos_cnd_lst, neg_cnd_lst, pos_eff_lst, neg_eff_lst) = effect
                 if self.is_true(pos_cnd_lst, neg_cnd_lst):
-                    new_preds |= set(pos_eff_lst)
                     new_preds -= set(neg_eff_lst)
+                    new_preds |= set(pos_eff_lst)
             ## apply conditional forall effect
             for effect in effects.forall_effects:
                 ## (forall (var_lst) (effects))
@@ -124,8 +124,8 @@ class State(object):
                     param_lists = [self.objects[t] for t in types]
                     for params in product(*param_lists):
                         ground = _grounder(arg_names, params)
-                        new_preds |= set([ground(eff) for eff in pos_eff_lst])
                         new_preds -= set([ground(eff) for eff in neg_eff_lst])
+                        new_preds |= set([ground(eff) for eff in pos_eff_lst])
                 ## (forall (var_lst) (when (cnd) (effects)))
                 elif len(effect) == 5:
                     ## first ground var_list in the state
@@ -135,8 +135,8 @@ class State(object):
                     for params in product(*param_lists):
                         ground = _grounder(arg_names, params)
                         if self.is_true([ground(eff) for eff in pos_cnd_lst], [ground(eff) for eff in neg_cnd_lst]):
-                            new_preds |= set([ground(eff) for eff in pos_eff_lst])
                             new_preds -= set([ground(eff) for eff in neg_eff_lst])
+                            new_preds |= set([ground(eff) for eff in pos_eff_lst])
             return new_preds
 
         # deterministic effects

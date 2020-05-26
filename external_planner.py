@@ -46,7 +46,8 @@ def call_ff(domain, problem, args='', verbose=0):
     if "predicate" in shell or "type mismatch" in shell or\
        "undeclared variable" in shell or "declared to use unknown" in shell or\
        "unknown constant" in shell or 'check input files' in shell or\
-       'too many constants!' in shell:
+       'increase MAX_PLAN_LENGTH!' in shell or\
+       'too many constants!' in shell or 'syntax error in line' in to_str(err):
         print(fg_yellow("[planning failed due to some error in the pddl description]"))
         print(fg_voilet('\n-- planner stdout'))
         print(shell)

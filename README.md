@@ -102,18 +102,18 @@ More precisely, the following combinations are supported by Safe-Planner for mod
 python3 main.py <DOMAIN> <PROBLEM> [-c <PLANNER>] [-d]
 ```
 
-For example, the following commands run Safe-Planner using classical planners FF, OPTIC and LPG-TD to solve a [`pickit`](domains/pickit) problem:
+For example, the following commands run Safe-Planner using classical planners FF, OPTIC and LPG-TD to solve a [`pickit`](benchmarks/multirob/pickit) problem:
 
 ```bash
-python3 main.py domains/pickit/domain.pddl domains/pickit/prob0.pddl -c ff
+python3 main.py benchmarks/multirob/pickit/domain.pddl benchmarks/multirob/pickit/prob0.pddl -c ff
 ```
 
 ```bash
-python3 main.py domains/pickit/domain.pddl domains/pickit/prob0.pddl -c optic-clp
+python3 main.py benchmarks/multirob/pickit/domain.pddl benchmarks/multirob/pickit/prob0.pddl -c optic-clp
 ```
 
 ```bash
-python3 main.py domains/pickit/domain.pddl domains/pickit/prob0.pddl -c lpg-td
+python3 main.py benchmarks/multirob/pickit/domain.pddl benchmarks/multirob/pickit/prob0.pddl -c lpg-td
 ```
 
 
@@ -155,8 +155,8 @@ SP represent a policy as a sequence of numbered steps such that:
 $ python main.py benchmarks/prob_interesting/bus-fare.pddl -j -d
 
 @ PLAN
- 0 : (wash-car-1) -- ((have-1-coin )) 0 -- ((have-2-coin ))((have-1-coin )) 1
- 1 : (bet-coin-2) -- ((have-1-coin ))((have-2-coin )) 0 -- ((have-3-coin ))((have-2-coin )) 2
+ 0 : (wash-car-1) -- ((have-1-coin )) 0 -- ((have-2-coin )) ((have-1-coin )) 1
+ 1 : (bet-coin-2) -- ((have-1-coin )) ((have-2-coin )) 0 -- ((have-3-coin )) ((have-2-coin )) 2
  2 : (buy-fare) -- () GOAL
 ```
 
@@ -201,20 +201,20 @@ the optional parameter `-d` translates the produced plan into a dot file in the 
 }
 ```
 
-##### Example 2: [`pickit`](domains/pickit) domain
+##### Example 2: [`pickit`](benchmarks/multirob/pickit) domain
 
 ```bash
-$ python3 main.py domains/pickit/domain.pddl domains/pickit/prob0.pddl -c lpg-td -d -j
+$ python3 main.py benchmarks/multirob/pickit/domain.pddl benchmarks/multirob/pickit/prob0.pddl -c lpg-td -d -j
 
 @ PLAN
  0 : (move_to_grasp arm1 stand1 box1 cap1) (move_to_grasp arm2 stand2 box2 base1) -- () 1
  1 : (vacuum_object arm1 cap1 box1) (vacuum_object arm2 base1 box2) -- () 2
  2 : (carry_to_camera arm1 box1 camera1 cap1) (carry_to_stand arm2 box2 stand2 base1) -- () 3
- 3 : (check_orientation arm1 cap1 camera1) -- ((upward cap1))((unknown_orientation cap1)) 4 -- ((downward cap1))((unknown_orientation cap1)) 5
+ 3 : (check_orientation arm1 cap1 camera1) -- ((upward cap1)) ((unknown_orientation cap1)) 4 -- ((downward cap1)) ((unknown_orientation cap1)) 5
  4 : (rotate arm1 cap1) (carry_to_stand arm1 camera1 stand1 cap1) -- () 6
  5 : (carry_to_stand arm1 camera1 stand1 cap1) -- () 6
  6 : (put_object arm1 cap1 stand1) (carry_to_camera arm2 stand2 camera1 base1) -- () 7
- 7 : (grip_object arm1 cap1 stand1) (check_orientation arm2 base1 camera1) -- ((downward base1))((unknown_orientation base1)) 8 -- ((upward base1))((unknown_orientation base1)) 9
+ 7 : (grip_object arm1 cap1 stand1) (check_orientation arm2 base1 camera1) -- ((downward base1)) ((unknown_orientation base1)) 8 -- ((upward base1)) ((unknown_orientation base1)) 9
  8 : (carry_to_stand arm2 camera1 stand2 base1) (carry_to_assemble arm1 stand1 assembly_pose1 cap1) -- () 10
  9 : (rotate arm2 base1) (carry_to_stand arm2 camera1 stand2 base1) (carry_to_assemble arm1 stand1 assembly_pose1 cap1) -- () 10
 10 : (put_object arm2 base1 stand2) -- () 11
