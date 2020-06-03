@@ -44,22 +44,22 @@
   (:action pick-bad-gold-1
     :parameters (?loc - location)
     :precondition (and (person-at ?loc) (gold-bad-at ?loc) (person-alive) (goldcount-0))
-    :effect (oneof (not (person-alive))
-    			   (and (not (goldcount-0)) (goldcount-1) (not (gold-bad-at ?loc))))
+    :effect (oneof (and (not (goldcount-0)) (goldcount-1) (not (gold-bad-at ?loc)))
+                   (not (person-alive)))
   )
 
   (:action pick-bad-gold-2
     :parameters (?loc - location)
     :precondition (and (person-at ?loc) (gold-bad-at ?loc) (person-alive) (goldcount-1))
-    :effect (oneof (not (person-alive))
-    			   (and (not (goldcount-1)) (goldcount-2) (not (gold-bad-at ?loc))))
+    :effect (oneof (and (not (goldcount-1)) (goldcount-2) (not (gold-bad-at ?loc)))
+                   (not (person-alive)))
   )
 
   (:action pick-bad-gold-3
     :parameters (?loc - location)
     :precondition (and (person-at ?loc) (gold-bad-at ?loc) (person-alive) (goldcount-2))
-    :effect (oneof (not (person-alive))
-    			   (and (not (goldcount-2)) (goldcount-3) (not (gold-bad-at ?loc))))
+    :effect (oneof (and (not (goldcount-2)) (goldcount-3) (not (gold-bad-at ?loc)))
+                   (not (person-alive)))
   )
 
   (:action pick-good-gold-1

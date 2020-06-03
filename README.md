@@ -36,8 +36,8 @@ pip install ply graphviz
 Also install the following `Lua` libraries:
 
 ```bash
-sudo apt install -y lua-penlight lua-json luarocks lua-ansicolors libgv-lua
-sudo luarocks install ansicolors graphviz
+sudo apt install -y lua-penlight lua-json lua-ansicolors luarocks
+sudo luarocks install graphviz
 ```
 
 

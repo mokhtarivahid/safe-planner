@@ -1,6 +1,6 @@
 -- loads a json file containing a plan into a plan table
 
-colors = require 'ansicolors'
+local colors = require 'ansicolors'
 json = require "json"
 
 -------- PRINT USAGE  -----------------------------
@@ -46,7 +46,7 @@ local function execute(step)
         arguments = action.arguments
 
         -- print action name
-        print(colors.yellow .. name .. colors.reset)
+        print(colors('%{yellow}' .. name .. '%{reset}'))
 
         -- print action arguments
         for k, arg in pairs(arguments) do
@@ -65,7 +65,7 @@ local function execute(step)
 
     -- unfold outcome conditions
     for key, cnd in pairs(step.outcomes) do
-        print(colors.magenta .. '\npost-conditions' .. colors.reset)
+        print(colors('%{magenta}\npost-conditions%{reset}'))
         for key, c in pairs(cnd.condition) do
             print(c)
             -- if c == result.condition then
@@ -105,7 +105,7 @@ if verbose then
 end
 
 -- the main loop to execute the plan
-print(colors.green .. '\n[EXECUTION STARTS]' .. colors.reset)
+print(colors('%{green}\n[EXECUTION STARTS]%{reset}'))
 
 -- start from the root
 local step = plan.plan[1]
@@ -113,11 +113,11 @@ local step = plan.plan[1]
 while true do
     -- if there is no actions terminate the loop
     if plan[step] == nil then
-        print(colors.green .. '\n[TASK ACHIEVED]\n' .. colors.reset)
+        print(colors('%{green}\n[TASK ACHIEVED]%{reset}'))
         break
     end
 
-    print(colors.white .. colors.reverse .. '\n' .. step .. colors.reset)
+    print(colors('%{white}%{reverse}\n' .. step .. '%{reset}'))
 
     -- execute actions and continue for the next action
     step = execute(plan[step]).next

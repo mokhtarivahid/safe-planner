@@ -1,8 +1,90 @@
 
-import subprocess, os, sys, re, io
+from multiprocessing import Pool, Manager
+import subprocess, os, sys, re, io, signal
 from subprocess import check_output
 from collections import OrderedDict
 from color import fg_green, fg_red, fg_yellow, fg_blue, fg_voilet, fg_beige, bg_green, bg_red, bg_yellow, bg_blue, bg_voilet
+
+default_args = {
+    'ff'        : '',
+    'm'         : '-P 0 -N -m 4096',
+    'optic-clp' : '-b -N',
+    'lpg-td'    : '-speed -noout',
+    'vhpop'     : '-g -f DSep-LIFO -s HC -w 5 -l 1500000'
+}
+
+# stores the pid of 'Popen' calls to external planners
+pid_list = Manager().list()
+
+###############################################################################
+###############################################################################
+class Plan():
+    '''
+    creates a planner object and calls multiple planners
+    to solve a given problem and returns and terminates
+    as soon as the first planner finds a plan
+    '''
+    def __init__(self, planners, domain, problem, verbose):
+        self.plan = None
+        self.verbose = verbose
+        self.pool = Pool(processes=len(planners))
+        self.planners = planners
+        for planner in self.planners:
+            self.pool.apply_async(call_planner, \
+                args=(planner, domain, problem, default_args[planner], verbose), \
+                callback=self.callback)
+        self.pool.close()
+        self.pool.join()
+
+    def callback(self, plan):
+        if not plan == -1:
+            self.plan = plan
+            self.pool.terminate()
+            # kill other running planners
+            for pid in pid_list:
+                try:
+                    os.killpg(pid, signal.SIGKILL)
+                except OSError:
+                    pass
+            pid_list[:] = []
+
+
+###############################################################################
+###############################################################################
+def call_planner(planner='ff', domain=None, problem=None, args='', verbose=0):
+    '''
+    Call an external deterministic planner.
+    Arguments:
+    @domain : path to a given domain 
+    @problem : path to a given problem 
+    @planner : the name of the external planner  
+    @verbose : if True, prints statistics before returning
+    '''
+    ## FF planner ##
+    if 'ff' in planner.lower():
+        return call_ff(domain, problem, args, verbose=verbose)
+
+    ## Madagascar (M) planner ##
+    elif 'm' in planner.lower():
+        return call_m(domain, problem, args, verbose=verbose)
+
+    ## optic-clp planner ##
+    elif 'optic-clp' in planner.lower() or 'optic' in planner.lower():
+        return call_optic_clp(domain, problem, args, verbose=verbose)
+
+    ## optic-clp planner ##
+    elif 'vhpop' in planner.lower():
+        return call_vhpop(domain, problem, args, verbose=verbose)
+
+    ## lpg-td planner ##
+    elif 'lpg-td' in planner.lower():
+        return call_lpg_td(domain, problem, args, verbose=verbose)
+
+    ## optic-clp planner ##
+    else:
+        print(fg_red("\n[There is not yet a function for parsing the outputs of '{0}'!]\n".format(planner)))
+        # exit()
+        return -1
 
 
 ###############################################################################
@@ -22,8 +104,11 @@ def call_ff(domain, problem, args='', verbose=0):
     cmd = './planners/ff -o {} -f {} {}'.format(domain, problem, args)
 
     ## call command ##
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-     
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
+
+    # add the pid into pid_list 
+    pid_list.append(process.pid)
+
     (output, err) = process.communicate()
      
     ## Wait for cmd to terminate. Get return returncode ##
@@ -43,18 +128,19 @@ def call_ff(domain, problem, args='', verbose=0):
         return list()
 
     ## if solution already exists in the problem ##
-    if "predicate" in shell or "type mismatch" in shell or\
-       "undeclared variable" in shell or "declared to use unknown" in shell or\
-       "unknown constant" in shell or 'check input files' in shell or\
+    if 'predicate' in shell or 'type mismatch' in shell or\
+       'undeclared variable' in shell or 'declared to use unknown' in shell or\
+       'unknown constant' in shell or 'check input files' in shell or\
        'increase MAX_PLAN_LENGTH!' in shell or\
        'too many constants!' in shell or 'syntax error in line' in to_str(err):
-        print(fg_yellow("[planning failed due to some error in the pddl description]"))
+        print(fg_yellow('[planning failed due to some error in the pddl description]'))
         print(fg_voilet('\n-- planner stdout'))
         print(shell)
         if to_str(err):
             print(fg_voilet('-- planner stderr'))
             print(to_str(err))
-        exit()
+        # exit()
+        return -1
 
     if verbose == 2: 
         print(fg_voilet('\n-- planner stdout'))
@@ -87,8 +173,11 @@ def call_optic_clp(domain, problem, args='-b -N', verbose=0):
     cmd = './planners/optic-clp {} {} {}'.format(args, domain, problem)
 
     ## call command ##
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
      
+    # add the pid into pid_list 
+    pid_list.append(process.pid)
+
     (output, err) = process.communicate()
 
     # output = check_output(["./planners/optic-clp", "-b", "-N", domain, problem])
@@ -109,13 +198,14 @@ def call_optic_clp(domain, problem, args='-b -N', verbose=0):
         if to_str(err):
             print(fg_voilet('-- planner stderr'))
             print(to_str(err))
-        exit()
+        # exit()
+        return -1
 
     ## if problem is unsolvable by EHC remove -b (activate best-first search)
     if "Problem unsolvable by EHC, and best-first search has been disabled":
         ## calling 'optic-clp' again removing '-b' option ##
         cmd = './planners/optic-clp -N {0} {1}'.format(domain, problem)
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
         (output, err) = process.communicate()
         # shell = ''.join(map(chr, output))
         shell = to_str(output)
@@ -162,7 +252,7 @@ def call_optic_clp(domain, problem, args='-b -N', verbose=0):
 ###############################################################################
 ###############################################################################
 ## call madagascar (M) planner
-def call_m(domain, problem, args='-P 1 -t 5', verbose=0):
+def call_m(domain, problem, args='-P 1 -t 5 -N', verbose=0):
     '''
     Call an external planner
     @domain : path to a given domain 
@@ -172,18 +262,15 @@ def call_m(domain, problem, args='-P 1 -t 5', verbose=0):
     @return plan : the output plan is a list of actions as tuples, 
                    e.g., [[('move-car', 'l1', 'l4')], [('changetire', 'l4')]]
     '''
-
     cmd = './planners/m {0} {1} {2} -o {2}.soln'.format(args, domain, problem)
 
-
     ## call command ##
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
+
+    # add the pid into pid_list 
+    pid_list.append(process.pid)
 
     (output, err) = process.communicate()
-
-    # s = str()
-    # for out in run(cmd):
-    #     s+=out
 
     ## Wait for cmd to terminate. Get return returncode ##
     # p_status = process.wait()
@@ -211,7 +298,8 @@ def call_m(domain, problem, args='-P 1 -t 5', verbose=0):
                 plan.append([tuple(re.split('[, ) (]+',s)[:-1]) for s in step])
     except FileNotFoundError as fnf_error:
         print(shell)
-        exit()
+        # exit()
+        return -1
 
     if verbose == 2: 
         print(fg_voilet('\n-- planner stdout'))
@@ -237,18 +325,15 @@ def call_vhpop(domain, problem, args='-g -f DSep-LIFO -s HC -w 5 -l 1500000', ve
     @return plan : the output plan is a list of actions as tuples, 
                    e.g., [[('move-car', 'l1', 'l4')], [('changetire', 'l4')]]
     '''
-
     cmd = './planners/vhpop {} {} {}'.format(args, domain, problem)
 
-
     ## call command ##
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
+
+    # add the pid into pid_list 
+    pid_list.append(process.pid)
 
     (output, err) = process.communicate()
-
-    # s = str()
-    # for out in run(cmd):
-    #     s+=out
 
     ## Wait for cmd to terminate. Get return returncode ##
     # p_status = process.wait()
@@ -277,7 +362,8 @@ def call_vhpop(domain, problem, args='-g -f DSep-LIFO -s HC -w 5 -l 1500000', ve
         if to_str(err):
             print(fg_voilet('-- planner stderr'))
             print(to_str(err))
-        exit()
+        # exit()
+        return -1
 
     ## if no solution exists try the next domain ##
     if ";Problem has no solution." in shell or "no plan" in shell or ";Search limit reached." in shell:
@@ -311,13 +397,14 @@ def call_lpg_td(domain, problem, args='-speed -noout', verbose=0):
                           [('vacuum_object', 'arm2', 'cap1', 'box1'), ('vacuum_object', 'arm1', 'base1', 'box2')],
                           ...]
     '''
-
     cmd = './planners/lpg-td -o {} -f {} {}'.format(domain, problem, args)
 
     ## call command ##
-    # process = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True)
-    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
      
+    # add the pid into pid_list 
+    pid_list.append(process.pid)
+
     (output, err) = process.communicate()
 
     # output = check_output(["./planners/optic-clp", "-b", "-N", domain, problem])
@@ -353,7 +440,8 @@ def call_lpg_td(domain, problem, args='-speed -noout', verbose=0):
         if to_str(err):
             print(fg_voilet('-- planner stderr'))
             print(to_str(err))
-        exit()
+        # exit()
+        return -1
 
     ## if solution already exists in the problem ##
     if "No action in solution" in shell and "Plan computed:" in shell:
@@ -376,81 +464,9 @@ def call_lpg_td(domain, problem, args='-speed -noout', verbose=0):
     # print(list(plan.values()))
     return list(plan.values())
 
-###############################################################################
-###############################################################################
-## capture realtime output from a shell command
-def run(command):
-    process = subprocess.Popen(command, stdout=subprocess.PIPE, shell=True)
-
-    # for line in io.TextIOWrapper(process.stdout, encoding="utf-8"): 
-    #     print(line.strip())
-
-    # while True:
-    #     line = process.stdout.readline().rstrip()
-    #     # if not line:
-    #     if "Emitting top-level constant FALSE" in line.strip().decode():
-    #         break
-    #     yield line
-    # print(process.stdout)
-    while True:
-        print('read')
-        output = process.stdout.readline().rstrip().decode()
-        # output = ''.join(map(chr, output))
-        # print(output.decode(),process.poll())
-        if "Emitting top-level constant FALSE" in output and process.poll() is None:
-            break
-        if not output and process.poll() is not None:
-            break
-        yield output
-    # rc = process.poll()
-    # return rc
-
 
 ###############################################################################
 ###############################################################################
-def call_planner(domain, problem, planner='ff', args='', verbose=0):
-    '''
-    Call an external deterministic planner.
-    Arguments:
-    @domain : path to a given domain 
-    @problem : path to a given problem 
-    @planner : the name of the external planner  
-    @verbose : if True, prints statistics before returning
-    '''
-
-    Planners = os.listdir('planners')
-
-    if planner.lower().split('/')[-1] not in map(str.lower, Planners):
-        print(fg_red("\n'{0}' does not exist in 'planners/' directory!".format(planner)))
-        print(fg_yellow("currently these planners are available: ") + str(Planners))
-        exit()
-
-    ## FF planner ##
-    if 'ff' in planner.lower():
-        return call_ff(domain, problem, verbose=verbose)
-
-    ## Madagascar (M) planner ##
-    elif 'm' in planner.lower():
-        return call_m(domain, problem, verbose=verbose)
-
-    ## optic-clp planner ##
-    elif 'optic-clp' in planner.lower() or 'optic' in planner.lower():
-        return call_optic_clp(domain, problem, verbose=verbose)
-
-    ## optic-clp planner ##
-    elif 'vhpop' in planner.lower():
-        return call_vhpop(domain, problem, verbose=verbose)
-
-    ## lpg-td planner ##
-    elif 'lpg-td' in planner.lower():
-        return call_lpg_td(domain, problem, verbose=verbose)
-
-    ## optic-clp planner ##
-    else:
-        print(fg_red("\n[There is not yet a function for parsing the outputs of '{0}'!]\n".format(planner)))
-        exit()
-
-
 ## checks the output type and convert it to str
 ## in python 3 is of type 'byte' and in 2 is of type 'str' already
 def to_str(output):

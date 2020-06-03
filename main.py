@@ -12,16 +12,16 @@ from json_ma_plan import json_ma_plan
 from json_plan import json_plan
 
 def parse():
-    usage = 'python3 main.py <DOMAIN> <PROBLEM> [-c <PLANNER>] [-r] [-p] [-d] [-j] [-s] [-v N] [-h]'
+    usage = 'python3 main.py <DOMAIN> <PROBLEM> [-c <PLANNERS>] [-r] [-p] [-d] [-j] [-s] [-v N] [-h]'
     description = "Safe-Planner is a non-deterministic planner for PPDDL."
     parser = argparse.ArgumentParser(usage=usage, description=description)
 
     parser.add_argument('domain',  nargs='?', type=str, help='path to a PDDL domain file')
     parser.add_argument('problem', nargs='?', type=str, help='path to a PDDL problem file')
-    parser.add_argument("-c", "--planner", type=str, default="ff", #choices=os.listdir('planners'),
-        help="external classical planner: ff, m, optic-clp, lpg-td, vhpop, ... (default=ff)")
-    parser.add_argument("-r", "--rank", help="rank the compiled classical planning domains \
-        by higher probabilistic outcomes", action="store_true")
+    parser.add_argument("-c", "--planners", nargs='*', type=str, default=["ff"], #choices=os.listdir('planners'),
+        help="a list of external classical planners: ff, m, optic-clp, lpg-td, vhpop, ... (default=[ff])")
+    parser.add_argument("-r", "--rank", help="to disable ranking the compiled classical planning domains \
+        by higher probabilistic outcomes (default=True)", action="store_false", default=True)
     parser.add_argument("-p", "--path", help="print out possible paths of the produced policy", 
         action="store_true")
     parser.add_argument("-d", "--dot", help="draw a graph of the produced policy into a dot file", 
@@ -38,15 +38,15 @@ def parse():
 
 if __name__ == '__main__':
 
-	## parse arguments
+    ## parse arguments
     parser = parse()
     args = parser.parse_args()
     if args.domain == None:
-    	parser.print_help()
-    	exit()
+        parser.print_help()
+        exit()
 
     ## make a policy given domain and problem
-    policy = Planner(args.domain, args.problem, args.planner, args.rank, args.verbose)
+    policy = Planner(args.domain, args.problem, args.planners, args.rank, args.verbose)
 
     ## transform the produced policy into a contingency plan
     plan = policy.plan()
@@ -87,14 +87,16 @@ if __name__ == '__main__':
         print(fg_yellow('-- plan_json_file:') + plan_json_file + fg_red(' [EXPERIMENTAL!]'))
         print(fg_yellow('-- actions_json_file:') + actions_json_file + fg_red(' [EXPERIMENTAL!]'))
         os.system('cd lua && lua json_multiagent_plan.lua ../%s &' % plan_json_file)
-        subprocess.Popen(["xdot", plan_json_file])
+        print(fg_yellow('-- plan_json_dot_file:') + ('%s.dot' % plan_json_file) + fg_red(' [EXPERIMENTAL!]'))
+        # subprocess.Popen(["xdot", plan_json_file])
         # os.system('xdot %s.dot &' % plan_json_file)
 
     ## transform the policy into a json file
     if args.json:
         plan = policy.plan(tree=False)
         json_file, plan_json = json_plan(policy)
-        print(fg_yellow('-- json file: ') + json_file + fg_red(' [EXPERIMENTAL!]\n'))
+        print(fg_yellow('\n-- json file: ') + json_file + fg_red(' [EXPERIMENTAL!]'))
+        print(fg_yellow('-- try: ') + 'lua json_plan.lua ' + json_file + fg_red(' [EXPERIMENTAL!]\n'))
 
     if args.store:
         stat_file = policy.log_performance(plan)
@@ -102,6 +104,7 @@ if __name__ == '__main__':
 
     print('\nPlanning domain: %s' % policy.domain_file)
     print('Planning problem: %s' % policy.problem_file)
+    print('Policy length: %i' % len(policy.policy))
     print('Planning time: %.3f s' % policy.planning_time)
     print('Total number of replannings (single-outcome): %i' % policy.singleoutcome_planning_call)
     print('Total number of actual replannings (all-outcome): %i' % policy.alloutcome_planning_call)

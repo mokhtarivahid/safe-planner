@@ -19,6 +19,8 @@ def parse():
     description = "Compiling a non-deterministic domain to a set of deterministic domains."
     parser = argparse.ArgumentParser(usage=usage, description=description)
     parser.add_argument('domain',  type=str, help='path to a PDDL domain file')
+    parser.add_argument("-r", "--rank", help="rank the compiled classical planning domains \
+        by higher probabilistic outcomes", action="store_true")
     parser.add_argument("-v", "--verbose", help="increase output verbosity", 
         action="store_true")
 
@@ -54,12 +56,12 @@ def compilation(domain, rank=False, probability=0.4):
         probabilistic_effects = list()
         for prob_eff_lst in action.probabilistic:
             # rank by the highest probability
-            if rank: prob_eff_lst = tuple(sorted(prob_eff_lst, key=lambda x: x[0], reverse=True))
+            if rank: prob_eff_lst = tuple(sorted(prob_eff_lst, key=lambda x: x[0], reverse=False))
             if sum([eff[0] for eff in prob_eff_lst]) == 1:
                 probabilistic_effects.append(prob_eff_lst)
             elif rank:
                 probabilistic_effects.append(\
-                    tuple(sorted(tuple([(probability, Effect())])+prob_eff_lst, key=lambda x: x[0], reverse=True)))
+                    tuple(sorted(tuple([(probability, Effect())])+prob_eff_lst, key=lambda x: x[0], reverse=False)))
             else:
                 probabilistic_effects.append(prob_eff_lst+tuple([(0, Effect())]))
 
@@ -77,7 +79,13 @@ def compilation(domain, rank=False, probability=0.4):
 
         ## split action oneof effects into a list of deterministic effects
         ## make all possible combination of oneof effects
-        for oneof_eff in list(product(*action.oneof)):
+        oneof_effects = list()
+        if rank:
+            for oneof_eff_lst in action.oneof:
+                oneof_effects.append(tuple(reversed(oneof_eff_lst)))
+        else: oneof_effects = action.oneof
+
+        for oneof_eff in list(product(*oneof_effects)):
             if oneof_eff:
                 literals_lst, forall_lst, when_lst = [], [], []
                 for eff in oneof_eff:
@@ -92,7 +100,8 @@ def compilation(domain, rank=False, probability=0.4):
         ## include also the action (deterministic) effects if the total probability is less than 1.0
         ## or if there is only one probabilistic/oneof effect
         if action.effects and ( len(deterministic_effects) == 0 or len(deterministic_effects) == 1): 
-            if rank and action.probabilistic and action.probabilistic[0][0][0] < probability:
+            if rank and (action.oneof or \
+                         action.probabilistic and action.probabilistic[0][0][0] < probability):
                 deterministic_effects.insert(0, action.effects)
             else:
                 deterministic_effects.extend([action.effects])
@@ -178,7 +187,7 @@ if __name__ == '__main__':
     ## if problem is also in the file
     if type(domain) == tuple: domain = domain[0]
 
-    domains_dir = compile(domain)
+    domains_dir = compile(domain, args.rank)
 
     if domains_dir is None: 
         print(fg_yellow('-- successfully parsed: ') + args.domain)
