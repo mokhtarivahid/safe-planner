@@ -10,7 +10,8 @@ default_args = {
     'm'         : '-P 0 -N -m 4096',
     'optic-clp' : '-b -N',
     'lpg-td'    : '-speed -noout',
-    'vhpop'     : '-g -f DSep-LIFO -s HC -w 5 -l 1500000'
+    'vhpop'     : '-g -f DSep-LIFO -s HC -w 5 -l 1500000',
+    'fd'        : '--search "astar(lmcut())"'
 }
 
 # stores the pid of 'Popen' calls to external planners
@@ -26,7 +27,15 @@ class Plan():
     '''
     def __init__(self, planners, domain, problem, verbose):
         self.plan = None
-        self.verbose = verbose
+
+        # if only one planner then no need multiprocessing
+        if len(planners) == 1:
+            plan = call_planner(planners[0], domain, problem, default_args[planners[0]], verbose)
+            if not plan == -1:
+                self.plan = plan
+            return
+
+        # otherwise, run in multiprocessing
         self.pool = Pool(processes=len(planners))
         self.planners = planners
         for planner in self.planners:
@@ -80,7 +89,11 @@ def call_planner(planner='ff', domain=None, problem=None, args='', verbose=0):
     elif 'lpg-td' in planner.lower():
         return call_lpg_td(domain, problem, args, verbose=verbose)
 
-    ## optic-clp planner ##
+    ## lpg-td planner ##
+    elif 'fd' in planner.lower():
+        return call_fd(domain, problem, args, verbose=verbose)
+
+    ## no planner ##
     else:
         print(fg_red("\n[There is not yet a function for parsing the outputs of '{0}'!]\n".format(planner)))
         # exit()
@@ -463,6 +476,74 @@ def call_lpg_td(domain, problem, args='-speed -noout', verbose=0):
 
     # print(list(plan.values()))
     return list(plan.values())
+
+
+###############################################################################
+###############################################################################
+## call fast-downward planner
+def call_fd(domain, problem, args='--search "astar(lmcut())"', verbose=0):
+    '''
+    Call an external planner
+    @domain : path to a given domain 
+    @problem : path to a given problem 
+    @verbose : if True, prints statistics before returning
+
+    @return plan : the output plan is a list of actions as tuples, 
+                   e.g., [[('move_to_grasp', 'arm1', 'box1', 'base1', 'box2'), ('move_to_grasp', 'arm2', 'box2', 'cap1', 'box1')], 
+                          [('vacuum_object', 'arm2', 'cap1', 'box1'), ('vacuum_object', 'arm1', 'base1', 'box2')],
+                          ...]
+    '''
+    cmd = './planners/fd/fast-downward.py --plan-file /tmp/plan.txt {} {} {}'.format(domain, problem, args)
+
+    ## call command ##
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
+     
+    # add the pid into pid_list 
+    pid_list.append(process.pid)
+
+    (output, err) = process.communicate()
+
+    ## Wait for cmd to terminate. Get return returncode ##
+    # p_status = process.wait()
+    # print("Command exit status/return code : ", p_status)
+
+    ## bytes to string ##
+    # shell = ''.join(map(chr, output))
+    shell = to_str(output)
+
+    if verbose == 2: 
+        print(fg_voilet('\n-- planner stdout'))
+        print(shell)
+        if to_str(err):
+            print(fg_voilet('-- planner stderr'))
+            print(to_str(err))
+
+    ## if no solution exists try the next domain ##
+    if not "translate exit code: 0" in shell or\
+           "configuration does not support" in to_str(err):
+        if not verbose:
+            print(fg_voilet('-- \'fd\' does not support this pddl configuration -- run with \'-v 2\''))
+        return -1
+
+    ## if no solution exists try the next domain ##
+    if not "search exit code: 0" in shell:
+        return -1
+
+    ## read the solution file
+    plan = list()
+    try:
+        with open('/tmp/plan.txt') as f:
+            for line in f:
+                ## extract concurrent action at each step
+                if '; cost =' in line: continue
+                step = re.split('[, ) (]+',line)[1:-1]
+                plan.append([tuple(step)])
+    except FileNotFoundError as fnf_error:
+        print(shell)
+        # exit()
+        return -1
+
+    return plan
 
 
 ###############################################################################

@@ -2,15 +2,16 @@
 
 **Safe-Planner (SP)** is an off-line non-deterministic planning algorithm based on replanning that compiles a **Fully Observable Non-Deterministic (FOND)** planning problem into a set of classical planning problems which can be solved using a classical problem solver. SP then merges the obtained classical solutions and forms a non-deterministic solution policy to the original non-deterministic problem. SP avoids dead-end states by simulating the execution during the policy generation and therefore it generates safe policies. The execution of a safe policy is guaranteed to terminate in a goal state for all potential outcomes of the actions in the non-deterministic environment (if any exists).
 
-SP can employ any off-the-shelf classical planner for problem solving. Currently, the classical planners [FF], [OPTIC], [MADAGASCAR], [VHPOP], and [LPG-TD] have been integrated. 
+SP can employ any off-the-shelf classical planner for problem solving. Currently, the classical planners [FF], [OPTIC], [MADAGASCAR], [VHPOP], [LPG-TD], and [FAST-DOWNWARD] have been integrated. 
 
-**Note:** OPTIC, MADAGASCAR, VHPOP, and LPG-TD are termporal/partial-order planners and therefore the produced policies are also partial-order.
+**Note:** OPTIC, MADAGASCAR, VHPOP, and LPG-TD are temporal/partial-order planners and therefore the produced policies are also partial-order.
 
 [FF]: https://fai.cs.uni-saarland.de/hoffmann/ff.html
 [OPTIC]: https://nms.kcl.ac.uk/planning/software/optic.html
 [MADAGASCAR]: https://users.aalto.fi/~rintanj1/jussi/satplan.html
 [VHPOP]: http://www.tempastic.org/vhpop/
 [LPG-TD]: https://lpg.unibs.it/lpg/
+[FAST-DOWNWARD]: http://www.fast-downward.org/
 
 
 
@@ -25,11 +26,11 @@ SP can employ any off-the-shelf classical planner for problem solving. Currently
 
 ## Requirement
 
-SP has been implemented in `Python` and the following packages are required to install: 
+SP has been implemented in `Python3` and the following packages are required to install: 
 
 ```bash
-sudo apt install python-pip
-pip install ply graphviz
+sudo apt install python3-pip
+pip3 install ply graphviz
 ```
 
 
@@ -152,7 +153,7 @@ SP represent a policy as a sequence of numbered steps such that:
 
 
 ```bash
-$ python main.py benchmarks/prob_interesting/bus-fare.pddl -j -d
+python3 main.py benchmarks/prob_interesting/bus-fare.pddl -j -d
 
 @ PLAN
  0 : (wash-car-1) -- ((have-1-coin )) 0 -- ((have-2-coin )) ((have-1-coin )) 1
@@ -204,7 +205,7 @@ the optional parameter `-d` translates the produced plan into a dot file in the 
 ##### Example 2: [`pickit`](benchmarks/multirob/pickit) domain
 
 ```bash
-$ python3 main.py benchmarks/multirob/pickit/domain.pddl benchmarks/multirob/pickit/prob0.pddl -c lpg-td -d -j
+python3 main.py benchmarks/multirob/pickit/domain.pddl benchmarks/multirob/pickit/prob0.pddl -c lpg-td -d -j
 
 @ PLAN
  0 : (move_to_grasp arm1 stand1 box1 cap1) (move_to_grasp arm2 stand2 box2 base1) -- () 1
@@ -458,7 +459,7 @@ The following references describe the algorithm of **Safe-Planner**.
   Title     = {Planning for cyclic safe solutions in fully observable non-deterministic robotic tasks},
   Maintitle = {IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS 2019)},
   Booktitle = {4th Workshop on Semantic Policy and Action Representations for Autonomous Robots (SPAR)},
-  Url       = {https://drive.google.com/file/d/1TZ1uL72j4xkNG7U2H4TYIUiUo_I5czlE/},
+  Url       = {https://bit.ly/2Bo4DQM},
   Year      = {2019}
 }
 

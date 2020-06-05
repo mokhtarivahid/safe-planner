@@ -19,7 +19,7 @@ def parse():
     parser.add_argument('domain',  nargs='?', type=str, help='path to a PDDL domain file')
     parser.add_argument('problem', nargs='?', type=str, help='path to a PDDL problem file')
     parser.add_argument("-c", "--planners", nargs='*', type=str, default=["ff"], #choices=os.listdir('planners'),
-        help="a list of external classical planners: ff, m, optic-clp, lpg-td, vhpop, ... (default=[ff])")
+        help="a list of external classical planners: ff, fd, m, optic-clp, lpg-td, vhpop, ... (default=[ff])")
     parser.add_argument("-r", "--rank", help="to disable ranking the compiled classical planning domains \
         by higher probabilistic outcomes (default=True)", action="store_false", default=True)
     parser.add_argument("-p", "--path", help="print out possible paths of the produced policy", 
