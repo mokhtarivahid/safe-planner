@@ -34,7 +34,7 @@ pip3 install ply graphviz
 ```
 
 
-Also install the following `Lua` libraries:
+Also install the following `Lua` libraries (optional: only for parsing json files):
 
 ```bash
 sudo apt install -y lua-penlight lua-json lua-ansicolors luarocks

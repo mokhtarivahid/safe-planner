@@ -106,6 +106,6 @@ if __name__ == '__main__':
     print('Planning problem: %s' % policy.problem_file)
     print('Policy length: %i' % len(policy.policy))
     print('Planning time: %.3f s' % policy.planning_time)
+    print('Planning iterations (all-outcome): %i' % policy.alloutcome_planning_call)
     print('Total number of replannings (single-outcome): %i' % policy.singleoutcome_planning_call)
-    print('Total number of actual replannings (all-outcome): %i' % policy.alloutcome_planning_call)
     print('Total number of unsolvable states: %i' % len(policy.unsolvable_states))

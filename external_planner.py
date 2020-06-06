@@ -1,5 +1,5 @@
 
-from multiprocessing import Pool, Manager
+from multiprocessing import Pool, Array
 import subprocess, os, sys, re, io, signal
 from subprocess import check_output
 from collections import OrderedDict
@@ -15,7 +15,7 @@ default_args = {
 }
 
 # stores the pid of 'Popen' calls to external planners
-pid_list = Manager().list()
+pid_lst = Array('I', len(os.listdir('planners')))
 
 ###############################################################################
 ###############################################################################
@@ -27,10 +27,18 @@ class Plan():
     '''
     def __init__(self, planners, domain, problem, verbose):
         self.plan = None
-
         # if only one planner then no need multiprocessing
         if len(planners) == 1:
-            plan = call_planner(planners[0], domain, problem, default_args[planners[0]], verbose)
+            try:
+                plan = call_planner(planners[0], domain, problem, default_args[planners[0]], verbose)
+            except KeyboardInterrupt:
+                # kill also the running planner
+                try:
+                    os.killpg(pid_lst[0], signal.SIGKILL)
+                except OSError:
+                    pass
+                raise
+
             if not plan == -1:
                 self.plan = plan
             return
@@ -38,29 +46,38 @@ class Plan():
         # otherwise, run in multiprocessing
         self.pool = Pool(processes=len(planners))
         self.planners = planners
-        for planner in self.planners:
+        for pidx, planner in enumerate(self.planners):
             self.pool.apply_async(call_planner, \
-                args=(planner, domain, problem, default_args[planner], verbose), \
+                args=(planner, domain, problem, default_args[planner], verbose, pidx), \
                 callback=self.callback)
         self.pool.close()
-        self.pool.join()
+        try:
+            self.pool.join()
+        except KeyboardInterrupt:
+            self.pool.terminate()
+            # kill also running planners
+            for i in range(len(self.planners)):
+                try:
+                    os.killpg(pid_lst[i], signal.SIGKILL)
+                except OSError:
+                    pass
+            raise
 
     def callback(self, plan):
         if not plan == -1:
             self.plan = plan
             self.pool.terminate()
-            # kill other running planners
-            for pid in pid_list:
+            # kill also running planners
+            for i in range(len(self.planners)):
                 try:
-                    os.killpg(pid, signal.SIGKILL)
+                    os.killpg(pid_lst[i], signal.SIGKILL)
                 except OSError:
                     pass
-            pid_list[:] = []
 
 
 ###############################################################################
 ###############################################################################
-def call_planner(planner='ff', domain=None, problem=None, args='', verbose=0):
+def call_planner(planner='ff', domain=None, problem=None, args='', verbose=0, pidx=0):
     '''
     Call an external deterministic planner.
     Arguments:
@@ -68,30 +85,31 @@ def call_planner(planner='ff', domain=None, problem=None, args='', verbose=0):
     @problem : path to a given problem 
     @planner : the name of the external planner  
     @verbose : if True, prints statistics before returning
+    @pidx : the process index for using the shared array 'pid_lst'
     '''
     ## FF planner ##
     if 'ff' in planner.lower():
-        return call_ff(domain, problem, args, verbose=verbose)
+        return call_ff(domain, problem, args, verbose, pidx)
 
     ## Madagascar (M) planner ##
     elif 'm' in planner.lower():
-        return call_m(domain, problem, args, verbose=verbose)
+        return call_m(domain, problem, args, verbose, pidx)
 
     ## optic-clp planner ##
     elif 'optic-clp' in planner.lower() or 'optic' in planner.lower():
-        return call_optic_clp(domain, problem, args, verbose=verbose)
+        return call_optic_clp(domain, problem, args, verbose, pidx)
 
     ## optic-clp planner ##
     elif 'vhpop' in planner.lower():
-        return call_vhpop(domain, problem, args, verbose=verbose)
+        return call_vhpop(domain, problem, args, verbose, pidx)
 
     ## lpg-td planner ##
     elif 'lpg-td' in planner.lower():
-        return call_lpg_td(domain, problem, args, verbose=verbose)
+        return call_lpg_td(domain, problem, args, verbose, pidx)
 
     ## lpg-td planner ##
     elif 'fd' in planner.lower():
-        return call_fd(domain, problem, args, verbose=verbose)
+        return call_fd(domain, problem, args, verbose, pidx)
 
     ## no planner ##
     else:
@@ -103,7 +121,7 @@ def call_planner(planner='ff', domain=None, problem=None, args='', verbose=0):
 ###############################################################################
 ###############################################################################
 ## call ff planner
-def call_ff(domain, problem, args='', verbose=0):
+def call_ff(domain, problem, args='', verbose=0, pidx=0):
     '''
     Call an external planner
     @domain : path to a given domain 
@@ -119,8 +137,8 @@ def call_ff(domain, problem, args='', verbose=0):
     ## call command ##
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
 
-    # add the pid into pid_list 
-    pid_list.append(process.pid)
+    # add the pid into pid_lst 
+    pid_lst[pidx] = process.pid
 
     (output, err) = process.communicate()
      
@@ -131,6 +149,13 @@ def call_ff(domain, problem, args='', verbose=0):
     ## bytes to string ##
     # shell = ''.join(map(chr, output))
     shell = to_str(output)
+
+    # Permission denied
+    if 'Permission denied' in to_str(err):
+        print(to_str(err))
+        print(fg_voilet('-- run \'chmod +x planners/ff\''))
+        sys.exit(0)
+        return -1
 
     ## if no solution exists try the next domain ##
     if "goal can be simplified to FALSE" in shell or "problem proven unsolvable" in shell:
@@ -170,7 +195,7 @@ def call_ff(domain, problem, args='', verbose=0):
 ###############################################################################
 ###############################################################################
 ## call optic-clp planner
-def call_optic_clp(domain, problem, args='-b -N', verbose=0):
+def call_optic_clp(domain, problem, args='-b -N', verbose=0, pidx=0):
     '''
     Call an external planner
     @domain : path to a given domain 
@@ -188,13 +213,11 @@ def call_optic_clp(domain, problem, args='-b -N', verbose=0):
     ## call command ##
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
      
-    # add the pid into pid_list 
-    pid_list.append(process.pid)
+    # add the pid into pid_lst 
+    pid_lst[pidx] = process.pid
 
     (output, err) = process.communicate()
 
-    # output = check_output(["./planners/optic-clp", "-b", "-N", domain, problem])
-     
     ## Wait for cmd to terminate. Get return returncode ##
     # p_status = process.wait()
     # print("Command exit status/return code : ", p_status)
@@ -202,6 +225,13 @@ def call_optic_clp(domain, problem, args='-b -N', verbose=0):
     ## bytes to string ##
     # shell = ''.join(map(chr, output))
     shell = to_str(output)
+
+    # Permission denied
+    if 'Permission denied' in to_str(err):
+        print(to_str(err))
+        print(fg_voilet('-- run \'chmod +x planners/optic-clp\''))
+        sys.exit(0)
+        return -1
 
     ## if solution already exists in the problem ##
     if "has to terminate" in to_str(err):
@@ -265,7 +295,7 @@ def call_optic_clp(domain, problem, args='-b -N', verbose=0):
 ###############################################################################
 ###############################################################################
 ## call madagascar (M) planner
-def call_m(domain, problem, args='-P 1 -t 5 -N', verbose=0):
+def call_m(domain, problem, args='-P 1 -t 5 -N', verbose=0, pidx=0):
     '''
     Call an external planner
     @domain : path to a given domain 
@@ -280,8 +310,8 @@ def call_m(domain, problem, args='-P 1 -t 5 -N', verbose=0):
     ## call command ##
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
 
-    # add the pid into pid_list 
-    pid_list.append(process.pid)
+    # add the pid into pid_lst 
+    pid_lst[pidx] = process.pid
 
     (output, err) = process.communicate()
 
@@ -292,6 +322,13 @@ def call_m(domain, problem, args='-P 1 -t 5 -N', verbose=0):
     ## bytes to string ##
     # shell = ''.join(map(chr, output))
     shell = to_str(output)
+
+    # Permission denied
+    if 'Permission denied' in to_str(err):
+        print(to_str(err))
+        print(fg_voilet('-- run \'chmod +x planners/m\''))
+        sys.exit(0)
+        return -1
 
     ## if no solution exists try the next domain ##
     if "Timeout after" in shell:
@@ -328,7 +365,7 @@ def call_m(domain, problem, args='-P 1 -t 5 -N', verbose=0):
 ###############################################################################
 ###############################################################################
 ## call vhpop planner
-def call_vhpop(domain, problem, args='-g -f DSep-LIFO -s HC -w 5 -l 1500000', verbose=0):
+def call_vhpop(domain, problem, args='-g -f DSep-LIFO -s HC -w 5 -l 1500000', verbose=0, pidx=0):
     '''
     Call an external planner
     @domain : path to a given domain 
@@ -343,8 +380,8 @@ def call_vhpop(domain, problem, args='-g -f DSep-LIFO -s HC -w 5 -l 1500000', ve
     ## call command ##
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
 
-    # add the pid into pid_list 
-    pid_list.append(process.pid)
+    # add the pid into pid_lst 
+    pid_lst[pidx] = process.pid
 
     (output, err) = process.communicate()
 
@@ -365,6 +402,13 @@ def call_vhpop(domain, problem, args='-g -f DSep-LIFO -s HC -w 5 -l 1500000', ve
 
     # extract plan
     shell = shell[shell.find(';'):shell.find('Time')].strip()
+
+    # Permission denied
+    if 'Permission denied' in to_str(err):
+        print(to_str(err))
+        print(fg_voilet('-- run \'chmod +x planners/vhpop\''))
+        sys.exit(0)
+        return -1
 
     ## if not supported some PDDL features by planner ##
     if "undeclared type" in to_str(err) or\
@@ -398,7 +442,7 @@ def call_vhpop(domain, problem, args='-g -f DSep-LIFO -s HC -w 5 -l 1500000', ve
 ###############################################################################
 ###############################################################################
 ## call lpg-td planner
-def call_lpg_td(domain, problem, args='-speed -noout', verbose=0):
+def call_lpg_td(domain, problem, args='-speed -noout', verbose=0, pidx=0):
     '''
     Call an external planner
     @domain : path to a given domain 
@@ -415,8 +459,8 @@ def call_lpg_td(domain, problem, args='-speed -noout', verbose=0):
     ## call command ##
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
      
-    # add the pid into pid_list 
-    pid_list.append(process.pid)
+    # add the pid into pid_lst 
+    pid_lst[pidx] = process.pid
 
     (output, err) = process.communicate()
 
@@ -429,6 +473,13 @@ def call_lpg_td(domain, problem, args='-speed -noout', verbose=0):
     ## bytes to string ##
     # shell = ''.join(map(chr, output))
     shell = to_str(output)
+
+    # Permission denied
+    if 'Permission denied' in to_str(err):
+        print(to_str(err))
+        print(fg_voilet('-- run \'chmod +x planners/lpg-td\''))
+        sys.exit(0)
+        return -1
 
     if verbose == 2: 
         print(fg_voilet('\n-- planner stdout'))
@@ -481,7 +532,7 @@ def call_lpg_td(domain, problem, args='-speed -noout', verbose=0):
 ###############################################################################
 ###############################################################################
 ## call fast-downward planner
-def call_fd(domain, problem, args='--search "astar(lmcut())"', verbose=0):
+def call_fd(domain, problem, args='--search "astar(lmcut())"', verbose=0, pidx=0):
     '''
     Call an external planner
     @domain : path to a given domain 
@@ -498,8 +549,8 @@ def call_fd(domain, problem, args='--search "astar(lmcut())"', verbose=0):
     ## call command ##
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
      
-    # add the pid into pid_list 
-    pid_list.append(process.pid)
+    # add the pid into pid_lst 
+    pid_lst[pidx] = process.pid
 
     (output, err) = process.communicate()
 
@@ -510,6 +561,13 @@ def call_fd(domain, problem, args='--search "astar(lmcut())"', verbose=0):
     ## bytes to string ##
     # shell = ''.join(map(chr, output))
     shell = to_str(output)
+
+    # Permission denied
+    if 'Permission denied' in to_str(err):
+        print(to_str(err))
+        print(fg_voilet('-- run \'chmod +x planners/fd/fast-downward.py\''))
+        sys.exit(0)
+        return -1
 
     if verbose == 2: 
         print(fg_voilet('\n-- planner stdout'))
