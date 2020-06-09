@@ -1,17 +1,20 @@
 
 from multiprocessing import Pool, Array
-import subprocess, os, sys, re, io, signal
-from subprocess import check_output
+import subprocess, os, sys, re, signal
 from collections import OrderedDict
 from color import fg_green, fg_red, fg_yellow, fg_blue, fg_voilet, fg_beige, bg_green, bg_red, bg_yellow, bg_blue, bg_voilet
 
-default_args = {
-    'ff'        : '',
-    'm'         : '-P 0 -N -m 4096',
-    'optic-clp' : '-b -N',
-    'lpg-td'    : '-speed -noout',
-    'vhpop'     : '-g -f DSep-LIFO -s HC -w 5 -l 1500000',
-    'fd'        : '--search "astar(lmcut())"'
+args_profiles = {
+    'ff'        : { 0 : '' },
+    'm'         : { 0 : '-P 0 -N -m 4096', \
+                    1 : '-P 1 -N -m 4096' },
+    'optic-clp' : { 0 : '-b -N' },
+    'lpg-td'    : { 0 : '-speed -noout', \
+                    1 : '-quality -v off -noout' },
+    'lpg'       : { 0 : '-n 1 -noout' },
+    'vhpop'     : { 0 : '-g -f DSep-LIFO -s HC -w 5 -l 1500000' },
+    'fd'        : { 0 : '--search "astar(lmcut())"', \
+                    1 : '--evaluator "hff=ff()" --evaluator "hcea=cea()" --search "lazy_greedy([hff, hcea], preferred=[hff, hcea])"'}
 }
 
 # stores the pid of 'Popen' calls to external planners
@@ -27,10 +30,11 @@ class Plan():
     '''
     def __init__(self, planners, domain, problem, verbose):
         self.plan = None
+        self.planners = planners
         # if only one planner then no need multiprocessing
-        if len(planners) == 1:
+        if len(set(planners)) == 1:
             try:
-                plan = call_planner(planners[0], domain, problem, default_args[planners[0]], verbose)
+                plan = call_planner(planners[0], domain, problem, args_profiles[planners[0]][0], verbose)
             except KeyboardInterrupt:
                 # kill also the running planner
                 try:
@@ -45,10 +49,9 @@ class Plan():
 
         # otherwise, run in multiprocessing
         self.pool = Pool(processes=len(planners))
-        self.planners = planners
         for pidx, planner in enumerate(self.planners):
             self.pool.apply_async(call_planner, \
-                args=(planner, domain, problem, default_args[planner], verbose, pidx), \
+                args=(planner, domain, problem, args_profiles[planner][0], verbose, pidx), \
                 callback=self.callback)
         self.pool.close()
         try:
@@ -67,13 +70,21 @@ class Plan():
         if not plan == -1:
             self.plan = plan
             self.pool.terminate()
-            # kill also running planners
+            # kill other running planners
             for i in range(len(self.planners)):
                 try:
                     os.killpg(pid_lst[i], signal.SIGKILL)
                 except OSError:
                     pass
 
+    # cleanup the child process if the main process was suddenly killed/crashed
+    def __del__(self): 
+        # kill the running planners
+        for i in range(len(self.planners)):
+            try:
+                os.killpg(pid_lst[i], signal.SIGKILL)
+            except OSError:
+                pass
 
 ###############################################################################
 ###############################################################################
@@ -106,6 +117,10 @@ def call_planner(planner='ff', domain=None, problem=None, args='', verbose=0, pi
     ## lpg-td planner ##
     elif 'lpg-td' in planner.lower():
         return call_lpg_td(domain, problem, args, verbose, pidx)
+
+    ## lpg-td planner ##
+    elif 'lpg' in planner.lower():
+        return call_lpg(domain, problem, args, verbose, pidx)
 
     ## lpg-td planner ##
     elif 'fd' in planner.lower():
@@ -464,8 +479,6 @@ def call_lpg_td(domain, problem, args='-speed -noout', verbose=0, pidx=0):
 
     (output, err) = process.communicate()
 
-    # output = check_output(["./planners/optic-clp", "-b", "-N", domain, problem])
-     
     ## Wait for cmd to terminate. Get return returncode ##
     # p_status = process.wait()
     # print("Command exit status/return code : ", p_status)
@@ -531,6 +544,94 @@ def call_lpg_td(domain, problem, args='-speed -noout', verbose=0, pidx=0):
 
 ###############################################################################
 ###############################################################################
+## call lpg planner
+def call_lpg(domain, problem, args='-n 1', verbose=0, pidx=0):
+    '''
+    Call an external planner
+    @domain : path to a given domain 
+    @problem : path to a given problem 
+    @verbose : if True, prints statistics before returning
+
+    @return plan : the output plan is a list of actions as tuples, 
+                   e.g., [[('move_to_grasp', 'arm1', 'box1', 'base1', 'box2'), ('move_to_grasp', 'arm2', 'box2', 'cap1', 'box1')], 
+                          [('vacuum_object', 'arm2', 'cap1', 'box1'), ('vacuum_object', 'arm1', 'base1', 'box2')],
+                          ...]
+    '''
+    cmd = './planners/lpg -o {} -f {} {}'.format(domain, problem, args)
+
+    ## call command ##
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
+     
+    # add the pid into pid_lst 
+    pid_lst[pidx] = process.pid
+
+    (output, err) = process.communicate()
+
+    ## Wait for cmd to terminate. Get return returncode ##
+    # p_status = process.wait()
+    # print("Command exit status/return code : ", p_status)
+
+    ## bytes to string ##
+    # shell = ''.join(map(chr, output))
+    shell = to_str(output)
+
+    # Permission denied
+    if 'Permission denied' in to_str(err):
+        print(to_str(err))
+        print(fg_voilet('-- run \'chmod +x planners/lpg\''))
+        sys.exit(0)
+        return -1
+
+    if verbose == 2: 
+        print(fg_voilet('\n-- planner stdout'))
+        print(shell)
+        if to_str(err):
+            print(fg_voilet('-- planner stderr'))
+            print(to_str(err))
+
+    ## if no solution exists try the next domain ##
+    if "Goals of the planning problem can not be reached." in shell \
+        or "goal can be simplified to FALSE" in shell \
+        or "The problem is unsolvable" in shell \
+        or "No plan will solve it" in shell:
+        return None
+
+    ## if not supported some PDDL features by planner ##
+    if "not supported by this exp version" in to_str(err) or\
+       "type mismatch" in shell:
+        print(fg_yellow("[planning failed due to some error in the pddl description]"))
+        print(fg_voilet('\n-- planner stdout'))
+        print(shell)
+        if to_str(err):
+            print(fg_voilet('-- planner stderr'))
+            print(to_str(err))
+        # exit()
+        return -1
+
+    ## if solution already exists in the problem ##
+    if "No action in solution" in shell and "Plan computed:" in shell:
+        return list()
+
+    ## refine the output screen and build a plan of actions' signatures ##
+
+    # extract plan from ';<problem_name>' to 'Time:<value>'
+    shell = shell[shell.find('Time: (ACTION) [action Duration; action Cost]'):shell.rfind('Solution number:')].strip()
+
+    # split shell into a list of actions and ignore ';<problem_name>'
+    shell = shell.lower().split('\n')[1:]
+
+    plan = OrderedDict()
+
+    for action in shell:
+        action = re.split('[, ) (]+', action)[1:-2]
+        plan.setdefault(action[0], []).append(tuple(action[1:]))
+
+    # print(list(plan.values()))
+    return list(plan.values())
+
+
+###############################################################################
+###############################################################################
 ## call fast-downward planner
 def call_fd(domain, problem, args='--search "astar(lmcut())"', verbose=0, pidx=0):
     '''
@@ -544,7 +645,7 @@ def call_fd(domain, problem, args='--search "astar(lmcut())"', verbose=0, pidx=0
                           [('vacuum_object', 'arm2', 'cap1', 'box1'), ('vacuum_object', 'arm1', 'base1', 'box2')],
                           ...]
     '''
-    cmd = './planners/fd/fast-downward.py --plan-file /tmp/plan.txt {} {} {}'.format(domain, problem, args)
+    cmd = './planners/fd/fast-downward.py --search-memory-limit 4G --sas-file /tmp/output.sas --plan-file /tmp/plan.txt {} {} {}'.format(domain, problem, args)
 
     ## call command ##
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, preexec_fn=os.setsid)

@@ -82,6 +82,7 @@ def compilation(domain, rank=False, probability=0.4):
         oneof_effects = list()
         if rank:
             for oneof_eff_lst in action.oneof:
+                # oneof_effects.append(tuple(sorted(oneof_eff_lst, key=lambda x: x.__len__(), reverse=True)))
                 oneof_effects.append(tuple(reversed(oneof_eff_lst)))
         else: oneof_effects = action.oneof
 

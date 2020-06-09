@@ -3,7 +3,6 @@
 from collections import OrderedDict, defaultdict
 import os, time
 from itertools import product
-import subprocess
 
 from color import fg_green, fg_red, fg_red2, fg_yellow, fg_yellow2, fg_blue, fg_voilet, fg_beige, bg_green, bg_red, bg_yellow, bg_blue, bg_voilet
 from pddlparser import PDDLParser
@@ -14,7 +13,7 @@ from compilation import compile
 
 class Planner(object):
 
-    def __init__(self, domain, problem, planners=['ff'], rank=False, verbose=False):
+    def __init__(self, domain, problem, planners=['ff'], rank=False, verbose=False, nocleanup=False):
         '''
         @domain : path to pddl domain (string)
         @problem : path to pddl problem (string)
@@ -130,6 +129,13 @@ class Planner(object):
 
         self.planning_time = time.time() - self.planning_time
         print('')
+
+        # cleanup the generated files
+        if not nocleanup:
+            try:
+                os.system('rm -fr ' + self.working_dir)
+            except OSError:
+                pass
 
         ###################################################################
 

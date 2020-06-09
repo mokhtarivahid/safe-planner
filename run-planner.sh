@@ -19,11 +19,11 @@ run()
       printf $problem
 
       start_time=`date +%s%N`
-      output=`timeout $time_out nice -n 0 python3 main.py $domain $problem -d -s -r -c $2 m&`
+      output=`timeout $time_out nice -n 0 python3 main.py $domain $problem -d -s -c $2 -r&`
       end_time=`date +%s%N`
       runingtime=$(((end_time-start_time)/1000000))
       echo ' ['$((runingtime/1000)).$((runingtime%1000))']'
-      rm -fr /tmp/pyppddl/*
+      # rm -fr /tmp/pyppddl/*
     done
 }
 

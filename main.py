@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
 import argparse
-import os
+import os, sys, traceback
 import subprocess
+import signal
 
 # from color import fg_green, fg_red, fg_yellow, fg_blue, fg_voilet, fg_beige, bg_voilet, bg_beige
 from color import *
@@ -10,6 +11,32 @@ from planner import Planner
 from dot_plan import gen_dot_plan
 from json_ma_plan import json_ma_plan
 from json_plan import json_plan
+
+# make sure all running planners are terminated at exit
+def cleanup(signum, frame):
+    # print("Execution inside '{0}', "
+    #       "with local namespace: {1}"
+    #        .format(frame.f_code.co_name, frame.f_locals.keys()))
+    try:
+        # print('got a signal %d' % signum)
+        if signum != signal.SIGTERM or\
+           signum != signal.SIGINT:
+            from external_planner import pid_lst
+            # kill the running planners if any
+            for pid in pid_lst:
+                if pid:
+                    try:
+                        os.killpg(pid, 0)
+                    except OSError:
+                        pass
+    except:
+        traceback.print_exc()
+    finally:
+        sys.exit(0)
+
+signal.signal(signal.SIGINT, cleanup)
+signal.signal(signal.SIGTERM, cleanup)
+
 
 def parse():
     usage = 'python3 main.py <DOMAIN> <PROBLEM> [-c <PLANNERS>] [-r] [-p] [-d] [-j] [-s] [-v N] [-h]'
@@ -21,7 +48,7 @@ def parse():
     parser.add_argument("-c", "--planners", nargs='*', type=str, default=["ff"], #choices=os.listdir('planners'),
         help="a list of external classical planners: ff, fd, m, optic-clp, lpg-td, vhpop, ... (default=[ff])")
     parser.add_argument("-r", "--rank", help="to disable ranking the compiled classical planning domains \
-        by higher probabilistic outcomes (default=True)", action="store_false", default=True)
+        by higher probabilistic outcomes (default=True)", action="store_true", default=False)
     parser.add_argument("-p", "--path", help="print out possible paths of the produced policy", 
         action="store_true")
     parser.add_argument("-d", "--dot", help="draw a graph of the produced policy into a dot file", 
@@ -29,6 +56,8 @@ def parse():
     parser.add_argument("-j", "--json", help="transform the produced policy into a json file", 
         action="store_true")
     parser.add_argument("-s", "--store", help="store the planner's performance in a '.stat' file", 
+        action="store_true")
+    parser.add_argument("--nocleanup", help="don't cleanup the generated files when planning is finished", 
         action="store_true")
     parser.add_argument("-v", "--verbose", default=0, type=int, choices=(0, 1, 2),
         help="increase output verbosity: 0 (minimal), 1 (high-level), 2 (external planners outputs) (default=0)", )
@@ -43,10 +72,10 @@ if __name__ == '__main__':
     args = parser.parse_args()
     if args.domain == None:
         parser.print_help()
-        exit()
+        sys.exit()
 
     ## make a policy given domain and problem
-    policy = Planner(args.domain, args.problem, args.planners, args.rank, args.verbose)
+    policy = Planner(args.domain, args.problem, args.planners, args.rank, args.verbose, args.nocleanup)
 
     ## transform the produced policy into a contingency plan
     plan = policy.plan()
