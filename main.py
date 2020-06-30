@@ -21,20 +21,17 @@ def cleanup(signum, frame):
         # print('got a signal %d' % signum)
         if signum != signal.SIGTERM or\
            signum != signal.SIGINT:
-            from external_planner import pid_lst
+            from external_planner import pid_lst, kill_pid
             # kill the running planners if any
-            for pid in pid_lst:
-                if pid:
-                    try:
-                        os.killpg(pid, 0)
-                    except OSError:
-                        pass
-    except:
-        traceback.print_exc()
+            for i, pid in enumerate(pid_lst):
+                pid_lst[i] = kill_pid(pid)
+    except OSError:
+        # traceback.print_exc()
+        pass
     finally:
         sys.exit(0)
 
-signal.signal(signal.SIGINT, cleanup)
+# signal.signal(signal.SIGINT, cleanup)
 signal.signal(signal.SIGTERM, cleanup)
 
 
@@ -57,8 +54,6 @@ def parse():
         action="store_true")
     parser.add_argument("-s", "--store", help="store the planner's performance in a '.stat' file", 
         action="store_true")
-    parser.add_argument("--nocleanup", help="don't cleanup the generated files when planning is finished", 
-        action="store_true")
     parser.add_argument("-v", "--verbose", default=0, type=int, choices=(0, 1, 2),
         help="increase output verbosity: 0 (minimal), 1 (high-level), 2 (external planners outputs) (default=0)", )
 
@@ -75,7 +70,7 @@ if __name__ == '__main__':
         sys.exit()
 
     ## make a policy given domain and problem
-    policy = Planner(args.domain, args.problem, args.planners, args.rank, args.verbose, args.nocleanup)
+    policy = Planner(args.domain, args.problem, args.planners, args.rank, args.verbose)
 
     ## transform the produced policy into a contingency plan
     plan = policy.plan()

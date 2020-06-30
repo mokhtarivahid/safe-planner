@@ -13,7 +13,7 @@ from compilation import compile
 
 class Planner(object):
 
-    def __init__(self, domain, problem, planners=['ff'], rank=False, verbose=False, nocleanup=False):
+    def __init__(self, domain, problem, planners=['ff'], rank=False, verbose=False):
         '''
         @domain : path to pddl domain (string)
         @problem : path to pddl problem (string)
@@ -33,6 +33,11 @@ class Planner(object):
 
             # parse pddl problem
             self.problem = PDDLParser.parse(problem)
+
+        # merge constants and objects (if any exists)
+        if self.domain.constants:
+            self.problem.initial_state.objects = mergeDict(self.problem.initial_state.objects, self.domain.constants)
+            self.domain.constants.clear()
 
         # store domain and problem files paths
         self.problem_file = problem
@@ -67,10 +72,6 @@ class Planner(object):
                     self.domains[domain] = PDDLParser.parse(domain)
         else:
             self.domains[domain] = self.domain
-
-        # merge constants and objects (if any exists)
-        if self.domain.constants:
-            self.problem.initial_state.objects = mergeDict(self.problem.initial_state.objects, self.domain.constants)
 
         # store the list of external classical planners
         self.planners = [os.path.basename(planner).lower() for planner in planners]
@@ -128,14 +129,15 @@ class Planner(object):
                 self.find_safe_policy_ndp2()
 
         self.planning_time = time.time() - self.planning_time
-        print('')
+        # print('')
 
         # cleanup the generated files
-        if not nocleanup:
-            try:
-                os.system('rm -fr ' + self.working_dir)
-            except OSError:
-                pass
+        if self.verbose == 0:
+            if not self.working_dir == None:
+                try:
+                    os.system('rm -fr ' + self.working_dir)
+                except OSError:
+                    pass
 
         ###################################################################
 
@@ -220,7 +222,7 @@ class Planner(object):
 
         # verbosity: when verbosity is off: remove recorded files periodically!
         if not self.verbose:
-            if self.alloutcome_planning_call > 500 and self.alloutcome_planning_call % 500 == 0:
+            if self.alloutcome_planning_call > 100 and self.alloutcome_planning_call % 100 == 0:
                 try:
                     os.system('rm -fr ' + self.working_dir + '*')
                 except OSError as e:
@@ -416,7 +418,7 @@ class Planner(object):
 
             # verbosity: when verbosity is off: remove recorded files!
             if not self.verbose:
-                if self.alloutcome_planning_call > 500 and self.alloutcome_planning_call % 500 == 0:
+                if self.alloutcome_planning_call > 100 and self.alloutcome_planning_call % 100 == 0:
                     try:
                         os.system('rm -fr ' + self.working_dir + '*')
                     except OSError as e:

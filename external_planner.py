@@ -20,6 +20,29 @@ args_profiles = {
 # stores the pid of 'Popen' calls to external planners
 pid_lst = Array('I', len(os.listdir('planners')))
 
+def check_pid(pid):        
+    """check if a subprocess is running"""
+    try:
+        os.kill(pid, 0)
+    except OSError:
+        return False
+    return True
+
+def kill_pid(pid):
+    '''kill a subprocess by pid'''
+    # check if it is running first
+    if pid == 0: return 0
+    try:
+        os.killpg(pid, 0)
+    except OSError:
+        return 0
+    # kill it if it is still running
+    try:
+        os.killpg(pid, signal.SIGKILL)
+    except OSError:
+        return 0
+    return 0
+
 ###############################################################################
 ###############################################################################
 class Plan():
@@ -34,17 +57,15 @@ class Plan():
         # if only one planner then no need multiprocessing
         if len(set(planners)) == 1:
             try:
-                plan = call_planner(planners[0], domain, problem, args_profiles[planners[0]][0], verbose)
+                self.plan = call_planner(planners[0], domain, problem, args_profiles[planners[0]][0], verbose)
             except KeyboardInterrupt:
                 # kill also the running planner
-                try:
-                    os.killpg(pid_lst[0], signal.SIGKILL)
-                except OSError:
-                    pass
+                pid_lst[0] = kill_pid(pid_lst[0])
                 raise
-
-            if not plan == -1:
-                self.plan = plan
+            if self.plan == -1:
+                if not verbose: 
+                    print(fg_red('[some error by external planner -- run again with parameter \'-v 2\']'))
+                sys.exit(0)
             return
 
         # otherwise, run in multiprocessing
@@ -60,31 +81,37 @@ class Plan():
             self.pool.terminate()
             # kill also running planners
             for i in range(len(self.planners)):
-                try:
-                    os.killpg(pid_lst[i], signal.SIGKILL)
-                except OSError:
-                    pass
+                pid_lst[i] = kill_pid(pid_lst[i])
             raise
 
     def callback(self, plan):
+        # if plan == -1:
+        #     print(plan)
+        #     # Check if other planners are still running
+        #     s = len(self.planners)
+        #     for i in range(len(self.planners)):
+        #         try:
+        #             os.killpg(pid_lst[i], 0)
+        #         except OSError:
+        #             s -= 1
+        #     # all planners failed
+        #     if s == 0:
+        #         if not verbose: 
+        #             print(fg_red('[all planners failed: run again with parameter \'-v 2\''))
+        #         sys.exit(0)
+        # else:
         if not plan == -1:
             self.plan = plan
             self.pool.terminate()
             # kill other running planners
             for i in range(len(self.planners)):
-                try:
-                    os.killpg(pid_lst[i], signal.SIGKILL)
-                except OSError:
-                    pass
+                pid_lst[i] = kill_pid(pid_lst[i])
 
     # cleanup the child process if the main process was suddenly killed/crashed
     def __del__(self): 
         # kill the running planners
         for i in range(len(self.planners)):
-            try:
-                os.killpg(pid_lst[i], signal.SIGKILL)
-            except OSError:
-                pass
+            pid_lst[i] = kill_pid(pid_lst[i])
 
 ###############################################################################
 ###############################################################################
@@ -165,11 +192,17 @@ def call_ff(domain, problem, args='', verbose=0, pidx=0):
     # shell = ''.join(map(chr, output))
     shell = to_str(output)
 
+    if verbose == 2: 
+        print(fg_voilet('\n-- planner stdout'))
+        print(shell)
+        if to_str(err):
+            print(fg_voilet('-- planner stderr'))
+            print(to_str(err))
+
     # Permission denied
     if 'Permission denied' in to_str(err):
         print(to_str(err))
         print(fg_voilet('-- run \'chmod +x planners/ff\''))
-        sys.exit(0)
         return -1
 
     ## if no solution exists try the next domain ##
@@ -186,21 +219,14 @@ def call_ff(domain, problem, args='', verbose=0, pidx=0):
        'unknown constant' in shell or 'check input files' in shell or\
        'increase MAX_PLAN_LENGTH!' in shell or\
        'too many constants!' in shell or 'syntax error in line' in to_str(err):
-        print(fg_yellow('[planning failed due to some error in the pddl description]'))
-        print(fg_voilet('\n-- planner stdout'))
-        print(shell)
-        if to_str(err):
-            print(fg_voilet('-- planner stderr'))
-            print(to_str(err))
+        # print(fg_yellow('[planning failed due to some error in the pddl description]'))
+        # print(fg_voilet('\n-- planner stdout'))
+        # print(shell)
+        # if to_str(err):
+        #     print(fg_voilet('-- planner stderr'))
+        #     print(to_str(err))
         # exit()
         return -1
-
-    if verbose == 2: 
-        print(fg_voilet('\n-- planner stdout'))
-        print(shell)
-        if to_str(err):
-            print(fg_voilet('-- planner stderr'))
-            print(to_str(err))
 
     ## refine the output screen and build a plan of actions' signatures ##
     shell = shell[shell.find('step')+len('step'):shell.rfind('time spent')].strip()  # extract plan
@@ -241,22 +267,28 @@ def call_optic_clp(domain, problem, args='-b -N', verbose=0, pidx=0):
     # shell = ''.join(map(chr, output))
     shell = to_str(output)
 
-    # Permission denied
-    if 'Permission denied' in to_str(err):
-        print(to_str(err))
-        print(fg_voilet('-- run \'chmod +x planners/optic-clp\''))
-        sys.exit(0)
-        return -1
-
-    ## if solution already exists in the problem ##
-    if "has to terminate" in to_str(err):
-        print(fg_yellow("[planning failed due to some error in the pddl description]"))
+    if verbose == 2: 
         print(fg_voilet('\n-- planner stdout'))
         print(shell)
         if to_str(err):
             print(fg_voilet('-- planner stderr'))
             print(to_str(err))
-        # exit()
+
+    # Permission denied
+    if 'Permission denied' in to_str(err):
+        print(to_str(err))
+        print(fg_voilet('-- run \'chmod +x planners/optic-clp\''))
+        return -1
+
+    ## if solution already exists in the problem ##
+    if "has to terminate" in to_str(err):
+        # print(fg_yellow("[planning failed due to some error in the pddl description]"))
+        # print(fg_voilet('\n-- planner stdout'))
+        # print(shell)
+        # if to_str(err):
+        #     print(fg_voilet('-- planner stderr'))
+        #     print(to_str(err))
+        # # exit()
         return -1
 
     ## if problem is unsolvable by EHC remove -b (activate best-first search)
@@ -267,13 +299,6 @@ def call_optic_clp(domain, problem, args='-b -N', verbose=0, pidx=0):
         (output, err) = process.communicate()
         # shell = ''.join(map(chr, output))
         shell = to_str(output)
-
-    if verbose == 2: 
-        print(fg_voilet('\n-- planner stdout'))
-        print(shell)
-        if to_str(err):
-            print(fg_voilet('-- planner stderr'))
-            print(to_str(err))
 
     ## if no solution exists try the next domain ##
     if "problem has been deemed unsolvable" in shell or "Problem unsolvable" in shell:
@@ -338,11 +363,18 @@ def call_m(domain, problem, args='-P 1 -t 5 -N', verbose=0, pidx=0):
     # shell = ''.join(map(chr, output))
     shell = to_str(output)
 
+    if verbose == 2: 
+        print(fg_voilet('\n-- planner stdout'))
+        print('\n'+open(problem+'.soln').read())
+        print(shell)
+        if to_str(err):
+            print(fg_voilet('-- planner stderr'))
+            print(to_str(err))
+
     # Permission denied
     if 'Permission denied' in to_str(err):
         print(to_str(err))
         print(fg_voilet('-- run \'chmod +x planners/m\''))
-        sys.exit(0)
         return -1
 
     ## if no solution exists try the next domain ##
@@ -365,14 +397,6 @@ def call_m(domain, problem, args='-P 1 -t 5 -N', verbose=0, pidx=0):
         print(shell)
         # exit()
         return -1
-
-    if verbose == 2: 
-        print(fg_voilet('\n-- planner stdout'))
-        print('\n'+open(problem+'.soln').read())
-        print(shell)
-        if to_str(err):
-            print(fg_voilet('-- planner stderr'))
-            print(to_str(err))
 
     return plan
 
@@ -422,18 +446,17 @@ def call_vhpop(domain, problem, args='-g -f DSep-LIFO -s HC -w 5 -l 1500000', ve
     if 'Permission denied' in to_str(err):
         print(to_str(err))
         print(fg_voilet('-- run \'chmod +x planners/vhpop\''))
-        sys.exit(0)
         return -1
 
     ## if not supported some PDDL features by planner ##
     if "undeclared type" in to_str(err) or\
        "type mismatch" in to_str(err):
-        print(fg_yellow("[planning failed due to some error in the pddl description]"))
-        print(fg_voilet('\n-- planner stdout'))
-        print(shell)
-        if to_str(err):
-            print(fg_voilet('-- planner stderr'))
-            print(to_str(err))
+        # print(fg_yellow("[planning failed due to some error in the pddl description]"))
+        # print(fg_voilet('\n-- planner stdout'))
+        # print(shell)
+        # if to_str(err):
+        #     print(fg_voilet('-- planner stderr'))
+        #     print(to_str(err))
         # exit()
         return -1
 
@@ -487,19 +510,18 @@ def call_lpg_td(domain, problem, args='-speed -noout', verbose=0, pidx=0):
     # shell = ''.join(map(chr, output))
     shell = to_str(output)
 
-    # Permission denied
-    if 'Permission denied' in to_str(err):
-        print(to_str(err))
-        print(fg_voilet('-- run \'chmod +x planners/lpg-td\''))
-        sys.exit(0)
-        return -1
-
     if verbose == 2: 
         print(fg_voilet('\n-- planner stdout'))
         print(shell)
         if to_str(err):
             print(fg_voilet('-- planner stderr'))
             print(to_str(err))
+
+    # Permission denied
+    if 'Permission denied' in to_str(err):
+        print(to_str(err))
+        print(fg_voilet('-- run \'chmod +x planners/lpg-td\''))
+        return -1
 
     ## if no solution exists try the next domain ##
     if "Goals of the planning problem can not be reached." in shell \
@@ -511,12 +533,12 @@ def call_lpg_td(domain, problem, args='-speed -noout', verbose=0, pidx=0):
     ## if not supported some PDDL features by planner ##
     if "not supported by this exp version" in to_str(err) or\
        "type mismatch" in shell:
-        print(fg_yellow("[planning failed due to some error in the pddl description]"))
-        print(fg_voilet('\n-- planner stdout'))
-        print(shell)
-        if to_str(err):
-            print(fg_voilet('-- planner stderr'))
-            print(to_str(err))
+        # print(fg_yellow("[planning failed due to some error in the pddl description]"))
+        # print(fg_voilet('\n-- planner stdout'))
+        # print(shell)
+        # if to_str(err):
+        #     print(fg_voilet('-- planner stderr'))
+        #     print(to_str(err))
         # exit()
         return -1
 
@@ -575,19 +597,18 @@ def call_lpg(domain, problem, args='-n 1', verbose=0, pidx=0):
     # shell = ''.join(map(chr, output))
     shell = to_str(output)
 
-    # Permission denied
-    if 'Permission denied' in to_str(err):
-        print(to_str(err))
-        print(fg_voilet('-- run \'chmod +x planners/lpg\''))
-        sys.exit(0)
-        return -1
-
     if verbose == 2: 
         print(fg_voilet('\n-- planner stdout'))
         print(shell)
         if to_str(err):
             print(fg_voilet('-- planner stderr'))
             print(to_str(err))
+
+    # Permission denied
+    if 'Permission denied' in to_str(err):
+        print(to_str(err))
+        print(fg_voilet('-- run \'chmod +x planners/lpg\''))
+        return -1
 
     ## if no solution exists try the next domain ##
     if "Goals of the planning problem can not be reached." in shell \
@@ -597,14 +618,15 @@ def call_lpg(domain, problem, args='-n 1', verbose=0, pidx=0):
         return None
 
     ## if not supported some PDDL features by planner ##
-    if "not supported by this exp version" in to_str(err) or\
-       "type mismatch" in shell:
-        print(fg_yellow("[planning failed due to some error in the pddl description]"))
-        print(fg_voilet('\n-- planner stdout'))
-        print(shell)
-        if to_str(err):
-            print(fg_voilet('-- planner stderr'))
-            print(to_str(err))
+    if "not supported by this exp version" in shell \
+       or "type mismatch" in shell \
+       or "Unexpected node:" in shell:
+        # print(fg_yellow("[planning failed due to some error in the pddl description]"))
+        # print(fg_voilet('\n-- planner stdout'))
+        # print(shell)
+        # if to_str(err):
+        #     print(fg_voilet('-- planner stderr'))
+        #     print(to_str(err))
         # exit()
         return -1
 
@@ -663,13 +685,6 @@ def call_fd(domain, problem, args='--search "astar(lmcut())"', verbose=0, pidx=0
     # shell = ''.join(map(chr, output))
     shell = to_str(output)
 
-    # Permission denied
-    if 'Permission denied' in to_str(err):
-        print(to_str(err))
-        print(fg_voilet('-- run \'chmod +x planners/fd/fast-downward.py\''))
-        sys.exit(0)
-        return -1
-
     if verbose == 2: 
         print(fg_voilet('\n-- planner stdout'))
         print(shell)
@@ -677,12 +692,22 @@ def call_fd(domain, problem, args='--search "astar(lmcut())"', verbose=0, pidx=0
             print(fg_voilet('-- planner stderr'))
             print(to_str(err))
 
+    # Permission denied
+    if 'Permission denied' in to_str(err):
+        print(to_str(err))
+        print(fg_voilet('-- run \'chmod +x planners/fd/fast-downward.py\''))
+        return -1
+
     ## if no solution exists try the next domain ##
     if not "translate exit code: 0" in shell or\
            "configuration does not support" in to_str(err):
-        if not verbose:
-            print(fg_voilet('-- \'fd\' does not support this pddl configuration -- run with \'-v 2\''))
+        # if not verbose:
+        #     print(fg_voilet('-- \'fd\' does not support this pddl configuration -- run with \'-v 2\''))
         return -1
+
+    ## problem proved unsolvable ##
+    if "search exit code: 11" in shell or "search exit code: 12" in shell:
+        return None
 
     ## if no solution exists try the next domain ##
     if not "search exit code: 0" in shell:
