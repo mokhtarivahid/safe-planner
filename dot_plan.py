@@ -77,9 +77,9 @@ def gen_dot_plan(plan, del_effect=True, dot_file=None):
 
     # create a dot file
     if dot_file == None:
-        if not os.path.exists("/tmp/pyppddl/"):
-            os.makedirs("/tmp/pyppddl/")
-        dot_file = "/tmp/pyppddl/prob"+str(int(time.time()*1000000))+".dot"
+        if not os.path.exists("/tmp/safe-planner/"):
+            os.makedirs("/tmp/safe-planner/")
+        dot_file = "/tmp/safe-planner/prob"+str(int(time.time()*1000000))+".dot"
     else:
         dot_file = '{}.dot'.format(os.path.splitext(dot_file)[0])
     with open(dot_file, 'w') as f:

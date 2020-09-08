@@ -24,8 +24,10 @@ def parse():
 
     parser.add_argument('domain',  type=str, help='path to a PDDL domain file')
     parser.add_argument('problem', type=str, help='path to a PDDL problem file')
-    parser.add_argument("planner", type=str, nargs='?', const=1, 
-        help="external planner: ff, m, optic-clp, vhpop, ... (default=ff)", default="ff")
+    parser.add_argument("-c", "--planners", nargs='*', type=str, default=["ff"], #choices=os.listdir('planners'),
+        help="a list of external classical planners: ff, fd, m, optic-clp, lpg-td, vhpop, ... (default=[ff])")
+    parser.add_argument("-r", "--rank", help="to disable ranking the compiled classical planning domains \
+        by higher probabilistic outcomes (default=True)", action="store_true", default=False)
     parser.add_argument("-d", "--dot", help="draw a graph of the produced policy into a dot file", 
         action="store_true")
     parser.add_argument("-v", "--verbose", help="increase output verbosity", 
@@ -183,22 +185,25 @@ def action_json(action):
     action_json = OrderedDict()
     action_json['name'] = action.sig[0]
     action_json['args'] = action.sig[1:]
-    action_json['pre'] = action.preconditions.pos_preconditions
-    if action.effects.add_effects and not action.oneof_effects and not action.prob_effects:
-        action_json.setdefault('post', []).append(action.effects.add_effects)
-    for oneof_effect in action.oneof_effects:
-        for one in oneof_effect:
-            if one.add_effects:
-                action_json.setdefault('post', []).append(action.effects.add_effects+one.add_effects)
-    for prob_effect in action.prob_effects:
-        for prob in prob_effect:
-            if prob[1].add_effects:
-                action_json.setdefault('post', []).append(action.effects.add_effects+prob[1].add_effects)
+    action_json['pre'] = OrderedDict([(prec[0], prec[1:]) for prec in action.preconditions.pos_preconditions])
+    action_json['post'] = OrderedDict([(eff[0], eff[1:]) for eff in action.effects.add_effects])
+
+    # action_json['pre'] = action.preconditions.pos_preconditions
+    # if action.effects.add_effects and not action.oneof_effects and not action.prob_effects:
+    #     action_json.setdefault('post', []).append(action.effects.add_effects)
+    # for oneof_effect in action.oneof_effects:
+    #     for one in oneof_effect:
+    #         if one.add_effects:
+    #             action_json.setdefault('post', []).append(action.effects.add_effects+one.add_effects)
+    # for prob_effect in action.prob_effects:
+    #     for prob in prob_effect:
+    #         if prob[1].add_effects:
+    #             action_json.setdefault('post', []).append(action.effects.add_effects+prob[1].add_effects)
 
     return action_json
 
 #################################################################
-def json_ma_plan(policy, verbose=True):
+def json_ma_plan(policy, verbose=False):
     '''
     Convert given plan into a concurrent plan for execution by multi-robot.
     The output is partial parallel plan iff the given plan is partial-order.
@@ -238,6 +243,7 @@ def json_ma_plan(policy, verbose=True):
                 if len(subplans[0][key]) == 1: # there is only one action in this step
                     # make a reference to action (key+i)
                     action_ref = 'action_{}'.format(n)
+                    action_ref = '_'.join(subplans[0][key][0].sig)
                     # add ref to main list of the plan
                     plan_json['main']['list'].append(action_ref)
                     # add ref and its description into the action_descriptions_json
@@ -251,6 +257,7 @@ def json_ma_plan(policy, verbose=True):
                     for i, action in enumerate(subplans[0][key]):
                         # make a reference to action (n+i+j)
                         action_ref = 'action_{}_{}'.format(n,i)
+                        action_ref = '_'.join(action.sig)
                         # add ref to main list of the plan
                         plan_json[subplan_ref]['list'].append(action_ref)
                         # add ref and its description into the action_descriptions_json
@@ -266,6 +273,7 @@ def json_ma_plan(policy, verbose=True):
                     if len(step) == 1: # there is only one action in this step
                         # make a reference to action (key+i)
                         action_ref = 'action_{}_{}'.format(n,i)
+                        action_ref = '_'.join(subplans[0][key][0].sig)
                         # add ref to main list of the plan
                         plan_json[subplan_ref]['list'].append(action_ref)
                         # add ref and its description into the action_descriptions_json
@@ -279,6 +287,7 @@ def json_ma_plan(policy, verbose=True):
                         for j, action in enumerate(step):
                             # make a reference to action (n+i+j)
                             action_ref = 'action_{}_{}_{}'.format(n,i,j)
+                            action_ref = '_'.join(action.sig)
                             # add ref to main list of the plan
                             plan_json[subsubplan_ref]['list'].append(action_ref)
                             # add ref and its description into the action_descriptions_json
@@ -296,6 +305,7 @@ def json_ma_plan(policy, verbose=True):
                     if len(list(subplan.values())[0]) == 1: # there is only one action in this step
                         # make a reference to action (key+i)
                         action_ref = 'action_{}_{}'.format(n,i)
+                        action_ref = '_'.join(list(subplan.values())[0][0].sig)
                         # add ref to main list of the plan
                         plan_json[subplan_ref]['list'].append(action_ref)
                         # add ref and its description into the action_descriptions_json
@@ -309,6 +319,7 @@ def json_ma_plan(policy, verbose=True):
                         for j, action in enumerate(list(subplan.values())[0]):
                             # make a reference to action (n+i+j)
                             action_ref = 'action_{}_{}_{}'.format(n,i,j)
+                            action_ref = '_'.join(action.sig)
                             # add ref to main list of the plan
                             plan_json[subsubplan_ref]['list'].append(action_ref)
                             # add ref and its description into the action_descriptions_json
@@ -324,6 +335,7 @@ def json_ma_plan(policy, verbose=True):
                         if len(step) == 1: # there is only one action in this step
                             # make a reference to action (key+i)
                             action_ref = 'action_{}_{}_{}'.format(n,i,j)
+                            action_ref = '_'.join(step[0].sig)
                             # add ref to main list of the plan
                             plan_json[subsubplan_ref]['list'].append(action_ref)
                             # add ref and its description into the action_descriptions_json
@@ -337,6 +349,7 @@ def json_ma_plan(policy, verbose=True):
                             for l, action in enumerate(step):
                                 # make a reference to action (n+i+j)
                                 action_ref = 'action_{}_{}_{}_{}'.format(n,i,j,l)
+                                action_ref = '_'.join(action.sig)
                                 # add ref to main list of the plan
                                 plan_json[subsubsubplan_ref]['list'].append(action_ref)
                                 # add ref and its description into the action_descriptions_json
@@ -383,7 +396,7 @@ if __name__ == '__main__':
     args = parse()
 
     # make a policy given domain and problem
-    policy = Planner(args.domain, args.problem, args.planner, verbose=args.verbose)
+    policy = Planner(args.domain, args.problem, args.planners, args.rank, args.verbose)
 
     # transform the produced policy into a contingency plan and print it
     plan = policy.plan()
@@ -484,6 +497,10 @@ if __name__ == '__main__':
         os.system('xdot %s &' % dot_file)
 
 
+    print('\nPlanning domain: %s' % policy.domain_file)
+    print('Planning problem: %s' % policy.problem_file)
+    print('Policy length: %i' % len(policy.policy))
     print('Planning time: %.3f s' % policy.planning_time)
-    print('Total number of replannings: %i' % policy.planning_call)
-    print('Total number of calls to unsolvable states: %i' % policy.unsolvable_call)
+    print('Planning iterations (all-outcome): %i' % policy.alloutcome_planning_call)
+    print('Total number of replannings (single-outcome): %i' % policy.singleoutcome_planning_call)
+    print('Total number of unsolvable states: %i' % len(policy.unsolvable_states))

@@ -1,7 +1,4 @@
-__pycache__/*
 */__pycache__/*
-**/__pycache__/*
-***/__pycache__/*
 *.pyc 
 *.out
 *.dot
@@ -12,3 +9,4 @@ __pycache__/*
 *.soln
 *.csv
 *.sas
+*.SOL

@@ -12,6 +12,9 @@ from dot_plan import gen_dot_plan
 from json_ma_plan import json_ma_plan
 from json_plan import json_plan
 
+# set the limit of stack
+sys.setrecursionlimit(20000)
+
 # make sure all running planners are terminated at exit
 def cleanup(signum, frame):
     # print("Execution inside '{0}', "
@@ -107,11 +110,16 @@ if __name__ == '__main__':
 
     ## transform the policy into a json file
     if args.json:
-        plan_json_file, actions_json_file = json_ma_plan(policy)
+        from dot_ma_plan import parallel_plan
+        plan_json_file, actions_json_file = json_ma_plan(policy, verbose=args.verbose)
         print(fg_yellow('-- plan_json_file:') + plan_json_file + fg_red(' [EXPERIMENTAL!]'))
         print(fg_yellow('-- actions_json_file:') + actions_json_file + fg_red(' [EXPERIMENTAL!]'))
         os.system('cd lua && lua json_multiagent_plan.lua ../%s &' % plan_json_file)
         print(fg_yellow('-- plan_json_dot_file:') + ('%s.dot' % plan_json_file) + fg_red(' [EXPERIMENTAL!]'))
+        # transform the plan into a parallel plan
+        dot_file, tred_dot_file = parallel_plan(policy, verbose=args.verbose)
+        print(fg_yellow('-- graphviz file: ') + dot_file)
+        print(fg_yellow('-- transitive reduction: ') + tred_dot_file)
         # subprocess.Popen(["xdot", plan_json_file])
         # os.system('xdot %s.dot &' % plan_json_file)
 

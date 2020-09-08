@@ -146,7 +146,7 @@ def pddl(object, state=None, goals=None, path=None):
     @goal : a given problem goal (default is the problem goal)
     '''
     if path is None:
-        path = "/tmp/pyppddl/"
+        path = "/tmp/safe-planner/"
         if not os.path.exists(path): os.makedirs(path)
     
     pddl = "{}prob{}.pddl".format(path, str(int(time.time()*1000000)))

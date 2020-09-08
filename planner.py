@@ -166,8 +166,25 @@ class Planner(object):
             policy = self.find_safe_plan(state)
 
             # if a policy is found then merge it into the resulting self.policy
-            if policy and policy is not None:
+            if policy is not None:
                 self.policy = self.update_policy(self.policy, policy)
+
+            # # when there is a plan but probably involved loops/cycles, then the last step has been removed which might cause to an empty policy
+            # elif policy == OrderedDict(): 
+            #     # # so, put in the self.unsolvable_states all states leading to 'state' and remove their path from self.policy
+            #     # for (s, step) in [(s, step) for (s, step) in self.policy.items() \
+            #     #     if step is not None and state in self.apply_step(init=s, step=step)]:
+            #     #     # # remove all states from 's' in self.policy
+            #     #     # self.remove_path(s)
+            #     #     # # state is partially unsolvable
+            #     #     # if self.unsolvable_states[s] is not None:
+            #     #     #     self.unsolvable_states[s].update(set(step))
+            #     #     # verbosity
+            #     #     if self.verbose: 
+            #     #         print(fg_red2('  -- unsolvable by: %s %s' % \
+            #     #             (' '.join([str('('+' '.join(a)+')') for a in step]), u'\U0001F593')))
+            #     # self.policy = self.update_policy(self.policy, policy)
+            #     # pass
 
             # if no plan found at the initial state then no policy exists and finish the loop
             elif state == self.problem.initial_state: 
@@ -277,13 +294,13 @@ class Planner(object):
             # make policy image of the plan and append it to the current policy 
             # if the plan has unsolvable states stop appending and continue planning 
             # from the last unsolvable state in the plan
-            return self.safe_policy_image(domain_pddl, domain_obj, state, plan)
+            return self.safe_policy_image(domain_pddl, domain_obj, init, state, plan)
 
         # no plan exists at @init that avoids unsolvable states
         return None
 
 
-    def safe_policy_image(self, domain, domain_obj, state, plan):
+    def safe_policy_image(self, domain, domain_obj, init, state, plan):
         '''
         return a safe policy image of @plan using @domain and initial 
         @state up to a state in unsolvable_states; or a goal state
@@ -293,6 +310,11 @@ class Planner(object):
         @plan : the given plan
         '''
         policy = OrderedDict()
+
+        # # keep track of states produced by plan to avoid cycles in the plan/policy
+        plan_states = [init]
+        last_state = None
+        last_step = None
 
         for i, step in enumerate(plan):
             # check if the state is already an unsolvable state with the current step
@@ -304,6 +326,15 @@ class Planner(object):
                         print('            '+' '.join([str('('+' '.join(action)+')') for action in stp])+fg_red(' '+u'\U0001F5D9'))
                     print(fg_red('      -- no valid progress %s  -- lead to partially unsolvable state by: %s' \
                     % (u'\U0001F6C8', ' '.join([str('('+' '.join(a)+')') for a in step]))))
+                # check if this partial plan might lead to a loop in self.policy
+                # if so, then ignore the current plan and add initial state into self.unsolvable_states
+                if state in plan_states or state in self.policy:
+                    if self.verbose: 
+                        print(fg_red('      -- lead to an infinite loop in the policy %s' % u'\U0001F6C8'))
+                    if last_state is not None and last_step is not None \
+                        and self.unsolvable_states[last_state] is not None:
+                        self.unsolvable_states[last_state].update(set(last_step))
+                    if policy: policy.popitem()
                 return policy
 
             # make full grounded specification of actions and apply them in the state
@@ -319,16 +350,30 @@ class Planner(object):
                     % (u'\U0001F6C8', ' '.join([str('('+' '.join(a)+')') for a in step]))))
                 # state is partially unsolvable
                 self.unsolvable_states[state].update(set(step))
+                # check if this partial plan might lead to a loop in self.policy
+                # if so, then ignore the current plan and add initial state into self.unsolvable_states
+                if state in plan_states or state in self.policy:
+                    if self.verbose: 
+                        print(fg_red2('      -- lead to an infinite loop in the policy %s' % u'\U0001F6C8'))
+                    if last_state is not None and last_step is not None \
+                        and self.unsolvable_states[last_state] is not None:
+                        self.unsolvable_states[last_state].update(set(last_step))
+                    if policy: policy.popitem()
                 return policy
 
             if self.verbose:
                 print('            '+' '.join([str('('+' '.join(action)+')') for action in step])+fg_yellow2(' '+u'\U0001F5F8'))
 
+            # add the new_stat into plan_states to check on next iterations for avoiding cycles
+            plan_states.append(state)
+            last_state = state
+            last_step = step
+
             # add the current step into the current policy
             policy[state] = step
             state = new_state
 
-        policy[state] = None
+        # policy[state] = None
         return policy
 
 
@@ -571,6 +616,23 @@ class Planner(object):
                 #     self.remove_path(s)
                 policy1[state] = step
         return policy1
+
+
+    def achieve_goal(self, state):
+        '''
+        test if the given @state can achieve a goal state
+        '''
+        if state.is_true(self.problem.goals):
+            return True
+
+        if state in self.policy:
+            step = self.policy[state]
+            if step == None: return False
+
+            for s in self.apply_step(init=state, step=step):
+                return self.achieve_goal(s)
+
+        return False
 
 
     def remove_path2(self, state, goal):

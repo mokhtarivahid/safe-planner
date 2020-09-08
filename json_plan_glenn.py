@@ -67,9 +67,9 @@ def gen_json_plan(plan, json_file=None):
 
     # create a json file
     if json_file == None:
-        if not os.path.exists("/tmp/pyppddl/"):
-            os.makedirs("/tmp/pyppddl/")
-        json_file = "/tmp/pyppddl/prob"+str(int(time.time()*1000000))+".json"
+        if not os.path.exists("/tmp/safe-planner/"):
+            os.makedirs("/tmp/safe-planner/")
+        json_file = "/tmp/safe-planner/prob"+str(int(time.time()*1000000))+".json"
     else:
         json_file = '{}.json'.format(os.path.splitext(json_file)[0])
 

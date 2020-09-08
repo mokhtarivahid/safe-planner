@@ -36,7 +36,7 @@ run()
       printf $problem
 
       start_time=`date +%s%N`
-      output=`timeout $time_out nice -n 0 python3 main.py $domain $problem -d -s -c $planners&`
+      output=`timeout $time_out nice -n 0 python3 main.py $domain $problem -d -s -r -c $planners&`
 
       # check if timeout is over
       status=`echo $output | grep -c "@ PLAN"`

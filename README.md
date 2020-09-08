@@ -30,7 +30,7 @@ SP has been implemented in `Python3` and the following packages are required to 
 
 ```bash
 sudo apt install python3-pip
-pip3 install ply graphviz
+pip3 install ply graphviz pygraphviz
 ```
 
 

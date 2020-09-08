@@ -156,7 +156,7 @@ def compile(domain, rank=False, verbose=False):
     (deterministic_domains, nd_actions) = compilation(domain, rank)
 
     ## create the directory for compiled deterministic domains 
-    domains_dir = '/tmp/pyppddl/{}{}/'.format(domain.name, str(int(time.time()*1000000)))
+    domains_dir = '/tmp/safe-planner/{}{}/'.format(domain.name, str(int(time.time()*1000000)))
     if not os.path.exists(domains_dir): os.makedirs(domains_dir)
 
     ## create deterministic domains files
