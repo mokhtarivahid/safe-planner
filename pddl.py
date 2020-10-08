@@ -6,7 +6,7 @@ import os, time
 from domain import Domain, Action, Precondition, Effect
 from problem import Problem, State
 
-def to_pddl(object, state=None, goals=None):
+def to_pddl(object, state=None, goal=None):
     '''
     Return the given object as a pddl string
     @object : a given object (Precondition/Effect/Action/Domain/Problem)
@@ -116,8 +116,8 @@ def to_pddl(object, state=None, goals=None):
         if state == None:
             state = object.initial_state
 
-        if goals == None:
-            goals = object.goals
+        if goal == None:
+            goal = object.goals
 
         pddl_str  = '(define (problem {0})\n'.format(object.problem)
         pddl_str += '  (:domain {0})\n'.format(object.domain)
@@ -132,13 +132,16 @@ def to_pddl(object, state=None, goals=None):
             pddl_str += '\n\t\t({0})'.format(' '.join(map(str, predicate)))
         pddl_str += ')\n'
         pddl_str += '  (:goal (and'
-        for predicate in sorted(goals):
-            pddl_str += '\n\t\t({0})'.format(' '.join(map(str, predicate)))
+        for predicate in goal:
+            if predicate[0] == -1:
+                pddl_str += '\n\t\t(not ({0}))'.format(' '.join(map(str, predicate[1:][0])))
+            else:
+                pddl_str += '\n\t\t({0})'.format(' '.join(map(str, predicate)))
         pddl_str += ')))\n'
         return pddl_str
 
 
-def pddl(object, state=None, goals=None, path=None):
+def pddl(object, state=None, goal=None, path=None):
     '''
     create a pddl file of the given object and return its path as a string
     @object : a given object (Precondition/Effect/Action/Domain/Problem)
@@ -152,7 +155,7 @@ def pddl(object, state=None, goals=None, path=None):
     pddl = "{}prob{}.pddl".format(path, str(int(time.time()*1000000)))
 
     with open(pddl, 'w') as f:
-        f.write(to_pddl(object, state=state, goals=goals))
+        f.write(to_pddl(object, state=state, goal=goal))
         f.close()
     return pddl
 

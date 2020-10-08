@@ -114,10 +114,15 @@ def compilation(domain, rank=False, probability=0.4):
             # ideally empty effect should be added, however, some classical planners
             # will fail when an actions has no effect, so, we add the precondition as
             # the action's effect, that is, no effect will apply
+            # first, make sure ignoring equalities in preconditions
+            precond_lts = tuple(lit for lit in action.preconditions.literals if '=' not in str(lit))
             if rank and action.probabilistic and action.probabilistic[0][0][0] < probability:
-                deterministic_effects.insert(0, Effect(literals=action.preconditions.literals))
+                deterministic_effects.insert(0, Effect(literals=precond_lts))
             else:
-                deterministic_effects.extend([Effect(literals=action.preconditions.literals)])
+                deterministic_effects.extend([Effect(literals=precond_lts)])
+
+        ## Descending: reverse=True (rank:False), Ascending: reverse=False (rank=True)
+        deterministic_effects = tuple(sorted(deterministic_effects, key=lambda x: len(x), reverse=not rank))
 
         ## add compiled action effects into deterministic_actions
         deterministic_actions.append(\

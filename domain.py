@@ -115,6 +115,14 @@ class Precondition(object):
             precond_str += '\n       -- exists: {} {}'.format(p[0],p[1])
         return precond_str
 
+    def __bool__(self):
+        '''Return false if effect is empty, otherwise true'''
+        return not (not self.literals and not self.universal and not self.existential)
+
+    def __len__(self):
+        '''Return length of effects (total length of literals + forall + when)'''
+        return len(self.literals) + len(self.universal) + len(self.existential)
+
 
 ###############################################################################
 ## PRECONDITION CLASS

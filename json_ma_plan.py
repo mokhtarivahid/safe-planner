@@ -182,11 +182,18 @@ def concurrent_subplans(policy, plan):
 #################################################################
 def action_json(action):
     '''convert a grounded action into a json dictionary and return it'''
+
+    # divide action's preconditions into two disjoint sets of pre- and per-conditions 
+    per_conditions = set(action.preconditions.pos_preconditions)-set(action.effects.del_effects)
+    pre_conditions = set(action.preconditions.pos_preconditions)-per_conditions
+
     action_json = OrderedDict()
     action_json['name'] = action.sig[0]
     action_json['args'] = action.sig[1:]
-    action_json['pre'] = OrderedDict([(prec[0], prec[1:]) for prec in action.preconditions.pos_preconditions])
-    action_json['post'] = OrderedDict([(eff[0], eff[1:]) for eff in action.effects.add_effects])
+    action_json['pre'] = OrderedDict([(prec[0], prec[1:]) for prec in pre_conditions])
+    action_json['per'] = OrderedDict([(prec[0], prec[1:]) for prec in per_conditions])
+    action_json['add'] = OrderedDict([(eff[0], eff[1:]) for eff in action.effects.add_effects])
+    action_json['del'] = OrderedDict([(eff[0], eff[1:]) for eff in action.effects.del_effects])
 
     # action_json['pre'] = action.preconditions.pos_preconditions
     # if action.effects.add_effects and not action.oneof_effects and not action.prob_effects:

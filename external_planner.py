@@ -281,7 +281,8 @@ def call_optic_clp(domain, problem, args='-b -N', verbose=0, pidx=0):
         return -1
 
     ## if solution already exists in the problem ##
-    if "has to terminate" in to_str(err):
+    if "has to terminate" in to_str(err) or \
+       "error while loading shared libraries" in to_str(err):
         # print(fg_yellow("[planning failed due to some error in the pddl description]"))
         # print(fg_voilet('\n-- planner stdout'))
         # print(shell)
@@ -691,6 +692,10 @@ def call_fd(domain, problem, args='--search "astar(lmcut())"', verbose=0, pidx=0
         if to_str(err):
             print(fg_voilet('-- planner stderr'))
             print(to_str(err))
+
+    ## if there is shared library errors ##
+    if "error while loading shared libraries" in to_str(err):
+        return -1
 
     # Permission denied
     if 'Permission denied' in to_str(err):

@@ -86,8 +86,11 @@ def parallel_plan(policy, verbose=False):
     #     edges[start].add(action)
 
     #############################
-    dot_file = '{}.gv'.format(os.path.splitext(policy.problem_file)[0])
-    prob_name = os.path.splitext(os.path.basename(policy.problem_file))[0]
+    problem_file = policy.problem_file
+    if problem_file is None:
+        problem_file = policy.domain_file
+    dot_file = '{}.gv'.format(os.path.splitext(problem_file)[0])
+    prob_name = os.path.splitext(os.path.basename(problem_file))[0]
 
     # create a graphviz object
     G = AGraph(directed=True)
@@ -115,7 +118,7 @@ def parallel_plan(policy, verbose=False):
     # T.draw('{}.tred.gv'.format(os.path.splitext(args.problem)[0])) 
 
     # do a transitive reduction
-    tred_dot_file = '{}.tred.gv'.format(os.path.splitext(policy.problem_file)[0])
+    tred_dot_file = '{}.tred.gv'.format(os.path.splitext(problem_file)[0])
     os.system('tred %s | dot -Tdot > %s &' % (dot_file, tred_dot_file))
 
     # time.sleep(0.1)

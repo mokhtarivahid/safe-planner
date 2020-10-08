@@ -1049,7 +1049,8 @@ class Planner(object):
                        'solvable': 'GOAL' in plan.keys() or\
                                    'GOAL' in plan.values(),\
                        'policy_length':len(self.policy),\
-                       'plan_length':len(plan)-1}
+                       'plan_length':len(plan)-1,
+                       'deterministic_domains':len(self.domains)}
         if self.problem_file is not None:
             stat_file = '{}.stat'.format(os.path.splitext(self.problem_file)[0])
         else:

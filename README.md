@@ -1,6 +1,7 @@
-# Safe-Planner - a Non-Deterministic Planner by Compilation into Classical Problems
+# Safe-Planner - A Dual Replanner for Computing Strong Cyclic Solutions in Fully Observable Non-Deterministic Domains
 
-**Safe-Planner (SP)** is an off-line non-deterministic planning algorithm based on replanning that compiles a **Fully Observable Non-Deterministic (FOND)** planning problem into a set of classical planning problems which can be solved using a classical problem solver. SP then merges the obtained classical solutions and forms a non-deterministic solution policy to the original non-deterministic problem. SP avoids dead-end states by simulating the execution during the policy generation and therefore it generates safe policies. The execution of a safe policy is guaranteed to terminate in a goal state for all potential outcomes of the actions in the non-deterministic environment (if any exists).
+**Safe-Planner (SP)** is an off-line non-deterministic planning algorithm based on replanning that compiles a **Fully Observable Non-Deterministic (FOND)** planning problem into a set of classical planning problems which can be solved using a classical problem solver. SP then merges the obtained classical solutions and forms a non-deterministic solution policy to the original non-deterministic problem. SP avoids dead-end states by 
+modifying a planning problem such that it prevents a classical planner to generate weak plans involving actions leading to dead-ends and therefore it generates safe policies. The execution of a safe policy is guaranteed to terminate in a goal state for all potential outcomes of the actions in the non-deterministic environment (if any exists).
 
 SP can employ any off-the-shelf classical planner for problem solving. Currently, the classical planners [FF], [OPTIC], [MADAGASCAR], [VHPOP], [LPG-TD], and [FAST-DOWNWARD] have been integrated. 
 
@@ -30,11 +31,19 @@ SP has been implemented in `Python3` and the following packages are required to 
 
 ```bash
 sudo apt install python3-pip
-pip3 install ply graphviz pygraphviz
+pip3 install ply
 ```
 
+### optional
 
-Also install the following `Lua` libraries (optional: only for parsing json files):
+For running with `-j` parameter and translating plans into json, also install:
+
+```bash
+sudo apt install -y graphviz-dev
+pip3 install pygraphviz
+```
+
+and the following `Lua` libraries (optional: only for parsing json files):
 
 ```bash
 sudo apt install -y lua-penlight lua-json lua-ansicolors luarocks
@@ -100,21 +109,54 @@ More precisely, the following combinations are supported by Safe-Planner for mod
 ## Usage
 
 ```bash
-python3 main.py <DOMAIN> <PROBLEM> [-c <PLANNER>] [-d]
+python3 main.py <DOMAIN> <PROBLEM> [-c <PLANNERS_LIST>] [-d] [-r] [-v 1|2] [-j]
 ```
 
-For example, the following commands run Safe-Planner using classical planners FF, OPTIC and LPG-TD to solve a [`pickit`](benchmarks/multirob/pickit) problem:
+### optional parameters
+
+`-c <PLANNERS_LIST>`: a list of planners for dual planning mode, e.g., `-c ff` or `-c ff m` or `-c ff m lpg`, ...
+
+`-d`: draw graphically the plan in the dot format.
+
+`-r`: ranks the classical domain when compiling from non-deterministic to deterministic (note that it does not guarantee always to improve the performance, however, in some domains it dramatically improves the performance by avoiding producing misleading plans).
+
+`-v 1|2`: increases verbosity.
+
+`-j`: translates the produced plan into a json file [experimental].
+
+
+
+The following commands show some examples on how to run Safe-Planner on individual problems:
 
 ```bash
-python3 main.py benchmarks/multirob/pickit/domain.pddl benchmarks/multirob/pickit/prob0.pddl -c ff
+# run Safe-Planner using external planner FF (default planner)
+python3 main.py benchmarks/fond-domains/elevators/domain.pddl benchmarks/fond-domains/elevators/p01.pddl 
+
+# run Safe-Planner using external planners FF and Madagascar (dual replanning)
+python3 main.py benchmarks/fond-domains/elevators/domain.pddl benchmarks/fond-domains/elevators/p01.pddl -c ff m
+
+# run Safe-Planner using external planners FF and Madagascar with ranking option
+python3 main.py benchmarks/fond-domains/elevators/domain.pddl benchmarks/fond-domains/elevators/p01.pddl -c ff m -r
 ```
 
-```bash
-python3 main.py benchmarks/multirob/pickit/domain.pddl benchmarks/multirob/pickit/prob0.pddl -c optic-clp
-```
 
 ```bash
-python3 main.py benchmarks/multirob/pickit/domain.pddl benchmarks/multirob/pickit/prob0.pddl -c lpg-td
+# run Safe-Planner in batch for each used FOND domain
+./run-planner.sh benchmarks/fond-domains/acrobatics ff m
+./run-planner.sh benchmarks/fond-domains/beam-walk ff m
+./run-planner.sh benchmarks/fond-domains/blocksworld ff m
+./run-planner.sh benchmarks/fond-domains/elevators ff m
+./run-planner.sh benchmarks/fond-domains/ex-blocksworld ff m
+./run-planner.sh benchmarks/fond-domains/first-responders ff m
+./run-planner.sh benchmarks/fond-domains/forest ff m
+./run-planner.sh benchmarks/fond-domains/tireworld ff m
+./run-planner.sh benchmarks/fond-domains/triangle-tireworld ff m
+./run-planner.sh benchmarks/fond-domains/zenotravel ff m
+./run-planner.sh benchmarks/fond-domains/doors -r ff m
+./run-planner.sh benchmarks/fond-domains/islands -r ff m
+./run-planner.sh benchmarks/fond-domains/miner -r ff m
+./run-planner.sh benchmarks/fond-domains/tireworld-spiky -r ff m
+./run-planner.sh benchmarks/fond-domains/tireworld-truck -r ff m
 ```
 
 
@@ -202,251 +244,6 @@ the optional parameter `-d` translates the produced plan into a dot file in the 
 }
 ```
 
-##### Example 2: [`pickit`](benchmarks/multirob/pickit) domain
-
-```bash
-python3 main.py benchmarks/multirob/pickit/domain.pddl benchmarks/multirob/pickit/prob0.pddl -c lpg-td -d -j
-
-@ PLAN
- 0 : (move_to_grasp arm1 stand1 box1 cap1) (move_to_grasp arm2 stand2 box2 base1) -- () 1
- 1 : (vacuum_object arm1 cap1 box1) (vacuum_object arm2 base1 box2) -- () 2
- 2 : (carry_to_camera arm1 box1 camera1 cap1) (carry_to_stand arm2 box2 stand2 base1) -- () 3
- 3 : (check_orientation arm1 cap1 camera1) -- ((upward cap1)) ((unknown_orientation cap1)) 4 -- ((downward cap1)) ((unknown_orientation cap1)) 5
- 4 : (rotate arm1 cap1) (carry_to_stand arm1 camera1 stand1 cap1) -- () 6
- 5 : (carry_to_stand arm1 camera1 stand1 cap1) -- () 6
- 6 : (put_object arm1 cap1 stand1) (carry_to_camera arm2 stand2 camera1 base1) -- () 7
- 7 : (grip_object arm1 cap1 stand1) (check_orientation arm2 base1 camera1) -- ((downward base1)) ((unknown_orientation base1)) 8 -- ((upward base1)) ((unknown_orientation base1)) 9
- 8 : (carry_to_stand arm2 camera1 stand2 base1) (carry_to_assemble arm1 stand1 assembly_pose1 cap1) -- () 10
- 9 : (rotate arm2 base1) (carry_to_stand arm2 camera1 stand2 base1) (carry_to_assemble arm1 stand1 assembly_pose1 cap1) -- () 10
-10 : (put_object arm2 base1 stand2) -- () 11
-11 : (grip_object arm2 base1 stand2) -- () 12
-12 : (carry_to_assemble arm2 stand2 assembly_pose2 base1) -- () 13
-13 : (assemble arm1 arm2 cap1 base1 assembly_pose1 assembly_pose2) -- () 14
-14 : (ungrip_object arm2 base1) (carry_to_pack arm1 assembly_pose1 package1 cap1) -- () 15
-15 : (pack_object arm1 cap1 base1 package1) -- () GOAL
-```
-
-the optional parameter `-d` translates the produced plan into a dot file in the same path:
-
-![pickit](res/pickit.png)
-
-[**EXPERIMENTAL!**] the optional parameter `-j` translates the produced plan into a json file in the same path:
-
-```json
-{
-    "plan": [
-        "step_0",
-        "step_1",
-        "step_2",
-        "step_3",
-        "step_4",
-        "step_5",
-        "step_6",
-        "step_7",
-        "step_8",
-        "step_9",
-        "step_10",
-        "step_11",
-        "step_12",
-        "step_13",
-        "step_14",
-        "step_15"
-    ],
-    "step_0": {
-        "actions": [
-            {"name": "move_to_grasp","arguments": ["arm1","stand1","box1","cap1"]},
-            {"name": "move_to_grasp","arguments": ["arm2","stand2","box2","base1"]}
-        ],
-        "outcomes": [
-            {
-                "condition": ["(free stand2)","(free stand1)","(arm_at arm2 box2)","(arm_at arm1 box1)" ],
-                "next": "step_1"
-            }
-        ]
-    },
-    "step_1": {
-        "actions": [
-            {"name": "vacuum_object","arguments": ["arm1","cap1","box1"]},
-            {"name": "vacuum_object","arguments": ["arm2","base1","box2"]}
-        ],
-        "outcomes": [
-            {
-                "condition": ["(arm_vacuumed arm1 cap1)","(arm_vacuumed arm2 base1)"],
-                "next": "step_2"
-            }
-        ]
-    },
-    "step_2": {
-        "actions": [
-            {"name": "carry_to_camera","arguments": ["arm1","box1","camera1","cap1"]}
-        ],
-        "outcomes": [
-            {
-                "condition": ["(arm_at arm1 camera1)","(free box1)"],
-                "next": "step_3"
-            }
-        ]
-    },
-    "step_3": {
-        "actions": [
-            {"name": "check_orientation","arguments": ["arm1","cap1","camera1"]}
-        ],
-        "outcomes": [
-            {
-                "condition": ["(upward cap1)"],
-                "next": "step_4"}
-                ,
-            {
-                "condition": ["(downward cap1)"],
-                "next": "step_5"
-            }
-        ]
-    },
-    "step_4": {
-        "actions": [
-            {"name": "rotate","arguments": ["arm1","cap1"]},
-            {"name": "carry_to_stand","arguments": ["arm1","camera1","stand1","cap1"]}
-        ],
-        "outcomes": [
-            {
-                "condition": ["(arm_at arm1 stand1)","(downward cap1)","(free camera1)"],
-                "next": "step_6"
-            }
-        ]
-    },
-    "step_5": {
-        "actions": [
-            {"name": "carry_to_stand","arguments": ["arm1","camera1","stand1","cap1"]}
-        ],
-        "outcomes": [{
-            "condition": ["(free camera1)","(arm_at arm1 stand1)"],
-            "next": "step_6"
-        }
-        ]
-    },
-    "step_6": {
-        "actions": [
-            {"name": "put_object","arguments": ["arm1","cap1","stand1"]},
-            {"name": "carry_to_camera","arguments": ["arm2","box2","camera1","base1"]}
-        ],
-        "outcomes": [
-            {
-                "condition": ["(object_at cap1 stand1)","(arm_at arm2 camera1)","(arm_free arm1)","(free box2)"],
-                "next": "step_7"
-            }
-        ]
-    },
-    "step_7": {
-        "actions": [
-            {"name": "grip_object","arguments": ["arm1","cap1","stand1"]},
-            {"name": "check_orientation","arguments": ["arm2","base1","camera1"]}
-        ],
-        "outcomes": [
-            {
-                "condition": ["(arm_gripped arm1 cap1)","(downward base1)"],
-                "next": "step_8"}
-                ,
-            {
-                "condition": ["(arm_gripped arm1 cap1)","(upward base1)"],
-                "next": "step_9"
-            }
-        ]
-    },
-    "step_8": {
-        "actions": [
-            {"name": "carry_to_stand","arguments": ["arm2","camera1","stand2","base1"]},
-            {"name": "carry_to_assemble","arguments": ["arm1","stand1","assembly_pose1","cap1"]}
-        ],
-        "outcomes": [
-            {
-                "condition": ["(arm_at arm1 assembly_pose1)","(arm_at arm2 stand2)","(free stand1)","(free camera1)"],
-                "next": "step_10"
-            }
-        ]
-    },
-    "step_9": {
-        "actions": [
-            {"name": "rotate","arguments": ["arm2","base1"]},
-            {"name": "carry_to_stand","arguments": ["arm2","camera1","stand2","base1"]},
-            {"name": "carry_to_assemble","arguments": ["arm1","stand1","assembly_pose1","cap1"]}
-        ],
-        "outcomes": [
-            {
-                "condition": ["(arm_at arm1 assembly_pose1)","(arm_at arm2 stand2)","(downward base1)","(free stand1)","(free camera1)"],
-                "next": "step_10"
-            }
-        ]
-    },
-    "step_10": {
-        "actions": [
-            {"name": "put_object","arguments": ["arm2","base1","stand2"]}
-        ],
-        "outcomes": [
-            {
-                "condition": ["(object_at base1 stand2)","(arm_free arm2)"],
-                "next": "step_11"
-            }
-        ]
-    },
-    "step_11": {
-        "actions": [
-            {"name": "grip_object","arguments": ["arm2","base1","stand2"]}
-        ],
-        "outcomes": [
-            {
-                "condition": ["(arm_gripped arm2 base1)"],
-                "next": "step_12"
-            }
-        ]
-    },
-    "step_12": {
-        "actions": [
-            {"name": "carry_to_assemble","arguments": ["arm2","stand2","assembly_pose2","base1"]}
-        ],
-        "outcomes": [
-            {
-                "condition": ["(arm_at arm2 assembly_pose2)","(free stand2)"],
-                "next": "step_13"
-            }
-        ]
-    },
-    "step_13": {
-        "actions": [
-            {"name": "assemble","arguments": ["arm1","arm2","cap1","base1","assembly_pose1","assembly_pose2"]}
-        ],
-        "outcomes": [
-            {
-                "condition": ["(assembled cap1 base1)"],
-                "next": "step_14"
-            }
-        ]
-    },
-    "step_14": {
-        "actions": [
-            {"name": "ungrip_object","arguments": ["arm2","base1"]},
-            {"name": "carry_to_pack","arguments": ["arm1","assembly_pose1","package1","cap1"]}
-        ],
-        "outcomes": [
-            {
-                "condition": ["(ungripped base1)","(arm_at arm1 package1)","(free assembly_pose1)","(arm_free arm2)"],
-                "next": "step_15"
-            }
-        ]
-    },
-    "step_15": {
-        "actions": [
-            {"name": "pack_object","arguments": ["arm1","cap1","base1","package1"]}
-        ],
-        "outcomes": [
-            {
-                "condition": ["(packed cap1 base1 package1)","(arm_free arm1)"],
-                "next": "GOAL"
-            }
-        ]
-    }
-}
-```
-
 
 
 ## How to refer
@@ -467,6 +264,8 @@ The following references describe the algorithm of **Safe-Planner**.
   Title     = {{MULTIROB} -- {D}eliverable 3.1: design and implementation of the discrete coordinator inputs: declarative rules and skill prototypes},
   Author    = {Mokhtari, Vahid and Scioni, Enea and Borghesan, Gianni and Sathya, Ajay and Decr\'e, Wilm},
   Booktitle = {Technical report, {MULTIROB-SBO} project at {KU Leuven}},
+  Url       = {https://bit.ly/2GsHUGl},
   Year      = {2019}
 }
 ```
+
