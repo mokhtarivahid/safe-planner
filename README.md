@@ -20,7 +20,7 @@ SP can employ any off-the-shelf classical planner for problem solving. Currently
 1. [Requirement](#requirement)
 2. [PPDDL](#ppddl)
 3. [Usage](#usage)
-4. [The planner's output](#the-planner's-output)
+4. [The planner output](#the-planner-output)
 5. [How to refer](#how-to-refer)
 
 
@@ -40,7 +40,7 @@ For running with `-j` parameter and translating plans into json, also install:
 
 ```bash
 sudo apt install -y graphviz-dev
-pip3 install pygraphviz
+pip3 install graphviz pygraphviz
 ```
 
 and the following `Lua` libraries (optional: only for parsing json files):
@@ -109,59 +109,63 @@ More precisely, the following combinations are supported by Safe-Planner for mod
 ## Usage
 
 ```bash
-python3 main.py <DOMAIN> <PROBLEM> [-c <PLANNERS_LIST>] [-d] [-r] [-v 1|2] [-j]
+python3 main.py <DOMAIN> <PROBLEM> [-c <PLANNERS_LIST>] [-r] [-a] [-d] [-j] [-s] [-v 1|2]
 ```
 
 ### optional parameters
 
-`-c <PLANNERS_LIST>`: a list of planners for dual planning mode, e.g., `-c ff` or `-c ff m` or `-c ff m lpg`, ...
+`-c <PLANNERS_LIST>`: a list of planners for dual planning mode, e.g., `-c ff` or `-c ff m` or `-c ff m fd`, ...
+
+`-r`: reverse the ranking of the classical domain when compiling from non-deterministic to deterministic. The default ranking is Descending according to the length of actions' effects (note that it does not guarantee always to improve the performance, however, in some domains it dramatically improves the performance by avoiding producing misleading plans).
+
+`-a`: compile the non-deterministic domain into one classical domain using the all-outcome compilation strategy (the default compilation strategy is the single-outcome which translates into a set of ordered classical domains).
 
 `-d`: draw graphically the plan in the dot format.
 
-`-r`: ranks the classical domain when compiling from non-deterministic to deterministic (note that it does not guarantee always to improve the performance, however, in some domains it dramatically improves the performance by avoiding producing misleading plans).
+`-j`: translate the produced plan into a json file [experimental].
 
-`-v 1|2`: increases verbosity.
+`-s`: record the planner's performance in `.stat` file.
 
-`-j`: translates the produced plan into a json file [experimental].
+`-v 1|2`: increase verbosity.
 
 
 
 The following commands show some examples on how to run Safe-Planner on individual problems:
 
 ```bash
-# run Safe-Planner using external planner FF (default planner)
+# run Safe-Planner using external planner FF (the default planner)
 python3 main.py benchmarks/fond-domains/elevators/domain.pddl benchmarks/fond-domains/elevators/p01.pddl 
 
-# run Safe-Planner using external planners FF and Madagascar (dual replanning)
+# run Safe-Planner using external planners FF and Madagascar (dual replanning) with default ranking (Descending)
 python3 main.py benchmarks/fond-domains/elevators/domain.pddl benchmarks/fond-domains/elevators/p01.pddl -c ff m
 
-# run Safe-Planner using external planners FF and Madagascar with ranking option
+# run Safe-Planner using external planners FF and Madagascar with reverse ranking (Ascending)
 python3 main.py benchmarks/fond-domains/elevators/domain.pddl benchmarks/fond-domains/elevators/p01.pddl -c ff m -r
 ```
 
 
 ```bash
 # run Safe-Planner in batch for each used FOND domain
-./run-planner.sh benchmarks/fond-domains/acrobatics ff m
-./run-planner.sh benchmarks/fond-domains/beam-walk ff m
-./run-planner.sh benchmarks/fond-domains/blocksworld ff m
-./run-planner.sh benchmarks/fond-domains/elevators ff m
-./run-planner.sh benchmarks/fond-domains/ex-blocksworld ff m
-./run-planner.sh benchmarks/fond-domains/first-responders ff m
-./run-planner.sh benchmarks/fond-domains/forest ff m
-./run-planner.sh benchmarks/fond-domains/tireworld ff m
-./run-planner.sh benchmarks/fond-domains/triangle-tireworld ff m
-./run-planner.sh benchmarks/fond-domains/zenotravel ff m
-./run-planner.sh benchmarks/fond-domains/doors -r ff m
-./run-planner.sh benchmarks/fond-domains/islands -r ff m
-./run-planner.sh benchmarks/fond-domains/miner -r ff m
-./run-planner.sh benchmarks/fond-domains/tireworld-spiky -r ff m
-./run-planner.sh benchmarks/fond-domains/tireworld-truck -r ff m
+./batch-run.sh benchmarks/fond-domains/acrobatics -r -c ff m
+./batch-run.sh benchmarks/fond-domains/beam-walk -c ff m
+./batch-run.sh benchmarks/fond-domains/blocksworld -c ff m
+./batch-run.sh benchmarks/fond-domains/elevators -c ff m
+./batch-run.sh benchmarks/fond-domains/ex-blocksworld -c ff m
+./batch-run.sh benchmarks/fond-domains/first-responders -c ff m
+./batch-run.sh benchmarks/fond-domains/forest -c ff m
+./batch-run.sh benchmarks/fond-domains/tireworld -c ff m
+./batch-run.sh benchmarks/fond-domains/triangle-tireworld -c ff m
+./batch-run.sh benchmarks/fond-domains/zenotravel -c ff m
+./batch-run.sh benchmarks/fond-domains/doors -r -c ff m
+./batch-run.sh benchmarks/fond-domains/islands -r -c ff m
+./batch-run.sh benchmarks/fond-domains/miner -r -c ff m
+./batch-run.sh benchmarks/fond-domains/tireworld-spiky -r -c ff m
+./batch-run.sh benchmarks/fond-domains/tireworld-truck -r -c ff m
 ```
 
 
 
-## The planner's output
+## The planner output
 
 SP represent a policy as a sequence of numbered steps such that:
 
@@ -205,7 +209,7 @@ python3 main.py benchmarks/prob_interesting/bus-fare.pddl -j -d
 
 the optional parameter `-d` translates the produced plan into a dot file in the same path:
 
-![bus-fare](res/bus-fare.png)
+![bus-fare](resources/bus-fare.png)
 
 [**EXPERIMENTAL!**] the optional parameter `-j` translates the produced plan into a json file in the same path:
 
@@ -245,7 +249,6 @@ the optional parameter `-d` translates the produced plan into a dot file in the 
 ```
 
 
-
 ## How to refer
 
 The following references describe the algorithm of **Safe-Planner**.
@@ -264,7 +267,6 @@ The following references describe the algorithm of **Safe-Planner**.
   Title     = {{MULTIROB} -- {D}eliverable 3.1: design and implementation of the discrete coordinator inputs: declarative rules and skill prototypes},
   Author    = {Mokhtari, Vahid and Scioni, Enea and Borghesan, Gianni and Sathya, Ajay and Decr\'e, Wilm},
   Booktitle = {Technical report, {MULTIROB-SBO} project at {KU Leuven}},
-  Url       = {https://bit.ly/2GsHUGl},
   Year      = {2019}
 }
 ```

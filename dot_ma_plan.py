@@ -5,17 +5,14 @@
 # requirement:
 # pip install pygraphviz
 
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 import argparse
-from collections import defaultdict
 import os, time
+from collections import defaultdict
 from pygraphviz import *
 
-# from color import fg_green, fg_red, fg_yellow, fg_blue, fg_voilet, fg_beige, bg_voilet, bg_beige
-from color import *
-from planner import Planner
-from domain import Action
+import domain
 
 def parse():
     usage = 'python3 main.py <DOMAIN> <PROBLEM> [<PLANNER>] [-d] [-v] [-h]'
@@ -58,8 +55,8 @@ def parallel_plan(policy, verbose=False):
     plan = policy.plan()
 
     # create dummy start and end actions for initial and goal states
-    end = Action(name='end').ground(('end',))
-    start = Action(name='start').ground(('start',))
+    end = domain.Action(name='end').ground(('end',))
+    start = domain.Action(name='start').ground(('start',))
 
     #############################
     # store edges of the graph
@@ -132,10 +129,13 @@ def parallel_plan(policy, verbose=False):
 #################################################################
 if __name__ == '__main__':
 
+    import planner
+    import color
+
     args = parse()
 
     # make a policy given domain and problem
-    policy = Planner(args.domain, args.problem, args.planners, args.rank, args.verbose)
+    policy = planner.Planner(args.domain, args.problem, args.planners, args.rank, args.verbose)
 
     # transform the produced policy into a contingency plan and print it
     plan = policy.plan()
@@ -145,8 +145,8 @@ if __name__ == '__main__':
     #############################
     # transform the plan into a parallel plan
     dot_file, tred_dot_file = parallel_plan(policy, verbose=args.verbose)
-    print(fg_yellow('-- graphviz file: ') + dot_file)
-    print(fg_yellow('-- transitive reduction: ') + tred_dot_file)
+    print(color.fg_yellow('-- graphviz file: ') + dot_file)
+    print(color.fg_yellow('-- transitive reduction: ') + tred_dot_file)
 
     print('\nPlanning domain: %s' % policy.domain_file)
     print('Planning problem: %s' % policy.problem_file)

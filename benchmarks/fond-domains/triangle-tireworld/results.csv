@@ -1,4 +1,0 @@
-file,problem,planning_time,singlesoutcome_planning_call,alloutcome_planning_call,unsolvable_states,solvable,policy_length,plan_length
-p01.pddl,triangle-tire-1,0.863,8,8,0,1,30,37
-p02.pddl,triangle-tire-2,14.858,128,128,0,1,510,637
-p03.pddl,triangle-tire-3,474.900,2048,2048,0,1,8190,10237

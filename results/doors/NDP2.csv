@@ -1,0 +1,16 @@
+file,problem,planning_time,singlesoutcome_planning_call,alloutcome_planning_call,unsolvable_states,solvable,policy_length,plan_length
+p01.pddl,doors-0,0.080,7,7,1,1,6,9
+p02.pddl,doors-0,0.151,16,16,2,1,14,21
+p03.pddl,doors-0,0.288,30,30,3,1,30,45
+p04.pddl,doors-0,0.662,56,56,4,1,62,93
+p05.pddl,doors-0,1.988,106,106,5,1,126,189
+p06.pddl,doors-0,9.004,204,204,6,1,254,381
+p07.pddl,doors-0,46.877,398,398,7,1,510,765
+p08.pddl,doors-0,350.918,784,784,8,1,1022,1533
+p09.pddl,0,0,0,0,0,0,0,0
+p10.pddl,0,0,0,0,0,0,0,0
+p11.pddl,0,0,0,0,0,0,0,0
+p12.pddl,0,0,0,0,0,0,0,0
+p13.pddl,0,0,0,0,0,0,0,0
+p14.pddl,0,0,0,0,0,0,0,0
+p15.pddl,0,0,0,0,0,0,0,0

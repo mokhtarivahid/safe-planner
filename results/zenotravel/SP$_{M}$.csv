@@ -1,0 +1,16 @@
+file,problem,planning_time,singlesoutcome_planning_call,alloutcome_planning_call,unsolvable_states,solvable,policy_length,plan_length
+p01.pddl,zeno_6_2_2_3846,0.000,0,0,0,1,1,0
+p02.pddl,zeno_7_2_2_17462,95.917,1,1,0,1,16,16
+p03.pddl,zeno_8_2_2_3674,553.315,1,1,0,1,26,26
+p04.pddl,zeno_9_2_2_12861,89.084,1,1,0,1,12,12
+p05.pddl,zeno_10_2_2_24056,25.375,1,1,0,1,14,14
+p06.pddl,0,0,0,0,0,0,0,0
+p07.pddl,0,0,0,0,0,0,0,0
+p08.pddl,0,0,0,0,0,0,0,0
+p09.pddl,0,0,0,0,0,0,0,0
+p10.pddl,0,0,0,0,0,0,0,0
+p11.pddl,0,0,0,0,0,0,0,0
+p12.pddl,0,0,0,0,0,0,0,0
+p13.pddl,0,0,0,0,0,0,0,0
+p14.pddl,0,0,0,0,0,0,0,0
+p15.pddl,0,0,0,0,0,0,0,0

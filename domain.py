@@ -1,8 +1,8 @@
 '''
 Classes and functions for creating a domain object
 '''
-from itertools import product
 import copy
+from itertools import product
 
 ###############################################################################
 ## DOMAIN CLASS
@@ -23,11 +23,11 @@ class Domain(object):
         self.name = name
         self.requirements = tuple(requirements)
         self.types = dict(types)
-        self.predicates = tuple(predicates)
         self.constants = constants
+        self.predicates = tuple(predicates)
         self.actions = tuple(actions)
 
-    def ground_actions(self, objects):
+    def ground_all_actions(self, objects):
         '''
         Ground all action schemas given a dictionary of objects keyed by type
         '''
@@ -38,9 +38,10 @@ class Domain(object):
                 grounded_actions.append(action.ground(*params))
         return grounded_actions
 
-    def ground(self, action_sig):
+    def exclusive_ground(self, action_sig):
         '''
-        Return the grounded action schema of a given action signature,
+        Return the grounded action schema of a given action signature.
+        [Ground an action exactly as the given action signature/name.]
         an action signature example: ('move','robot1','room1',',room2')
         '''
         for action in self.actions:
@@ -48,7 +49,34 @@ class Domain(object):
                 return action.ground(*tuple(action_sig[1:]))
         return None
 
-    def constrain_domain(self, ex_actions):
+    def inclusive_ground(self, action_sig, map_actions={}):
+        '''
+        Return a grounded action schema of a given action signature: @action_sig.
+        @map_actions: is a mapping for the actions names including newly created 
+        deterministic actions after compilation.
+        [Ground an action from the same parent of the given action signature.]
+        an action signature example: ('move','robot1','room1',',room2')
+        '''
+        for action in self.actions:
+            if map_actions[action.name] == map_actions[action_sig[0]]:
+                return action.ground(*tuple(action_sig[1:]))
+        return None
+
+    def all_inclusive_ground(self, action_sig, map_actions={}):
+        '''
+        Return a list of grounded action schemas of a given action signature: @action_sig.
+        @map_actions: is a mapping for the actions names including newly created 
+        deterministic actions after compilation.
+        [Ground all actions from the same parent of the given action signature.]
+        an action signature example: ('move','robot1','room1',',room2')
+        '''
+        grounded_actions = []
+        for action in self.actions:
+            if map_actions[action.name] == map_actions[action_sig[0]]:
+                grounded_actions.append(action.ground(*tuple(action_sig[1:])))
+        return grounded_actions
+
+    def constrain_domain(self, ex_actions, map_actions={}, nd_actions={}):
         '''
         returns a new domain copied from this domain and makes its actions 
         in the given ex_actions inapplicable in a state 
@@ -60,15 +88,32 @@ class Domain(object):
         new_domain = copy.deepcopy(self)
 
         for action in new_domain.actions:
-            if action.name in [ex_action[0] for ex_action in ex_actions]:
-                new_domain.predicates = tuple(set(new_domain.predicates + tuple([('disallowed_{}'.format(action.name),) + tuple(zip(action.types, action.arg_names))[:5]])))
-                action.preconditions.literals = \
-                    tuple(set(action.preconditions.literals + tuple([(-1, (('disallowed_{}'.format(action.name),) + action.arg_names[:5]))])))
+            if map_actions[action.name] in [map_actions[ex_action[0]] for ex_action in ex_actions]:
+                # if action is non-deterministic then add also for all other outcomes/names
+                if action.name in nd_actions:
+                    for i in range(nd_actions[action.name]):
+                        new_domain.predicates = tuple(set(new_domain.predicates + \
+                            tuple([('disallowed_{}'.format('%s_%s'%(map_actions[action.name],i)),) + \
+                            tuple(zip(action.types, action.arg_names))[:5]])))
+                        action.preconditions.literals = tuple(set(action.preconditions.literals + \
+                            tuple([(-1, (('disallowed_{}'.format('%s_%s'%(map_actions[action.name],i)),) + action.arg_names[:5]))])))
+                else:
+                    new_domain.predicates = tuple(set(new_domain.predicates + \
+                        tuple([('disallowed_{}'.format(action.name),) + \
+                        tuple(zip(action.types, action.arg_names))[:5]])))
+                    action.preconditions.literals = tuple(set(action.preconditions.literals + \
+                        tuple([(-1, (('disallowed_{}'.format(action.name),) + action.arg_names[:5]))])))
 
         for action in new_domain.actions:
             for ex_action in ex_actions:
-                action.effects.literals = \
-                    tuple(set(action.effects.literals + tuple([(-1, (('disallowed_{}'.format(ex_action[0]),) + ex_action[1:6]))])))
+                # if ex_action is non-deterministic then add also for all other outcomes/names
+                if ex_action[0] in nd_actions:
+                    for i in range(nd_actions[ex_action[0]]):
+                        action.effects.literals = \
+                            tuple(set(action.effects.literals + tuple([(-1, (('disallowed_{}'.format('%s_%s'%(map_actions[ex_action[0]],i)),) + ex_action[1:6]))])))
+                else:
+                    action.effects.literals = \
+                        tuple(set(action.effects.literals + tuple([(-1, (('disallowed_{}'.format(ex_action[0]),) + ex_action[1:6]))])))
 
         return new_domain
 

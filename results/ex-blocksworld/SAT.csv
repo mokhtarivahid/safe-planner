@@ -1,0 +1,16 @@
+file,problem,planning_time,singlesoutcome_planning_call,alloutcome_planning_call,unsolvable_states,solvable,policy_length,plan_length
+p01.pddl,ex_bw_5_17738,0.467754,,,,1,7,7
+p02.pddl,ex_bw_5_15874,0.219723,,,,1,5,5
+p03.pddl,ex_bw_5_1318,0.461659,,,,1,7,7
+p04.pddl,,,,,,0,,
+p05.pddl,ex_bw_5_22634,0.067322,,,,1,2,2
+p06.pddl,,,,,,0,,
+p07.pddl,,,,,,0,,
+p08.pddl,ex_bw_10_8077,13.155633,,,,1,13,13
+p09.pddl,,,,,,0,,
+p10.pddl,,,,,,0,,
+p11.pddl,,,,,,0,,
+p12.pddl,,,,,,0,,
+p13.pddl,,,,,,0,,
+p14.pddl,,,,,,0,,
+p15.pddl,,,,,,0,,

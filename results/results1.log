@@ -1,0 +1,1441 @@
+vahid@localhost:~/KULeuven/MultiROB/safe-planner$ ./run-fond2.sh 
+benchmarks/fond-domains/acrobatics
+planners: lpg-td
+output: lpg-td(-d-s)/lpg-td.csv
+benchmarks/fond-domains/acrobatics/results.csv
+benchmarks/fond-domains/acrobatics
+benchmarks/fond-domains/acrobatics/p01.pddl [1.39]
+benchmarks/fond-domains/acrobatics/p02.pddl [1.850]
+benchmarks/fond-domains/acrobatics/p03.pddl [4.451]
+benchmarks/fond-domains/acrobatics/p04.pddl [1800.5]
+benchmarks/fond-domains/acrobatics/p05.pddl [1800.5]
+benchmarks/fond-domains/acrobatics/p06.pddl [1800.8]
+benchmarks/fond-domains/acrobatics/p07.pddl [1800.8]
+benchmarks/fond-domains/acrobatics/p08.pddl [1800.6]
+solvers: SP$_{LPG-TD}$.csv
+results/acrobatics
+
+
+benchmarks/fond-domains/acrobatics
+planners: m
+output: m(-d-s)/m.csv
+benchmarks/fond-domains/acrobatics/results.csv
+benchmarks/fond-domains/acrobatics
+benchmarks/fond-domains/acrobatics/p01.pddl [1800.4]
+benchmarks/fond-domains/acrobatics/p02.pddl [1800.5]
+benchmarks/fond-domains/acrobatics/p03.pddl [1800.5]
+benchmarks/fond-domains/acrobatics/p04.pddl [1800.5]
+benchmarks/fond-domains/acrobatics/p05.pddl [1800.5]
+benchmarks/fond-domains/acrobatics/p06.pddl [1800.6]
+benchmarks/fond-domains/acrobatics/p07.pddl [1800.6]
+benchmarks/fond-domains/acrobatics/p08.pddl [1800.7]
+solvers: SP$_{M}$.csv
+results/acrobatics
+
+
+benchmarks/fond-domains/beam-walk
+planners: lpg-td
+output: lpg-td(-d-s-r)/lpg-td.csv
+benchmarks/fond-domains/beam-walk/results.csv
+benchmarks/fond-domains/beam-walk
+benchmarks/fond-domains/beam-walk/p01.pddl [0.351]
+benchmarks/fond-domains/beam-walk/p02.pddl [0.633]
+benchmarks/fond-domains/beam-walk/p03.pddl [1.166]
+benchmarks/fond-domains/beam-walk/p04.pddl [2.585]
+benchmarks/fond-domains/beam-walk/p05.pddl [24.36]
+benchmarks/fond-domains/beam-walk/p06.pddl [1800.6]
+benchmarks/fond-domains/beam-walk/p07.pddl [1800.6]
+benchmarks/fond-domains/beam-walk/p08.pddl [1800.12]
+benchmarks/fond-domains/beam-walk/p09.pddl [1800.5]
+benchmarks/fond-domains/beam-walk/p10.pddl [1800.5]
+benchmarks/fond-domains/beam-walk/p11.pddl [1800.4]
+solvers: SP$_{LPG-TD}$.csv
+results/beam-walk
+
+
+benchmarks/fond-domains/beam-walk
+planners: m
+output: m(-d-s-r)/m.csv
+benchmarks/fond-domains/beam-walk/results.csv
+benchmarks/fond-domains/beam-walk
+benchmarks/fond-domains/beam-walk/p01.pddl [0.120]
+benchmarks/fond-domains/beam-walk/p02.pddl [0.184]
+benchmarks/fond-domains/beam-walk/p03.pddl [0.370]
+benchmarks/fond-domains/beam-walk/p04.pddl [3.516]
+benchmarks/fond-domains/beam-walk/p05.pddl [38.760]
+benchmarks/fond-domains/beam-walk/p06.pddl [1800.5]
+benchmarks/fond-domains/beam-walk/p07.pddl [1800.5]
+benchmarks/fond-domains/beam-walk/p08.pddl [1800.4]
+benchmarks/fond-domains/beam-walk/p09.pddl [1800.5]
+benchmarks/fond-domains/beam-walk/p10.pddl [1800.5]
+benchmarks/fond-domains/beam-walk/p11.pddl [1800.6]
+solvers: SP$_{M}$.csv
+results/beam-walk
+
+
+benchmarks/fond-domains/blocksworld
+planners: lpg-td
+output: lpg-td(-d-s)/lpg-td.csv
+benchmarks/fond-domains/blocksworld/results.csv
+benchmarks/fond-domains/blocksworld
+benchmarks/fond-domains/blocksworld/p01.pddl [0.772]
+benchmarks/fond-domains/blocksworld/p02.pddl [0.380]
+benchmarks/fond-domains/blocksworld/p03.pddl [1.33]
+benchmarks/fond-domains/blocksworld/p04.pddl [2.771]
+benchmarks/fond-domains/blocksworld/p05.pddl [1.341]
+benchmarks/fond-domains/blocksworld/p06.pddl [0.373]
+benchmarks/fond-domains/blocksworld/p07.pddl [0.379]
+benchmarks/fond-domains/blocksworld/p08.pddl [2.123]
+benchmarks/fond-domains/blocksworld/p09.pddl [0.284]
+benchmarks/fond-domains/blocksworld/p10.pddl [0.510]
+benchmarks/fond-domains/blocksworld/p11.pddl [1800.7]
+benchmarks/fond-domains/blocksworld/p12.pddl [1800.10]
+benchmarks/fond-domains/blocksworld/p13.pddl [33.346]
+benchmarks/fond-domains/blocksworld/p14.pddl [1.608]
+benchmarks/fond-domains/blocksworld/p15.pddl [1800.8]
+benchmarks/fond-domains/blocksworld/p16.pddl [1800.6]
+benchmarks/fond-domains/blocksworld/p17.pddl [109.360]
+benchmarks/fond-domains/blocksworld/p18.pddl [12.34]
+benchmarks/fond-domains/blocksworld/p19.pddl [1800.7]
+benchmarks/fond-domains/blocksworld/p20.pddl [33.883]
+benchmarks/fond-domains/blocksworld/p21.pddl [1800.6]
+benchmarks/fond-domains/blocksworld/p22.pddl [1800.7]
+benchmarks/fond-domains/blocksworld/p23.pddl [1800.7]
+benchmarks/fond-domains/blocksworld/p24.pddl [1800.7]
+benchmarks/fond-domains/blocksworld/p25.pddl [1800.5]
+benchmarks/fond-domains/blocksworld/p26.pddl [1800.7]
+benchmarks/fond-domains/blocksworld/p27.pddl [1800.7]
+benchmarks/fond-domains/blocksworld/p28.pddl [1800.7]
+benchmarks/fond-domains/blocksworld/p29.pddl [1800.5]
+benchmarks/fond-domains/blocksworld/p30.pddl [1800.7]
+solvers: SP$_{LPG-TD}$.csv
+results/blocksworld
+
+
+benchmarks/fond-domains/blocksworld
+planners: m
+output: m(-d-s)/m.csv
+benchmarks/fond-domains/blocksworld/results.csv
+benchmarks/fond-domains/blocksworld
+benchmarks/fond-domains/blocksworld/p01.pddl [0.385]
+benchmarks/fond-domains/blocksworld/p02.pddl [0.373]
+benchmarks/fond-domains/blocksworld/p03.pddl [2.90]
+benchmarks/fond-domains/blocksworld/p04.pddl [22.931]
+benchmarks/fond-domains/blocksworld/p05.pddl [6.432]
+benchmarks/fond-domains/blocksworld/p06.pddl [5.24]
+benchmarks/fond-domains/blocksworld/p07.pddl [13.244]
+benchmarks/fond-domains/blocksworld/p08.pddl [44.182]
+benchmarks/fond-domains/blocksworld/p09.pddl [0.529]
+benchmarks/fond-domains/blocksworld/p10.pddl [0.360]
+benchmarks/fond-domains/blocksworld/p11.pddl [1800.5]
+benchmarks/fond-domains/blocksworld/p12.pddl [1800.5]
+benchmarks/fond-domains/blocksworld/p13.pddl [1800.5]
+benchmarks/fond-domains/blocksworld/p14.pddl [1800.4]
+benchmarks/fond-domains/blocksworld/p15.pddl [1800.6]
+benchmarks/fond-domains/blocksworld/p16.pddl [1800.4]
+benchmarks/fond-domains/blocksworld/p17.pddl [1800.4]
+benchmarks/fond-domains/blocksworld/p18.pddl [1800.5]
+benchmarks/fond-domains/blocksworld/p19.pddl [1800.6]
+benchmarks/fond-domains/blocksworld/p20.pddl [1800.5]
+benchmarks/fond-domains/blocksworld/p21.pddl [1800.6]
+benchmarks/fond-domains/blocksworld/p22.pddl [1800.6]
+benchmarks/fond-domains/blocksworld/p23.pddl [1800.4]
+benchmarks/fond-domains/blocksworld/p24.pddl [1800.4]
+benchmarks/fond-domains/blocksworld/p25.pddl [1800.5]
+benchmarks/fond-domains/blocksworld/p26.pddl [1800.5]
+benchmarks/fond-domains/blocksworld/p27.pddl [1800.5]
+benchmarks/fond-domains/blocksworld/p28.pddl [1800.6]
+benchmarks/fond-domains/blocksworld/p29.pddl [1800.4]
+benchmarks/fond-domains/blocksworld/p30.pddl [1800.5]
+solvers: SP$_{M}$.csv
+results/blocksworld
+
+
+benchmarks/fond-domains/doors
+planners: lpg-td
+output: lpg-td(-d-s-r)/lpg-td.csv
+benchmarks/fond-domains/doors/results.csv
+benchmarks/fond-domains/doors
+benchmarks/fond-domains/doors/p01.pddl [0.718]
+benchmarks/fond-domains/doors/p02.pddl [1.185]
+benchmarks/fond-domains/doors/p03.pddl [2.166]
+benchmarks/fond-domains/doors/p04.pddl [4.171]
+benchmarks/fond-domains/doors/p05.pddl [9.337]
+benchmarks/fond-domains/doors/p06.pddl [26.777]
+benchmarks/fond-domains/doors/p07.pddl [138.71]
+benchmarks/fond-domains/doors/p08.pddl^C
+vahid@localhost:~/KULeuven/MultiROB/safe-planner$ Traceback (most recent call last):
+  File "main.py", line 134, in <module>
+    main()
+  File "main.py", line 61, in main
+    policy.print_plan(del_effect_inc=True, det_effect_inc=False)
+  File "/home/vahid/KULeuven/MultiROB/safe-planner/planner.py", line 1016, in print_plan
+    print(plan_str)
+BrokenPipeError: [Errno 32] Broken pipe
+
+vahid@localhost:~/KULeuven/MultiROB/safe-planner$ ./run-fond2.sh 
+benchmarks/fond-domains/doors
+planners: lpg-td
+output: lpg-td(-d-s-r)/lpg-td.csv
+benchmarks/fond-domains/doors/results.csv
+benchmarks/fond-domains/doors
+benchmarks/fond-domains/doors/p01.pddl [0.704]
+benchmarks/fond-domains/doors/p02.pddl [1.165]
+benchmarks/fond-domains/doors/p03.pddl [2.177]
+benchmarks/fond-domains/doors/p04.pddl [4.291]
+benchmarks/fond-domains/doors/p05.pddl [9.519]
+benchmarks/fond-domains/doors/p06.pddl [26.280]
+benchmarks/fond-domains/doors/p07.pddl [139.973]
+benchmarks/fond-domains/doors/p08.pddl [802.585]
+benchmarks/fond-domains/doors/p09.pddl [1800.13]
+benchmarks/fond-domains/doors/p10.pddl [1800.14]
+benchmarks/fond-domains/doors/p11.pddl [1800.14]
+benchmarks/fond-domains/doors/p12.pddl [1800.15]
+benchmarks/fond-domains/doors/p13.pddl [1800.15]
+benchmarks/fond-domains/doors/p14.pddl [1800.14]
+benchmarks/fond-domains/doors/p15.pddl [1800.13]
+solvers: SP$_{LPG-TD}$.csv
+results/doors
+
+
+benchmarks/fond-domains/doors
+planners: m
+output: m(-d-s-r)/m.csv
+benchmarks/fond-domains/doors/results.csv
+benchmarks/fond-domains/doors
+benchmarks/fond-domains/doors/p01.pddl [0.470]
+benchmarks/fond-domains/doors/p02.pddl [0.474]
+benchmarks/fond-domains/doors/p03.pddl [0.615]
+benchmarks/fond-domains/doors/p04.pddl [1.56]
+benchmarks/fond-domains/doors/p05.pddl [2.995]
+benchmarks/fond-domains/doors/p06.pddl [13.705]
+benchmarks/fond-domains/doors/p07.pddl [93.16]
+benchmarks/fond-domains/doors/p08.pddl [803.498]
+benchmarks/fond-domains/doors/p09.pddl [1800.13]
+benchmarks/fond-domains/doors/p10.pddl [1800.15]
+benchmarks/fond-domains/doors/p11.pddl [1800.13]
+benchmarks/fond-domains/doors/p12.pddl [1800.14]
+benchmarks/fond-domains/doors/p13.pddl [1800.14]
+benchmarks/fond-domains/doors/p14.pddl [1800.16]
+benchmarks/fond-domains/doors/p15.pddl [1800.13]
+solvers: SP$_{M}$.csv
+results/doors
+
+
+benchmarks/fond-domains/elevators
+planners: lpg-td
+output: lpg-td(-d-s)/lpg-td.csv
+benchmarks/fond-domains/elevators/results.csv
+benchmarks/fond-domains/elevators
+benchmarks/fond-domains/elevators/p01.pddl [0.176]
+benchmarks/fond-domains/elevators/p02.pddl [0.191]
+benchmarks/fond-domains/elevators/p03.pddl [0.176]
+benchmarks/fond-domains/elevators/p04.pddl [0.188]
+benchmarks/fond-domains/elevators/p05.pddl [0.176]
+benchmarks/fond-domains/elevators/p06.pddl [0.171]
+benchmarks/fond-domains/elevators/p07.pddl [0.177]
+benchmarks/fond-domains/elevators/p08.pddl [0.174]
+benchmarks/fond-domains/elevators/p09.pddl [0.170]
+benchmarks/fond-domains/elevators/p10.pddl [0.185]
+benchmarks/fond-domains/elevators/p11.pddl [0.172]
+benchmarks/fond-domains/elevators/p12.pddl [0.175]
+benchmarks/fond-domains/elevators/p13.pddl [0.190]
+benchmarks/fond-domains/elevators/p14.pddl [0.180]
+benchmarks/fond-domains/elevators/p15.pddl [0.185]
+solvers: SP$_{LPG-TD}$.csv
+results/elevators
+
+
+benchmarks/fond-domains/elevators
+planners: m
+output: m(-d-s)/m.csv
+benchmarks/fond-domains/elevators/results.csv
+benchmarks/fond-domains/elevators
+benchmarks/fond-domains/elevators/p01.pddl [0.821]
+benchmarks/fond-domains/elevators/p02.pddl [0.146]
+benchmarks/fond-domains/elevators/p03.pddl [0.401]
+benchmarks/fond-domains/elevators/p04.pddl [0.194]
+benchmarks/fond-domains/elevators/p05.pddl [0.147]
+benchmarks/fond-domains/elevators/p06.pddl [1.71]
+benchmarks/fond-domains/elevators/p07.pddl [4.131]
+benchmarks/fond-domains/elevators/p08.pddl [1800.5]
+benchmarks/fond-domains/elevators/p09.pddl [332.839]
+benchmarks/fond-domains/elevators/p10.pddl [1800.5]
+benchmarks/fond-domains/elevators/p11.pddl [1800.4]
+benchmarks/fond-domains/elevators/p12.pddl [1800.5]
+benchmarks/fond-domains/elevators/p13.pddl [1800.4]
+benchmarks/fond-domains/elevators/p14.pddl [1800.4]
+benchmarks/fond-domains/elevators/p15.pddl [1800.5]
+solvers: SP$_{M}$.csv
+results/elevators
+
+
+benchmarks/fond-domains/ex-blocksworld
+planners: lpg-td
+output: lpg-td(-d-s)/lpg-td.csv
+benchmarks/fond-domains/ex-blocksworld/results.csv
+benchmarks/fond-domains/ex-blocksworld
+benchmarks/fond-domains/ex-blocksworld/p01.pddl [0.464]
+benchmarks/fond-domains/ex-blocksworld/p02.pddl [0.281]
+benchmarks/fond-domains/ex-blocksworld/p03.pddl [0.790]
+benchmarks/fond-domains/ex-blocksworld/p04.pddl [1800.4]
+benchmarks/fond-domains/ex-blocksworld/p05.pddl [0.132]
+benchmarks/fond-domains/ex-blocksworld/p06.pddl [1800.4]
+benchmarks/fond-domains/ex-blocksworld/p07.pddl [1800.5]
+benchmarks/fond-domains/ex-blocksworld/p08.pddl [5.969]
+benchmarks/fond-domains/ex-blocksworld/p09.pddl [1800.5]
+benchmarks/fond-domains/ex-blocksworld/p10.pddl [1800.5]
+benchmarks/fond-domains/ex-blocksworld/p11.pddl [1800.4]
+benchmarks/fond-domains/ex-blocksworld/p12.pddl [1800.4]
+benchmarks/fond-domains/ex-blocksworld/p13.pddl [1800.9]
+benchmarks/fond-domains/ex-blocksworld/p14.pddl [1800.4]
+benchmarks/fond-domains/ex-blocksworld/p15.pddl [1800.4]
+solvers: SP$_{LPG-TD}$.csv
+results/ex-blocksworld
+
+
+benchmarks/fond-domains/ex-blocksworld
+planners: m
+output: m(-d-s)/m.csv
+benchmarks/fond-domains/ex-blocksworld/results.csv
+benchmarks/fond-domains/ex-blocksworld
+benchmarks/fond-domains/ex-blocksworld/p01.pddl [0.159]
+benchmarks/fond-domains/ex-blocksworld/p02.pddl [0.136]
+benchmarks/fond-domains/ex-blocksworld/p03.pddl [0.168]
+benchmarks/fond-domains/ex-blocksworld/p04.pddl [1800.4]
+benchmarks/fond-domains/ex-blocksworld/p05.pddl [0.116]
+benchmarks/fond-domains/ex-blocksworld/p06.pddl [1800.5]
+benchmarks/fond-domains/ex-blocksworld/p07.pddl [1800.6]
+benchmarks/fond-domains/ex-blocksworld/p08.pddl [0.850]
+benchmarks/fond-domains/ex-blocksworld/p09.pddl [1800.4]
+benchmarks/fond-domains/ex-blocksworld/p10.pddl [1800.4]
+benchmarks/fond-domains/ex-blocksworld/p11.pddl [1800.4]
+benchmarks/fond-domains/ex-blocksworld/p12.pddl [1800.4]
+benchmarks/fond-domains/ex-blocksworld/p13.pddl [1800.7]
+benchmarks/fond-domains/ex-blocksworld/p14.pddl [1800.4]
+benchmarks/fond-domains/ex-blocksworld/p15.pddl [1800.4]
+solvers: SP$_{M}$.csv
+results/ex-blocksworld
+
+
+benchmarks/fond-domains/first-responders
+planners: lpg-td
+output: lpg-td(-d-s)/lpg-td.csv
+benchmarks/fond-domains/first-responders/results.csv
+benchmarks/fond-domains/first-responders
+benchmarks/fond-domains/first-responders/p01.pddl [0.254]
+benchmarks/fond-domains/first-responders/p02.pddl [0.276]
+benchmarks/fond-domains/first-responders/p03.pddl [0.261]
+benchmarks/fond-domains/first-responders/p04.pddl [0.259]
+benchmarks/fond-domains/first-responders/p05.pddl [0.250]
+benchmarks/fond-domains/first-responders/p06.pddl [0.264]
+benchmarks/fond-domains/first-responders/p07.pddl [0.254]
+benchmarks/fond-domains/first-responders/p08.pddl [0.257]
+benchmarks/fond-domains/first-responders/p09.pddl [0.254]
+benchmarks/fond-domains/first-responders/p100.pddl [0.636]
+benchmarks/fond-domains/first-responders/p101.pddl [0.294]
+benchmarks/fond-domains/first-responders/p102.pddl [0.414]
+benchmarks/fond-domains/first-responders/p103.pddl [3.939]
+benchmarks/fond-domains/first-responders/p104.pddl [1800.18]
+benchmarks/fond-domains/first-responders/p105.pddl [120.703]
+benchmarks/fond-domains/first-responders/p106.pddl [0.615]
+benchmarks/fond-domains/first-responders/p107.pddl [1800.13]
+benchmarks/fond-domains/first-responders/p108.pddl [1800.20]
+benchmarks/fond-domains/first-responders/p109.pddl [0.640]
+benchmarks/fond-domains/first-responders/p10.pddl [0.281]
+benchmarks/fond-domains/first-responders/p110.pddl [1800.19]
+benchmarks/fond-domains/first-responders/p11.pddl [0.597]
+benchmarks/fond-domains/first-responders/p12.pddl [1.114]
+benchmarks/fond-domains/first-responders/p13.pddl [0.270]
+benchmarks/fond-domains/first-responders/p14.pddl [0.265]
+benchmarks/fond-domains/first-responders/p15.pddl [0.573]
+benchmarks/fond-domains/first-responders/p16.pddl [0.582]
+benchmarks/fond-domains/first-responders/p17.pddl [0.535]
+benchmarks/fond-domains/first-responders/p18.pddl [0.265]
+benchmarks/fond-domains/first-responders/p19.pddl [0.582]
+benchmarks/fond-domains/first-responders/p20.pddl [0.590]
+benchmarks/fond-domains/first-responders/p31.pddl [0.200]
+benchmarks/fond-domains/first-responders/p32.pddl [0.317]
+benchmarks/fond-domains/first-responders/p33.pddl [0.584]
+benchmarks/fond-domains/first-responders/p34.pddl [0.583]
+benchmarks/fond-domains/first-responders/p35.pddl [0.580]
+benchmarks/fond-domains/first-responders/p36.pddl [0.590]
+benchmarks/fond-domains/first-responders/p37.pddl [0.982]
+benchmarks/fond-domains/first-responders/p38.pddl [0.288]
+benchmarks/fond-domains/first-responders/p39.pddl [0.595]
+benchmarks/fond-domains/first-responders/p40.pddl [0.597]
+benchmarks/fond-domains/first-responders/p41.pddl [0.345]
+benchmarks/fond-domains/first-responders/p42.pddl [0.691]
+benchmarks/fond-domains/first-responders/p43.pddl [0.336]
+benchmarks/fond-domains/first-responders/p44.pddl [7.82]
+benchmarks/fond-domains/first-responders/p45.pddl [0.596]
+benchmarks/fond-domains/first-responders/p46.pddl [0.600]
+benchmarks/fond-domains/first-responders/p47.pddl [0.701]
+benchmarks/fond-domains/first-responders/p48.pddl [1.236]
+benchmarks/fond-domains/first-responders/p49.pddl [1.66]
+benchmarks/fond-domains/first-responders/p50.pddl [0.588]
+benchmarks/fond-domains/first-responders/p51.pddl [0.259]
+benchmarks/fond-domains/first-responders/p52.pddl [0.198]
+benchmarks/fond-domains/first-responders/p53.pddl [0.395]
+benchmarks/fond-domains/first-responders/p54.pddl [2.115]
+benchmarks/fond-domains/first-responders/p55.pddl [3.435]
+benchmarks/fond-domains/first-responders/p56.pddl [0.624]
+benchmarks/fond-domains/first-responders/p57.pddl [0.590]
+benchmarks/fond-domains/first-responders/p58.pddl [526.391]
+benchmarks/fond-domains/first-responders/p59.pddl [1800.6]
+benchmarks/fond-domains/first-responders/p60.pddl [12.743]
+benchmarks/fond-domains/first-responders/p61.pddl [0.371]
+benchmarks/fond-domains/first-responders/p62.pddl [0.379]
+benchmarks/fond-domains/first-responders/p63.pddl [0.561]
+benchmarks/fond-domains/first-responders/p64.pddl [1.208]
+benchmarks/fond-domains/first-responders/p65.pddl [0.811]
+benchmarks/fond-domains/first-responders/p66.pddl [0.637]
+benchmarks/fond-domains/first-responders/p67.pddl [0.644]
+benchmarks/fond-domains/first-responders/p68.pddl [13.164]
+benchmarks/fond-domains/first-responders/p69.pddl [14.924]
+benchmarks/fond-domains/first-responders/p70.pddl [1800.9]
+benchmarks/fond-domains/first-responders/p71.pddl [0.269]
+benchmarks/fond-domains/first-responders/p72.pddl [0.323]
+benchmarks/fond-domains/first-responders/p73.pddl [1.206]
+benchmarks/fond-domains/first-responders/p74.pddl [1.864]
+benchmarks/fond-domains/first-responders/p75.pddl [0.631]
+benchmarks/fond-domains/first-responders/p76.pddl [0.775]
+benchmarks/fond-domains/first-responders/p77.pddl [0.677]
+benchmarks/fond-domains/first-responders/p78.pddl [0.194]
+benchmarks/fond-domains/first-responders/p79.pddl [0.609]
+benchmarks/fond-domains/first-responders/p80.pddl [0.467]
+benchmarks/fond-domains/first-responders/p81.pddl [0.437]
+benchmarks/fond-domains/first-responders/p82.pddl [0.320]
+benchmarks/fond-domains/first-responders/p83.pddl [0.563]
+benchmarks/fond-domains/first-responders/p84.pddl [5.112]
+benchmarks/fond-domains/first-responders/p85.pddl [1.857]
+benchmarks/fond-domains/first-responders/p86.pddl [4.452]
+benchmarks/fond-domains/first-responders/p87.pddl [130.763]
+benchmarks/fond-domains/first-responders/p88.pddl [552.109]
+benchmarks/fond-domains/first-responders/p89.pddl [5.26]
+benchmarks/fond-domains/first-responders/p90.pddl [35.606]
+benchmarks/fond-domains/first-responders/p91.pddl [0.484]
+benchmarks/fond-domains/first-responders/p92.pddl [1.589]
+benchmarks/fond-domains/first-responders/p93.pddl [2.518]
+benchmarks/fond-domains/first-responders/p94.pddl [0.671]
+benchmarks/fond-domains/first-responders/p95.pddl [0.700]
+benchmarks/fond-domains/first-responders/p96.pddl [127.819]
+benchmarks/fond-domains/first-responders/p97.pddl [23.239]
+benchmarks/fond-domains/first-responders/p98.pddl [1800.12]
+benchmarks/fond-domains/first-responders/p99.pddl [0.655]
+solvers: SP$_{LPG-TD}$.csv
+results/first-responders
+
+
+benchmarks/fond-domains/first-responders
+planners: m
+output: m(-d-s)/m.csv
+benchmarks/fond-domains/first-responders/results.csv
+benchmarks/fond-domains/first-responders
+benchmarks/fond-domains/first-responders/p01.pddl [0.144]
+benchmarks/fond-domains/first-responders/p02.pddl [0.149]
+benchmarks/fond-domains/first-responders/p03.pddl [0.169]
+benchmarks/fond-domains/first-responders/p04.pddl [0.157]
+benchmarks/fond-domains/first-responders/p05.pddl [0.147]
+benchmarks/fond-domains/first-responders/p06.pddl [0.149]
+benchmarks/fond-domains/first-responders/p07.pddl [0.145]
+benchmarks/fond-domains/first-responders/p08.pddl [0.149]
+benchmarks/fond-domains/first-responders/p09.pddl [0.182]
+benchmarks/fond-domains/first-responders/p100.pddl [1800.4]
+benchmarks/fond-domains/first-responders/p101.pddl [0.192]
+benchmarks/fond-domains/first-responders/p102.pddl [0.228]
+benchmarks/fond-domains/first-responders/p103.pddl [19.984]
+benchmarks/fond-domains/first-responders/p104.pddl [1800.4]
+benchmarks/fond-domains/first-responders/p105.pddl [1800.5]
+benchmarks/fond-domains/first-responders/p106.pddl [1800.4]
+benchmarks/fond-domains/first-responders/p107.pddl [1800.4]
+benchmarks/fond-domains/first-responders/p108.pddl [1800.4]
+benchmarks/fond-domains/first-responders/p109.pddl [1800.5]
+benchmarks/fond-domains/first-responders/p10.pddl [0.194]
+benchmarks/fond-domains/first-responders/p110.pddl [1800.4]
+benchmarks/fond-domains/first-responders/p11.pddl [1800.6]
+benchmarks/fond-domains/first-responders/p12.pddl [1800.4]
+benchmarks/fond-domains/first-responders/p13.pddl [0.181]
+benchmarks/fond-domains/first-responders/p14.pddl [0.173]
+benchmarks/fond-domains/first-responders/p15.pddl [1800.4]
+benchmarks/fond-domains/first-responders/p16.pddl [1800.5]
+benchmarks/fond-domains/first-responders/p17.pddl [0.225]
+benchmarks/fond-domains/first-responders/p18.pddl [0.167]
+benchmarks/fond-domains/first-responders/p19.pddl [1800.4]
+benchmarks/fond-domains/first-responders/p20.pddl [1800.3]
+benchmarks/fond-domains/first-responders/p31.pddl [0.154]
+benchmarks/fond-domains/first-responders/p32.pddl [0.130]
+benchmarks/fond-domains/first-responders/p33.pddl [1800.4]
+benchmarks/fond-domains/first-responders/p34.pddl [1800.3]
+benchmarks/fond-domains/first-responders/p35.pddl [1800.3]
+benchmarks/fond-domains/first-responders/p36.pddl [1800.4]
+benchmarks/fond-domains/first-responders/p37.pddl [0.237]
+benchmarks/fond-domains/first-responders/p38.pddl [0.184]
+benchmarks/fond-domains/first-responders/p39.pddl [1800.3]
+benchmarks/fond-domains/first-responders/p40.pddl [1800.3]
+benchmarks/fond-domains/first-responders/p41.pddl [0.143]
+benchmarks/fond-domains/first-responders/p42.pddl [0.173]
+benchmarks/fond-domains/first-responders/p43.pddl [0.130]
+benchmarks/fond-domains/first-responders/p44.pddl [0.484]
+benchmarks/fond-domains/first-responders/p45.pddl [1800.3]
+benchmarks/fond-domains/first-responders/p46.pddl [0.282]
+benchmarks/fond-domains/first-responders/p47.pddl [0.332]
+benchmarks/fond-domains/first-responders/p48.pddl [0.597]
+benchmarks/fond-domains/first-responders/p49.pddl [0.263]
+benchmarks/fond-domains/first-responders/p50.pddl [1800.3]
+benchmarks/fond-domains/first-responders/p51.pddl [0.154]
+benchmarks/fond-domains/first-responders/p52.pddl [0.142]
+benchmarks/fond-domains/first-responders/p53.pddl [0.160]
+benchmarks/fond-domains/first-responders/p54.pddl [0.445]
+benchmarks/fond-domains/first-responders/p55.pddl [2.118]
+benchmarks/fond-domains/first-responders/p56.pddl [1800.3]
+benchmarks/fond-domains/first-responders/p57.pddl [1800.3]
+benchmarks/fond-domains/first-responders/p58.pddl [4.334]
+benchmarks/fond-domains/first-responders/p59.pddl [1800.3]
+benchmarks/fond-domains/first-responders/p60.pddl [1800.4]
+benchmarks/fond-domains/first-responders/p61.pddl [0.183]
+benchmarks/fond-domains/first-responders/p62.pddl [0.277]
+benchmarks/fond-domains/first-responders/p63.pddl [0.257]
+benchmarks/fond-domains/first-responders/p64.pddl [0.640]
+benchmarks/fond-domains/first-responders/p65.pddl [0.310]
+benchmarks/fond-domains/first-responders/p66.pddl [1800.3]
+benchmarks/fond-domains/first-responders/p67.pddl [1800.3]
+benchmarks/fond-domains/first-responders/p68.pddl [1800.4]
+benchmarks/fond-domains/first-responders/p69.pddl [1800.3]
+benchmarks/fond-domains/first-responders/p70.pddl [1800.4]
+benchmarks/fond-domains/first-responders/p71.pddl [0.157]
+benchmarks/fond-domains/first-responders/p72.pddl [0.190]
+benchmarks/fond-domains/first-responders/p73.pddl [1.92]
+benchmarks/fond-domains/first-responders/p74.pddl [0.355]
+benchmarks/fond-domains/first-responders/p75.pddl [1800.3]
+benchmarks/fond-domains/first-responders/p76.pddl [1800.6]
+benchmarks/fond-domains/first-responders/p77.pddl [1295.542]
+benchmarks/fond-domains/first-responders/p78.pddl [0.236]
+benchmarks/fond-domains/first-responders/p79.pddl [1800.3]
+benchmarks/fond-domains/first-responders/p80.pddl [1800.4]
+benchmarks/fond-domains/first-responders/p81.pddl [0.185]
+benchmarks/fond-domains/first-responders/p82.pddl [0.134]
+benchmarks/fond-domains/first-responders/p83.pddl [1800.3]
+benchmarks/fond-domains/first-responders/p84.pddl [0.942]
+benchmarks/fond-domains/first-responders/p85.pddl [1800.3]
+benchmarks/fond-domains/first-responders/p86.pddl [4.430]
+benchmarks/fond-domains/first-responders/p87.pddl [1800.4]
+benchmarks/fond-domains/first-responders/p88.pddl [1800.3]
+benchmarks/fond-domains/first-responders/p89.pddl [1800.3]
+benchmarks/fond-domains/first-responders/p90.pddl [1800.5]
+benchmarks/fond-domains/first-responders/p91.pddl [0.256]
+benchmarks/fond-domains/first-responders/p92.pddl [0.600]
+benchmarks/fond-domains/first-responders/p93.pddl [198.791]
+benchmarks/fond-domains/first-responders/p94.pddl [1800.4]
+benchmarks/fond-domains/first-responders/p95.pddl [1800.3]
+benchmarks/fond-domains/first-responders/p96.pddl [14.162]
+benchmarks/fond-domains/first-responders/p97.pddl [1800.3]
+benchmarks/fond-domains/first-responders/p98.pddl [1800.3]
+benchmarks/fond-domains/first-responders/p99.pddl [1800.4]
+solvers: SP$_{M}$.csv
+results/first-responders
+
+
+benchmarks/fond-domains/forest
+planners: lpg-td
+output: lpg-td(-d-s)/lpg-td.csv
+benchmarks/fond-domains/forest/results.csv
+benchmarks/fond-domains/forest
+benchmarks/fond-domains/forest/p_10_10.pddl [16.420]
+benchmarks/fond-domains/forest/p_10_1.pddl [16.369]
+benchmarks/fond-domains/forest/p_10_2.pddl [16.830]
+benchmarks/fond-domains/forest/p_10_3.pddl [16.410]
+benchmarks/fond-domains/forest/p_10_4.pddl [16.161]
+benchmarks/fond-domains/forest/p_10_5.pddl [16.478]
+benchmarks/fond-domains/forest/p_10_6.pddl [16.280]
+benchmarks/fond-domains/forest/p_10_7.pddl [16.463]
+benchmarks/fond-domains/forest/p_10_8.pddl [16.216]
+benchmarks/fond-domains/forest/p_10_9.pddl [16.903]
+benchmarks/fond-domains/forest/p_2_10.pddl [51.43]
+benchmarks/fond-domains/forest/p_2_1.pddl [15.448]
+benchmarks/fond-domains/forest/p_2_2.pddl [52.34]
+benchmarks/fond-domains/forest/p_2_3.pddl [498.599]
+benchmarks/fond-domains/forest/p_2_4.pddl [157.49]
+benchmarks/fond-domains/forest/p_2_5.pddl [4.433]
+benchmarks/fond-domains/forest/p_2_6.pddl [21.517]
+benchmarks/fond-domains/forest/p_2_7.pddl [35.569]
+benchmarks/fond-domains/forest/p_2_8.pddl [4.380]
+benchmarks/fond-domains/forest/p_2_9.pddl [493.264]
+benchmarks/fond-domains/forest/p_3_10.pddl [15.472]
+benchmarks/fond-domains/forest/p_3_1.pddl [15.213]
+benchmarks/fond-domains/forest/p_3_2.pddl [15.599]
+benchmarks/fond-domains/forest/p_3_3.pddl [15.537]
+benchmarks/fond-domains/forest/p_3_4.pddl [527.525]
+benchmarks/fond-domains/forest/p_3_5.pddl [15.431]
+benchmarks/fond-domains/forest/p_3_6.pddl [15.531]
+benchmarks/fond-domains/forest/p_3_7.pddl [15.555]
+benchmarks/fond-domains/forest/p_3_8.pddl [74.87]
+benchmarks/fond-domains/forest/p_3_9.pddl [627.864]
+benchmarks/fond-domains/forest/p_4_10.pddl [1800.5]
+benchmarks/fond-domains/forest/p_4_1.pddl [1800.8]
+benchmarks/fond-domains/forest/p_4_2.pddl [1800.6]
+benchmarks/fond-domains/forest/p_4_3.pddl [1800.5]
+benchmarks/fond-domains/forest/p_4_4.pddl [238.375]
+benchmarks/fond-domains/forest/p_4_5.pddl [15.384]
+benchmarks/fond-domains/forest/p_4_6.pddl [15.464]
+benchmarks/fond-domains/forest/p_4_7.pddl [15.588]
+benchmarks/fond-domains/forest/p_4_8.pddl [1800.5]
+benchmarks/fond-domains/forest/p_4_9.pddl [15.333]
+benchmarks/fond-domains/forest/p_5_10.pddl [1800.4]
+benchmarks/fond-domains/forest/p_5_1.pddl [1800.4]
+benchmarks/fond-domains/forest/p_5_2.pddl [15.516]
+benchmarks/fond-domains/forest/p_5_3.pddl [15.500]
+benchmarks/fond-domains/forest/p_5_4.pddl [1800.5]
+benchmarks/fond-domains/forest/p_5_5.pddl [15.481]
+benchmarks/fond-domains/forest/p_5_6.pddl [1800.5]
+benchmarks/fond-domains/forest/p_5_7.pddl [1800.4]
+benchmarks/fond-domains/forest/p_5_8.pddl [15.419]
+benchmarks/fond-domains/forest/p_5_9.pddl [15.747]
+benchmarks/fond-domains/forest/p_6_10.pddl [15.512]
+benchmarks/fond-domains/forest/p_6_1.pddl [15.553]
+benchmarks/fond-domains/forest/p_6_2.pddl [15.682]
+benchmarks/fond-domains/forest/p_6_3.pddl [1800.5]
+benchmarks/fond-domains/forest/p_6_4.pddl [1800.5]
+benchmarks/fond-domains/forest/p_6_5.pddl [15.541]
+benchmarks/fond-domains/forest/p_6_6.pddl [15.755]
+benchmarks/fond-domains/forest/p_6_7.pddl [15.562]
+benchmarks/fond-domains/forest/p_6_8.pddl [15.765]
+benchmarks/fond-domains/forest/p_6_9.pddl [1800.5]
+benchmarks/fond-domains/forest/p_7_10.pddl [15.858]
+benchmarks/fond-domains/forest/p_7_1.pddl [15.911]
+benchmarks/fond-domains/forest/p_7_2.pddl [15.913]
+benchmarks/fond-domains/forest/p_7_3.pddl [15.741]
+benchmarks/fond-domains/forest/p_7_4.pddl [15.834]
+benchmarks/fond-domains/forest/p_7_5.pddl [15.804]
+benchmarks/fond-domains/forest/p_7_6.pddl [15.939]
+benchmarks/fond-domains/forest/p_7_7.pddl [15.856]
+benchmarks/fond-domains/forest/p_7_8.pddl [15.976]
+benchmarks/fond-domains/forest/p_7_9.pddl [16.35]
+benchmarks/fond-domains/forest/p_8_10.pddl [15.984]
+benchmarks/fond-domains/forest/p_8_1.pddl [1800.5]
+benchmarks/fond-domains/forest/p_8_2.pddl [15.857]
+benchmarks/fond-domains/forest/p_8_3.pddl [15.805]
+benchmarks/fond-domains/forest/p_8_4.pddl [1800.5]
+benchmarks/fond-domains/forest/p_8_5.pddl [1800.5]
+benchmarks/fond-domains/forest/p_8_6.pddl [15.814]
+benchmarks/fond-domains/forest/p_8_7.pddl [1800.6]
+benchmarks/fond-domains/forest/p_8_8.pddl [15.908]
+benchmarks/fond-domains/forest/p_8_9.pddl [15.747]
+benchmarks/fond-domains/forest/p_9_10.pddl [16.292]
+benchmarks/fond-domains/forest/p_9_1.pddl [16.288]
+benchmarks/fond-domains/forest/p_9_2.pddl [15.881]
+benchmarks/fond-domains/forest/p_9_3.pddl [16.475]
+benchmarks/fond-domains/forest/p_9_4.pddl [16.42]
+benchmarks/fond-domains/forest/p_9_5.pddl [15.915]
+benchmarks/fond-domains/forest/p_9_6.pddl [16.40]
+benchmarks/fond-domains/forest/p_9_7.pddl [16.135]
+benchmarks/fond-domains/forest/p_9_8.pddl [16.357]
+benchmarks/fond-domains/forest/p_9_9.pddl [16.342]
+solvers: SP$_{LPG-TD}$.csv
+results/forest
+
+
+benchmarks/fond-domains/forest
+planners: m
+output: m(-d-s)/m.csv
+benchmarks/fond-domains/forest/results.csv
+benchmarks/fond-domains/forest
+benchmarks/fond-domains/forest/p_10_10.pddl [1800.5]
+benchmarks/fond-domains/forest/p_10_1.pddl [1800.4]
+benchmarks/fond-domains/forest/p_10_2.pddl [1800.4]
+benchmarks/fond-domains/forest/p_10_3.pddl [1800.4]
+benchmarks/fond-domains/forest/p_10_4.pddl [1800.4]
+benchmarks/fond-domains/forest/p_10_5.pddl [1800.4]
+benchmarks/fond-domains/forest/p_10_6.pddl [1800.4]
+benchmarks/fond-domains/forest/p_10_7.pddl [1800.4]
+benchmarks/fond-domains/forest/p_10_8.pddl [1800.4]
+benchmarks/fond-domains/forest/p_10_9.pddl [1800.4]
+benchmarks/fond-domains/forest/p_2_10.pddl [4.770]
+benchmarks/fond-domains/forest/p_2_1.pddl [1800.5]
+benchmarks/fond-domains/forest/p_2_2.pddl [4.511]
+benchmarks/fond-domains/forest/p_2_3.pddl [1800.4]
+benchmarks/fond-domains/forest/p_2_4.pddl [1800.4]
+benchmarks/fond-domains/forest/p_2_5.pddl [4.562]
+benchmarks/fond-domains/forest/p_2_6.pddl [4.4]
+benchmarks/fond-domains/forest/p_2_7.pddl [3.883]
+benchmarks/fond-domains/forest/p_2_8.pddl [3.929]
+benchmarks/fond-domains/forest/p_2_9.pddl [1800.4]
+benchmarks/fond-domains/forest/p_3_10.pddl [1800.4]
+benchmarks/fond-domains/forest/p_3_1.pddl [1800.5]
+benchmarks/fond-domains/forest/p_3_2.pddl [1800.5]
+benchmarks/fond-domains/forest/p_3_3.pddl [1800.4]
+benchmarks/fond-domains/forest/p_3_4.pddl [1800.5]
+benchmarks/fond-domains/forest/p_3_5.pddl [1800.4]
+benchmarks/fond-domains/forest/p_3_6.pddl [1800.5]
+benchmarks/fond-domains/forest/p_3_7.pddl [1800.5]
+benchmarks/fond-domains/forest/p_3_8.pddl [1800.4]
+benchmarks/fond-domains/forest/p_3_9.pddl [1800.4]
+benchmarks/fond-domains/forest/p_4_10.pddl [1800.5]
+benchmarks/fond-domains/forest/p_4_1.pddl [1800.4]
+benchmarks/fond-domains/forest/p_4_2.pddl [1800.5]
+benchmarks/fond-domains/forest/p_4_3.pddl [1800.5]
+benchmarks/fond-domains/forest/p_4_4.pddl [1800.5]
+benchmarks/fond-domains/forest/p_4_5.pddl [1800.7]
+benchmarks/fond-domains/forest/p_4_6.pddl [1800.5]
+benchmarks/fond-domains/forest/p_4_7.pddl [1800.5]
+benchmarks/fond-domains/forest/p_4_8.pddl [1800.5]
+benchmarks/fond-domains/forest/p_4_9.pddl [1800.4]
+benchmarks/fond-domains/forest/p_5_10.pddl [1800.5]
+benchmarks/fond-domains/forest/p_5_1.pddl [1800.4]
+benchmarks/fond-domains/forest/p_5_2.pddl [1800.5]
+benchmarks/fond-domains/forest/p_5_3.pddl [1800.4]
+benchmarks/fond-domains/forest/p_5_4.pddl [1800.7]
+benchmarks/fond-domains/forest/p_5_5.pddl [1800.5]
+benchmarks/fond-domains/forest/p_5_6.pddl [1800.4]
+benchmarks/fond-domains/forest/p_5_7.pddl [1800.4]
+benchmarks/fond-domains/forest/p_5_8.pddl [1800.4]
+benchmarks/fond-domains/forest/p_5_9.pddl [1800.5]
+benchmarks/fond-domains/forest/p_6_10.pddl [1800.5]
+benchmarks/fond-domains/forest/p_6_1.pddl [1800.5]
+benchmarks/fond-domains/forest/p_6_2.pddl [1800.5]
+benchmarks/fond-domains/forest/p_6_3.pddl [1800.5]
+benchmarks/fond-domains/forest/p_6_4.pddl [1800.5]
+benchmarks/fond-domains/forest/p_6_5.pddl [1800.5]
+benchmarks/fond-domains/forest/p_6_6.pddl [1800.5]
+benchmarks/fond-domains/forest/p_6_7.pddl [1800.5]
+benchmarks/fond-domains/forest/p_6_8.pddl [1800.6]
+benchmarks/fond-domains/forest/p_6_9.pddl [1800.5]
+benchmarks/fond-domains/forest/p_7_10.pddl [1800.5]
+benchmarks/fond-domains/forest/p_7_1.pddl [1800.5]
+benchmarks/fond-domains/forest/p_7_2.pddl [1800.5]
+benchmarks/fond-domains/forest/p_7_3.pddl [1800.7]
+benchmarks/fond-domains/forest/p_7_4.pddl [1800.5]
+benchmarks/fond-domains/forest/p_7_5.pddl [1800.5]
+benchmarks/fond-domains/forest/p_7_6.pddl [1800.6]
+benchmarks/fond-domains/forest/p_7_7.pddl [1800.5]
+benchmarks/fond-domains/forest/p_7_8.pddl [1800.5]
+benchmarks/fond-domains/forest/p_7_9.pddl [1800.6]
+benchmarks/fond-domains/forest/p_8_10.pddl [1800.5]
+benchmarks/fond-domains/forest/p_8_1.pddl [1800.5]
+benchmarks/fond-domains/forest/p_8_2.pddl [1800.4]
+benchmarks/fond-domains/forest/p_8_3.pddl [1800.5]
+benchmarks/fond-domains/forest/p_8_4.pddl [1800.5]
+benchmarks/fond-domains/forest/p_8_5.pddl [1800.5]
+benchmarks/fond-domains/forest/p_8_6.pddl [1800.5]
+benchmarks/fond-domains/forest/p_8_7.pddl [1800.5]
+benchmarks/fond-domains/forest/p_8_8.pddl [1800.5]
+benchmarks/fond-domains/forest/p_8_9.pddl [1800.8]
+benchmarks/fond-domains/forest/p_9_10.pddl [1800.5]
+benchmarks/fond-domains/forest/p_9_1.pddl [1800.8]
+benchmarks/fond-domains/forest/p_9_2.pddl [1800.6]
+benchmarks/fond-domains/forest/p_9_3.pddl [1800.5]
+benchmarks/fond-domains/forest/p_9_4.pddl [1800.5]
+benchmarks/fond-domains/forest/p_9_5.pddl [1800.6]
+benchmarks/fond-domains/forest/p_9_6.pddl [1800.5]
+benchmarks/fond-domains/forest/p_9_7.pddl [1800.5]
+benchmarks/fond-domains/forest/p_9_8.pddl [1800.5]
+benchmarks/fond-domains/forest/p_9_9.pddl [1800.5]
+solvers: SP$_{M}$.csv
+results/forest
+
+
+benchmarks/fond-domains/islands
+planners: lpg-td
+output: lpg-td(-d-s-r)/lpg-td.csv
+benchmarks/fond-domains/islands/results.csv
+benchmarks/fond-domains/islands
+benchmarks/fond-domains/islands/p01.pddl [0.181]
+benchmarks/fond-domains/islands/p02.pddl [0.182]
+benchmarks/fond-domains/islands/p03.pddl [0.202]
+benchmarks/fond-domains/islands/p04.pddl [0.168]
+benchmarks/fond-domains/islands/p05.pddl [0.168]
+benchmarks/fond-domains/islands/p06.pddl [0.169]
+benchmarks/fond-domains/islands/p07.pddl [0.175]
+benchmarks/fond-domains/islands/p08.pddl [0.165]
+benchmarks/fond-domains/islands/p09.pddl [0.167]
+benchmarks/fond-domains/islands/p10.pddl [0.170]
+benchmarks/fond-domains/islands/p11.pddl [0.166]
+benchmarks/fond-domains/islands/p12.pddl [0.255]
+benchmarks/fond-domains/islands/p13.pddl [0.167]
+benchmarks/fond-domains/islands/p14.pddl [0.172]
+benchmarks/fond-domains/islands/p15.pddl [0.245]
+benchmarks/fond-domains/islands/p16.pddl [0.169]
+benchmarks/fond-domains/islands/p17.pddl [0.173]
+benchmarks/fond-domains/islands/p18.pddl [0.178]
+benchmarks/fond-domains/islands/p19.pddl [0.174]
+benchmarks/fond-domains/islands/p20.pddl [0.181]
+benchmarks/fond-domains/islands/p21.pddl [0.172]
+benchmarks/fond-domains/islands/p22.pddl [0.172]
+benchmarks/fond-domains/islands/p23.pddl [0.193]
+benchmarks/fond-domains/islands/p24.pddl [0.172]
+benchmarks/fond-domains/islands/p25.pddl [0.241]
+benchmarks/fond-domains/islands/p26.pddl [0.147]
+benchmarks/fond-domains/islands/p27.pddl [0.150]
+benchmarks/fond-domains/islands/p28.pddl [0.209]
+benchmarks/fond-domains/islands/p29.pddl [0.147]
+benchmarks/fond-domains/islands/p30.pddl [0.147]
+benchmarks/fond-domains/islands/p31.pddl [0.229]
+benchmarks/fond-domains/islands/p32.pddl [0.277]
+benchmarks/fond-domains/islands/p33.pddl [0.284]
+benchmarks/fond-domains/islands/p34.pddl [0.142]
+benchmarks/fond-domains/islands/p35.pddl [0.147]
+benchmarks/fond-domains/islands/p36.pddl [0.150]
+benchmarks/fond-domains/islands/p37.pddl [0.206]
+benchmarks/fond-domains/islands/p38.pddl [0.206]
+benchmarks/fond-domains/islands/p39.pddl [0.150]
+benchmarks/fond-domains/islands/p40.pddl [0.208]
+benchmarks/fond-domains/islands/p41.pddl [0.212]
+benchmarks/fond-domains/islands/p42.pddl [0.155]
+benchmarks/fond-domains/islands/p43.pddl [0.288]
+benchmarks/fond-domains/islands/p44.pddl [0.221]
+benchmarks/fond-domains/islands/p45.pddl [0.223]
+benchmarks/fond-domains/islands/p46.pddl [0.378]
+benchmarks/fond-domains/islands/p47.pddl [0.225]
+benchmarks/fond-domains/islands/p48.pddl [0.169]
+benchmarks/fond-domains/islands/p49.pddl [0.221]
+benchmarks/fond-domains/islands/p50.pddl [0.233]
+benchmarks/fond-domains/islands/p51.pddl [0.219]
+benchmarks/fond-domains/islands/p52.pddl [0.230]
+benchmarks/fond-domains/islands/p53.pddl [0.294]
+benchmarks/fond-domains/islands/p54.pddl [0.244]
+benchmarks/fond-domains/islands/p55.pddl [0.252]
+benchmarks/fond-domains/islands/p56.pddl [0.254]
+benchmarks/fond-domains/islands/p57.pddl [0.246]
+benchmarks/fond-domains/islands/p58.pddl [0.342]
+benchmarks/fond-domains/islands/p59.pddl [0.259]
+benchmarks/fond-domains/islands/p60.pddl [0.354]
+solvers: SP$_{LPG-TD}$.csv
+results/islands
+
+
+benchmarks/fond-domains/islands
+planners: m
+output: m(-d-s-r)/m.csv
+benchmarks/fond-domains/islands/results.csv
+benchmarks/fond-domains/islands
+benchmarks/fond-domains/islands/p01.pddl [0.83]
+benchmarks/fond-domains/islands/p02.pddl [0.120]
+benchmarks/fond-domains/islands/p03.pddl [0.88]
+benchmarks/fond-domains/islands/p04.pddl [0.83]
+benchmarks/fond-domains/islands/p05.pddl [0.82]
+benchmarks/fond-domains/islands/p06.pddl [0.86]
+benchmarks/fond-domains/islands/p07.pddl [0.96]
+benchmarks/fond-domains/islands/p08.pddl [0.99]
+benchmarks/fond-domains/islands/p09.pddl [0.91]
+benchmarks/fond-domains/islands/p10.pddl [0.97]
+benchmarks/fond-domains/islands/p11.pddl [0.93]
+benchmarks/fond-domains/islands/p12.pddl [0.92]
+benchmarks/fond-domains/islands/p13.pddl [0.100]
+benchmarks/fond-domains/islands/p14.pddl [0.90]
+benchmarks/fond-domains/islands/p15.pddl [0.88]
+benchmarks/fond-domains/islands/p16.pddl [0.88]
+benchmarks/fond-domains/islands/p17.pddl [0.91]
+benchmarks/fond-domains/islands/p18.pddl [0.98]
+benchmarks/fond-domains/islands/p19.pddl [0.99]
+benchmarks/fond-domains/islands/p20.pddl [0.97]
+benchmarks/fond-domains/islands/p21.pddl [0.99]
+benchmarks/fond-domains/islands/p22.pddl [0.103]
+benchmarks/fond-domains/islands/p23.pddl [0.117]
+benchmarks/fond-domains/islands/p24.pddl [0.98]
+benchmarks/fond-domains/islands/p25.pddl [0.90]
+benchmarks/fond-domains/islands/p26.pddl [0.95]
+benchmarks/fond-domains/islands/p27.pddl [0.97]
+benchmarks/fond-domains/islands/p28.pddl [0.117]
+benchmarks/fond-domains/islands/p29.pddl [0.99]
+benchmarks/fond-domains/islands/p30.pddl [0.117]
+benchmarks/fond-domains/islands/p31.pddl [0.117]
+benchmarks/fond-domains/islands/p32.pddl [0.122]
+benchmarks/fond-domains/islands/p33.pddl [0.124]
+benchmarks/fond-domains/islands/p34.pddl [0.134]
+benchmarks/fond-domains/islands/p35.pddl [0.134]
+benchmarks/fond-domains/islands/p36.pddl [0.143]
+benchmarks/fond-domains/islands/p37.pddl [0.98]
+benchmarks/fond-domains/islands/p38.pddl [0.104]
+benchmarks/fond-domains/islands/p39.pddl [0.110]
+benchmarks/fond-domains/islands/p40.pddl [0.122]
+benchmarks/fond-domains/islands/p41.pddl [0.133]
+benchmarks/fond-domains/islands/p42.pddl [0.131]
+benchmarks/fond-domains/islands/p43.pddl [0.140]
+benchmarks/fond-domains/islands/p44.pddl [0.164]
+benchmarks/fond-domains/islands/p45.pddl [0.150]
+benchmarks/fond-domains/islands/p46.pddl [0.160]
+benchmarks/fond-domains/islands/p47.pddl [0.183]
+benchmarks/fond-domains/islands/p48.pddl [0.183]
+benchmarks/fond-domains/islands/p49.pddl [0.111]
+benchmarks/fond-domains/islands/p50.pddl [0.125]
+benchmarks/fond-domains/islands/p51.pddl [0.141]
+benchmarks/fond-domains/islands/p52.pddl [0.144]
+benchmarks/fond-domains/islands/p53.pddl [0.161]
+benchmarks/fond-domains/islands/p54.pddl [0.181]
+benchmarks/fond-domains/islands/p55.pddl [0.184]
+benchmarks/fond-domains/islands/p56.pddl [0.209]
+benchmarks/fond-domains/islands/p57.pddl [0.225]
+benchmarks/fond-domains/islands/p58.pddl [0.243]
+benchmarks/fond-domains/islands/p59.pddl [0.261]
+benchmarks/fond-domains/islands/p60.pddl [0.272]
+solvers: SP$_{M}$.csv
+results/islands
+
+
+benchmarks/fond-domains/miner
+planners: lpg-td
+output: lpg-td(-d-s-r)/lpg-td.csv
+benchmarks/fond-domains/miner/results.csv
+benchmarks/fond-domains/miner
+benchmarks/fond-domains/miner/p01.pddl [0.239]
+benchmarks/fond-domains/miner/p02.pddl [0.278]
+benchmarks/fond-domains/miner/p03.pddl [0.404]
+benchmarks/fond-domains/miner/p04.pddl [0.497]
+benchmarks/fond-domains/miner/p05.pddl [0.336]
+benchmarks/fond-domains/miner/p07.pddl [0.346]
+benchmarks/fond-domains/miner/p08.pddl [0.333]
+benchmarks/fond-domains/miner/p09.pddl [20.826]
+benchmarks/fond-domains/miner/p10.pddl [3.475]
+benchmarks/fond-domains/miner/p11.pddl [0.419]
+benchmarks/fond-domains/miner/p12.pddl [0.303]
+benchmarks/fond-domains/miner/p13.pddl [0.385]
+benchmarks/fond-domains/miner/p14.pddl [1.141]
+benchmarks/fond-domains/miner/p15.pddl [0.402]
+benchmarks/fond-domains/miner/p16.pddl [0.524]
+benchmarks/fond-domains/miner/p17.pddl [0.511]
+benchmarks/fond-domains/miner/p18.pddl [4.347]
+benchmarks/fond-domains/miner/p19.pddl [0.790]
+benchmarks/fond-domains/miner/p20.pddl [1.100]
+benchmarks/fond-domains/miner/p21.pddl [0.274]
+benchmarks/fond-domains/miner/p22.pddl [0.594]
+benchmarks/fond-domains/miner/p23.pddl [0.660]
+benchmarks/fond-domains/miner/p24.pddl [0.891]
+benchmarks/fond-domains/miner/p25.pddl [0.539]
+benchmarks/fond-domains/miner/p26.pddl [0.440]
+benchmarks/fond-domains/miner/p27.pddl [0.536]
+benchmarks/fond-domains/miner/p28.pddl [0.485]
+benchmarks/fond-domains/miner/p29.pddl [0.760]
+benchmarks/fond-domains/miner/p30.pddl [0.770]
+benchmarks/fond-domains/miner/p31.pddl [0.436]
+benchmarks/fond-domains/miner/p32.pddl [1.243]
+benchmarks/fond-domains/miner/p33.pddl [1.218]
+benchmarks/fond-domains/miner/p34.pddl [1.597]
+benchmarks/fond-domains/miner/p35.pddl [3.379]
+benchmarks/fond-domains/miner/p36.pddl [0.846]
+benchmarks/fond-domains/miner/p37.pddl [0.698]
+benchmarks/fond-domains/miner/p38.pddl [1.180]
+benchmarks/fond-domains/miner/p39.pddl [7.245]
+benchmarks/fond-domains/miner/p40.pddl [5.268]
+benchmarks/fond-domains/miner/p41.pddl [0.481]
+benchmarks/fond-domains/miner/p42.pddl [0.828]
+benchmarks/fond-domains/miner/p43.pddl [2.120]
+benchmarks/fond-domains/miner/p44.pddl [0.786]
+benchmarks/fond-domains/miner/p45.pddl [3.191]
+benchmarks/fond-domains/miner/p46.pddl [3.122]
+benchmarks/fond-domains/miner/p47.pddl [1.622]
+benchmarks/fond-domains/miner/p48.pddl [2.468]
+benchmarks/fond-domains/miner/p49.pddl [7.114]
+benchmarks/fond-domains/miner/p50.pddl [6.44]
+benchmarks/fond-domains/miner/p51.pddl [4.595]
+solvers: SP$_{LPG-TD}$.csv
+results/miner
+
+
+benchmarks/fond-domains/miner
+planners: m
+output: m(-d-s-r)/m.csv
+benchmarks/fond-domains/miner/results.csv
+benchmarks/fond-domains/miner
+benchmarks/fond-domains/miner/p01.pddl [1800.7]
+benchmarks/fond-domains/miner/p02.pddl [0.891]
+benchmarks/fond-domains/miner/p03.pddl [0.484]
+benchmarks/fond-domains/miner/p04.pddl [74.608]
+benchmarks/fond-domains/miner/p05.pddl [0.263]
+benchmarks/fond-domains/miner/p07.pddl [58.125]
+benchmarks/fond-domains/miner/p08.pddl [65.992]
+benchmarks/fond-domains/miner/p09.pddl [14.838]
+benchmarks/fond-domains/miner/p10.pddl [2.19]
+benchmarks/fond-domains/miner/p11.pddl [3.572]
+benchmarks/fond-domains/miner/p12.pddl [1.699]
+benchmarks/fond-domains/miner/p13.pddl [58.816]
+benchmarks/fond-domains/miner/p14.pddl [1800.4]
+benchmarks/fond-domains/miner/p15.pddl [1.585]
+benchmarks/fond-domains/miner/p16.pddl [7.731]
+benchmarks/fond-domains/miner/p17.pddl [84.599]
+benchmarks/fond-domains/miner/p18.pddl [0.451]
+benchmarks/fond-domains/miner/p19.pddl [1608.660]
+benchmarks/fond-domains/miner/p20.pddl [206.939]
+benchmarks/fond-domains/miner/p21.pddl [1002.245]
+benchmarks/fond-domains/miner/p22.pddl [162.408]
+benchmarks/fond-domains/miner/p23.pddl [1520.295]
+benchmarks/fond-domains/miner/p24.pddl [7.9]
+benchmarks/fond-domains/miner/p25.pddl [40.593]
+benchmarks/fond-domains/miner/p26.pddl [188.187]
+benchmarks/fond-domains/miner/p27.pddl [0.606]
+benchmarks/fond-domains/miner/p28.pddl [4.260]
+benchmarks/fond-domains/miner/p29.pddl [1436.651]
+benchmarks/fond-domains/miner/p30.pddl [39.252]
+benchmarks/fond-domains/miner/p31.pddl [28.627]
+benchmarks/fond-domains/miner/p32.pddl [1759.106]
+benchmarks/fond-domains/miner/p33.pddl [112.535]
+benchmarks/fond-domains/miner/p34.pddl [6.457]
+benchmarks/fond-domains/miner/p35.pddl [4.840]
+benchmarks/fond-domains/miner/p36.pddl [3.58]
+benchmarks/fond-domains/miner/p37.pddl [74.575]
+benchmarks/fond-domains/miner/p38.pddl [472.768]
+benchmarks/fond-domains/miner/p39.pddl [760.251]
+benchmarks/fond-domains/miner/p40.pddl [88.896]
+benchmarks/fond-domains/miner/p41.pddl [32.1]
+benchmarks/fond-domains/miner/p42.pddl [11.59]
+benchmarks/fond-domains/miner/p43.pddl [26.922]
+benchmarks/fond-domains/miner/p44.pddl [118.213]
+benchmarks/fond-domains/miner/p45.pddl [234.983]
+benchmarks/fond-domains/miner/p46.pddl [1800.4]
+benchmarks/fond-domains/miner/p47.pddl [92.700]
+benchmarks/fond-domains/miner/p48.pddl [1800.4]
+benchmarks/fond-domains/miner/p49.pddl [1800.4]
+benchmarks/fond-domains/miner/p50.pddl [1800.4]
+benchmarks/fond-domains/miner/p51.pddl [1800.4]
+solvers: SP$_{M}$.csv
+results/miner
+
+
+benchmarks/fond-domains/tireworld
+planners: lpg-td
+output: lpg-td(-d-s)/lpg-td.csv
+benchmarks/fond-domains/tireworld/results.csv
+benchmarks/fond-domains/tireworld
+benchmarks/fond-domains/tireworld/p01.pddl [1800.5]
+benchmarks/fond-domains/tireworld/p02.pddl [0.165]
+benchmarks/fond-domains/tireworld/p03.pddl [0.193]
+benchmarks/fond-domains/tireworld/p04.pddl [0.318]
+benchmarks/fond-domains/tireworld/p05.pddl [0.197]
+benchmarks/fond-domains/tireworld/p06.pddl [0.200]
+benchmarks/fond-domains/tireworld/p07.pddl [0.307]
+benchmarks/fond-domains/tireworld/p08.pddl [1.31]
+benchmarks/fond-domains/tireworld/p09.pddl [1800.4]
+benchmarks/fond-domains/tireworld/p10.pddl [0.169]
+benchmarks/fond-domains/tireworld/p11.pddl [0.237]
+benchmarks/fond-domains/tireworld/p12.pddl [0.138]
+benchmarks/fond-domains/tireworld/p13.pddl [0.216]
+benchmarks/fond-domains/tireworld/p14.pddl [19.833]
+benchmarks/fond-domains/tireworld/p15.pddl [1800.4]
+solvers: SP$_{LPG-TD}$.csv
+results/tireworld
+
+
+benchmarks/fond-domains/tireworld
+planners: m
+output: m(-d-s)/m.csv
+benchmarks/fond-domains/tireworld/results.csv
+benchmarks/fond-domains/tireworld
+benchmarks/fond-domains/tireworld/p01.pddl [1800.8]
+benchmarks/fond-domains/tireworld/p02.pddl [0.120]
+benchmarks/fond-domains/tireworld/p03.pddl [0.96]
+benchmarks/fond-domains/tireworld/p04.pddl [0.127]
+benchmarks/fond-domains/tireworld/p05.pddl [0.96]
+benchmarks/fond-domains/tireworld/p06.pddl [0.92]
+benchmarks/fond-domains/tireworld/p07.pddl [0.119]
+benchmarks/fond-domains/tireworld/p08.pddl [0.113]
+benchmarks/fond-domains/tireworld/p09.pddl [1800.4]
+benchmarks/fond-domains/tireworld/p10.pddl [0.132]
+benchmarks/fond-domains/tireworld/p11.pddl [0.104]
+benchmarks/fond-domains/tireworld/p12.pddl [0.96]
+benchmarks/fond-domains/tireworld/p13.pddl [0.143]
+benchmarks/fond-domains/tireworld/p14.pddl [0.339]
+benchmarks/fond-domains/tireworld/p15.pddl [1800.4]
+solvers: SP$_{M}$.csv
+results/tireworld
+
+
+benchmarks/fond-domains/tireworld-spiky
+planners: lpg-td
+output: lpg-td(-d-s)/lpg-td.csv
+benchmarks/fond-domains/tireworld-spiky/results.csv
+benchmarks/fond-domains/tireworld-spiky
+benchmarks/fond-domains/tireworld-spiky/p01.pddl [19.889]
+benchmarks/fond-domains/tireworld-spiky/p02.pddl [21.865]
+benchmarks/fond-domains/tireworld-spiky/p03.pddl [2.95]
+benchmarks/fond-domains/tireworld-spiky/p04.pddl [1.496]
+benchmarks/fond-domains/tireworld-spiky/p05.pddl [17.894]
+benchmarks/fond-domains/tireworld-spiky/p06.pddl [2.478]
+benchmarks/fond-domains/tireworld-spiky/p07.pddl [1800.7]
+benchmarks/fond-domains/tireworld-spiky/p08.pddl [6.137]
+benchmarks/fond-domains/tireworld-spiky/p09.pddl [1800.6]
+benchmarks/fond-domains/tireworld-spiky/p10.pddl [3.226]
+benchmarks/fond-domains/tireworld-spiky/p11.pddl [1800.7]
+solvers: SP$_{LPG-TD}$.csv
+results/tireworld-spiky
+
+
+benchmarks/fond-domains/tireworld-spiky
+planners: m
+output: m(-d-s)/m.csv
+benchmarks/fond-domains/tireworld-spiky/results.csv
+benchmarks/fond-domains/tireworld-spiky
+benchmarks/fond-domains/tireworld-spiky/p01.pddl [14.684]
+benchmarks/fond-domains/tireworld-spiky/p02.pddl [1800.4]
+benchmarks/fond-domains/tireworld-spiky/p03.pddl [1800.4]
+benchmarks/fond-domains/tireworld-spiky/p04.pddl [1800.4]
+benchmarks/fond-domains/tireworld-spiky/p05.pddl [1800.4]
+benchmarks/fond-domains/tireworld-spiky/p06.pddl [1800.4]
+benchmarks/fond-domains/tireworld-spiky/p07.pddl [1800.4]
+benchmarks/fond-domains/tireworld-spiky/p08.pddl [26.0]
+benchmarks/fond-domains/tireworld-spiky/p09.pddl [1800.4]
+benchmarks/fond-domains/tireworld-spiky/p10.pddl [1800.4]
+benchmarks/fond-domains/tireworld-spiky/p11.pddl [1800.4]
+solvers: SP$_{M}$.csv
+results/tireworld-spiky
+
+
+benchmarks/fond-domains/tireworld-truck
+planners: lpg-td
+output: lpg-td(-d-s)/lpg-td.csv
+benchmarks/fond-domains/tireworld-truck/results.csv
+benchmarks/fond-domains/tireworld-truck
+benchmarks/fond-domains/tireworld-truck/p01.pddl [8.164]
+benchmarks/fond-domains/tireworld-truck/p02.pddl [0.358]
+benchmarks/fond-domains/tireworld-truck/p03.pddl [0.350]
+benchmarks/fond-domains/tireworld-truck/p04.pddl [0.934]
+benchmarks/fond-domains/tireworld-truck/p05.pddl [0.765]
+benchmarks/fond-domains/tireworld-truck/p06.pddl [0.452]
+benchmarks/fond-domains/tireworld-truck/p07.pddl [0.402]
+benchmarks/fond-domains/tireworld-truck/p08.pddl [1.143]
+benchmarks/fond-domains/tireworld-truck/p09.pddl [0.425]
+benchmarks/fond-domains/tireworld-truck/p11.pddl [3.285]
+benchmarks/fond-domains/tireworld-truck/p12.pddl [6.383]
+benchmarks/fond-domains/tireworld-truck/p13.pddl [22.403]
+benchmarks/fond-domains/tireworld-truck/p14.pddl [1.105]
+benchmarks/fond-domains/tireworld-truck/p15.pddl [0.392]
+benchmarks/fond-domains/tireworld-truck/p16.pddl [0.657]
+benchmarks/fond-domains/tireworld-truck/p17.pddl [0.294]
+benchmarks/fond-domains/tireworld-truck/p18.pddl [0.250]
+benchmarks/fond-domains/tireworld-truck/p19.pddl [0.961]
+benchmarks/fond-domains/tireworld-truck/p20.pddl [1.446]
+benchmarks/fond-domains/tireworld-truck/p21.pddl [0.306]
+benchmarks/fond-domains/tireworld-truck/p22.pddl [1.594]
+benchmarks/fond-domains/tireworld-truck/p23.pddl [3.797]
+benchmarks/fond-domains/tireworld-truck/p24.pddl [0.808]
+benchmarks/fond-domains/tireworld-truck/p25.pddl [0.279]
+benchmarks/fond-domains/tireworld-truck/p26.pddl [5.555]
+benchmarks/fond-domains/tireworld-truck/p27.pddl [0.396]
+benchmarks/fond-domains/tireworld-truck/p28.pddl [27.171]
+benchmarks/fond-domains/tireworld-truck/p29.pddl [62.463]
+benchmarks/fond-domains/tireworld-truck/p30.pddl [318.385]
+benchmarks/fond-domains/tireworld-truck/p31.pddl [146.794]
+benchmarks/fond-domains/tireworld-truck/p32.pddl [44.101]
+benchmarks/fond-domains/tireworld-truck/p33.pddl [5.557]
+benchmarks/fond-domains/tireworld-truck/p34.pddl [0.218]
+benchmarks/fond-domains/tireworld-truck/p35.pddl [3.880]
+benchmarks/fond-domains/tireworld-truck/p36.pddl [1.151]
+benchmarks/fond-domains/tireworld-truck/p37.pddl [0.225]
+benchmarks/fond-domains/tireworld-truck/p38.pddl [0.209]
+benchmarks/fond-domains/tireworld-truck/p39.pddl [0.418]
+benchmarks/fond-domains/tireworld-truck/p40.pddl [1.583]
+benchmarks/fond-domains/tireworld-truck/p41.pddl [501.382]
+benchmarks/fond-domains/tireworld-truck/p42.pddl [1.565]
+benchmarks/fond-domains/tireworld-truck/p43.pddl [1.108]
+benchmarks/fond-domains/tireworld-truck/p44.pddl [2.756]
+benchmarks/fond-domains/tireworld-truck/p45.pddl [0.908]
+benchmarks/fond-domains/tireworld-truck/p46.pddl [1.75]
+benchmarks/fond-domains/tireworld-truck/p47.pddl [0.821]
+benchmarks/fond-domains/tireworld-truck/p48.pddl [21.463]
+benchmarks/fond-domains/tireworld-truck/p49.pddl [0.391]
+benchmarks/fond-domains/tireworld-truck/p50.pddl [3.165]
+benchmarks/fond-domains/tireworld-truck/p51.pddl [1800.6]
+benchmarks/fond-domains/tireworld-truck/p52.pddl [1.934]
+benchmarks/fond-domains/tireworld-truck/p53.pddl [1800.4]
+benchmarks/fond-domains/tireworld-truck/p54.pddl [15.386]
+benchmarks/fond-domains/tireworld-truck/p55.pddl [26.854]
+benchmarks/fond-domains/tireworld-truck/p56.pddl [1800.7]
+benchmarks/fond-domains/tireworld-truck/p57.pddl [1800.10]
+benchmarks/fond-domains/tireworld-truck/p58.pddl [0.316]
+benchmarks/fond-domains/tireworld-truck/p59.pddl [11.538]
+benchmarks/fond-domains/tireworld-truck/p60.pddl [2.104]
+benchmarks/fond-domains/tireworld-truck/p61.pddl [0.308]
+benchmarks/fond-domains/tireworld-truck/p62.pddl [2.328]
+benchmarks/fond-domains/tireworld-truck/p63.pddl [0.527]
+benchmarks/fond-domains/tireworld-truck/p64.pddl [9.571]
+benchmarks/fond-domains/tireworld-truck/p65.pddl [2.602]
+benchmarks/fond-domains/tireworld-truck/p66.pddl [2.282]
+benchmarks/fond-domains/tireworld-truck/p67.pddl [7.658]
+benchmarks/fond-domains/tireworld-truck/p68.pddl [10.639]
+benchmarks/fond-domains/tireworld-truck/p69.pddl [0.538]
+benchmarks/fond-domains/tireworld-truck/p70.pddl [5.887]
+benchmarks/fond-domains/tireworld-truck/p71.pddl [2.274]
+benchmarks/fond-domains/tireworld-truck/p72.pddl [5.706]
+benchmarks/fond-domains/tireworld-truck/p73.pddl [5.196]
+benchmarks/fond-domains/tireworld-truck/p74.pddl [0.641]
+benchmarks/fond-domains/tireworld-truck/p75.pddl [67.126]
+solvers: SP$_{LPG-TD}$.csv
+results/tireworld-truck
+
+
+benchmarks/fond-domains/tireworld-truck
+planners: m
+output: m(-d-s)/m.csv
+benchmarks/fond-domains/tireworld-truck/results.csv
+benchmarks/fond-domains/tireworld-truck
+benchmarks/fond-domains/tireworld-truck/p01.pddl [0.261]
+benchmarks/fond-domains/tireworld-truck/p02.pddl [0.167]
+benchmarks/fond-domains/tireworld-truck/p03.pddl [0.165]
+benchmarks/fond-domains/tireworld-truck/p04.pddl [0.229]
+benchmarks/fond-domains/tireworld-truck/p05.pddl [1800.4]
+benchmarks/fond-domains/tireworld-truck/p06.pddl [0.162]
+benchmarks/fond-domains/tireworld-truck/p07.pddl [0.179]
+benchmarks/fond-domains/tireworld-truck/p08.pddl [0.193]
+benchmarks/fond-domains/tireworld-truck/p09.pddl [0.190]
+benchmarks/fond-domains/tireworld-truck/p11.pddl [0.147]
+benchmarks/fond-domains/tireworld-truck/p12.pddl [0.190]
+benchmarks/fond-domains/tireworld-truck/p13.pddl [0.257]
+benchmarks/fond-domains/tireworld-truck/p14.pddl [0.291]
+benchmarks/fond-domains/tireworld-truck/p15.pddl [0.475]
+benchmarks/fond-domains/tireworld-truck/p16.pddl [0.116]
+benchmarks/fond-domains/tireworld-truck/p17.pddl [0.155]
+benchmarks/fond-domains/tireworld-truck/p18.pddl [1800.4]
+benchmarks/fond-domains/tireworld-truck/p19.pddl [0.393]
+benchmarks/fond-domains/tireworld-truck/p20.pddl [0.579]
+benchmarks/fond-domains/tireworld-truck/p21.pddl [0.183]
+benchmarks/fond-domains/tireworld-truck/p22.pddl [0.155]
+benchmarks/fond-domains/tireworld-truck/p23.pddl [0.390]
+benchmarks/fond-domains/tireworld-truck/p24.pddl [1800.5]
+benchmarks/fond-domains/tireworld-truck/p25.pddl [0.451]
+benchmarks/fond-domains/tireworld-truck/p26.pddl [1.517]
+benchmarks/fond-domains/tireworld-truck/p27.pddl [0.251]
+benchmarks/fond-domains/tireworld-truck/p28.pddl [0.453]
+benchmarks/fond-domains/tireworld-truck/p29.pddl [7.621]
+benchmarks/fond-domains/tireworld-truck/p30.pddl [1800.4]
+benchmarks/fond-domains/tireworld-truck/p31.pddl [0.311]
+benchmarks/fond-domains/tireworld-truck/p32.pddl [0.268]
+benchmarks/fond-domains/tireworld-truck/p33.pddl [0.293]
+benchmarks/fond-domains/tireworld-truck/p34.pddl [0.205]
+benchmarks/fond-domains/tireworld-truck/p35.pddl [1.28]
+benchmarks/fond-domains/tireworld-truck/p36.pddl [0.625]
+benchmarks/fond-domains/tireworld-truck/p37.pddl [0.189]
+benchmarks/fond-domains/tireworld-truck/p38.pddl [0.391]
+benchmarks/fond-domains/tireworld-truck/p39.pddl [2.576]
+benchmarks/fond-domains/tireworld-truck/p40.pddl [0.575]
+benchmarks/fond-domains/tireworld-truck/p41.pddl [0.265]
+benchmarks/fond-domains/tireworld-truck/p42.pddl [1.553]
+benchmarks/fond-domains/tireworld-truck/p43.pddl [0.623]
+benchmarks/fond-domains/tireworld-truck/p44.pddl [3.991]
+benchmarks/fond-domains/tireworld-truck/p45.pddl [2.396]
+benchmarks/fond-domains/tireworld-truck/p46.pddl [1800.4]
+benchmarks/fond-domains/tireworld-truck/p47.pddl [2.279]
+benchmarks/fond-domains/tireworld-truck/p48.pddl [0.245]
+benchmarks/fond-domains/tireworld-truck/p49.pddl [5.80]
+benchmarks/fond-domains/tireworld-truck/p50.pddl [2.541]
+benchmarks/fond-domains/tireworld-truck/p51.pddl [9.599]
+benchmarks/fond-domains/tireworld-truck/p52.pddl [5.535]
+benchmarks/fond-domains/tireworld-truck/p53.pddl [3.592]
+benchmarks/fond-domains/tireworld-truck/p54.pddl [1.46]
+benchmarks/fond-domains/tireworld-truck/p55.pddl [0.883]
+benchmarks/fond-domains/tireworld-truck/p56.pddl [3.871]
+benchmarks/fond-domains/tireworld-truck/p57.pddl [5.840]
+benchmarks/fond-domains/tireworld-truck/p58.pddl [0.190]
+benchmarks/fond-domains/tireworld-truck/p59.pddl [0.804]
+benchmarks/fond-domains/tireworld-truck/p60.pddl [0.324]
+benchmarks/fond-domains/tireworld-truck/p61.pddl [0.344]
+benchmarks/fond-domains/tireworld-truck/p62.pddl [1.490]
+benchmarks/fond-domains/tireworld-truck/p63.pddl [2.528]
+benchmarks/fond-domains/tireworld-truck/p64.pddl [20.568]
+benchmarks/fond-domains/tireworld-truck/p65.pddl [0.886]
+benchmarks/fond-domains/tireworld-truck/p66.pddl [1.85]
+benchmarks/fond-domains/tireworld-truck/p67.pddl [4.328]
+benchmarks/fond-domains/tireworld-truck/p68.pddl [4.52]
+benchmarks/fond-domains/tireworld-truck/p69.pddl [0.958]
+benchmarks/fond-domains/tireworld-truck/p70.pddl [0.563]
+benchmarks/fond-domains/tireworld-truck/p71.pddl [4.52]
+benchmarks/fond-domains/tireworld-truck/p72.pddl [21.891]
+benchmarks/fond-domains/tireworld-truck/p73.pddl [7.116]
+benchmarks/fond-domains/tireworld-truck/p74.pddl [4.576]
+benchmarks/fond-domains/tireworld-truck/p75.pddl [3.580]
+solvers: SP$_{M}$.csv
+results/tireworld-truck
+
+
+benchmarks/fond-domains/triangle-tireworld
+planners: lpg-td
+output: lpg-td(-d-s)/lpg-td.csv
+benchmarks/fond-domains/triangle-tireworld/results.csv
+benchmarks/fond-domains/triangle-tireworld
+benchmarks/fond-domains/triangle-tireworld/p01.pddl [0.608]
+benchmarks/fond-domains/triangle-tireworld/p02.pddl [5.277]
+benchmarks/fond-domains/triangle-tireworld/p03.pddl [66.933]
+benchmarks/fond-domains/triangle-tireworld/p04.pddl [1800.9]
+solvers: SP$_{LPG-TD}$.csv
+results/triangle-tireworld
+
+
+benchmarks/fond-domains/triangle-tireworld
+planners: m
+output: m(-d-s)/m.csv
+benchmarks/fond-domains/triangle-tireworld/results.csv
+benchmarks/fond-domains/triangle-tireworld
+benchmarks/fond-domains/triangle-tireworld/p01.pddl [0.136]
+benchmarks/fond-domains/triangle-tireworld/p02.pddl [1.919]
+benchmarks/fond-domains/triangle-tireworld/p03.pddl [259.337]
+benchmarks/fond-domains/triangle-tireworld/p04.pddl [1800.11]
+solvers: SP$_{M}$.csv
+results/triangle-tireworld
+
+
+benchmarks/fond-domains/zenotravel
+planners: lpg-td
+output: lpg-td(-d-s)/lpg-td.csv
+benchmarks/fond-domains/zenotravel/results.csv
+benchmarks/fond-domains/zenotravel
+benchmarks/fond-domains/zenotravel/p01.pddl [0.282]
+benchmarks/fond-domains/zenotravel/p02.pddl [33.482]
+benchmarks/fond-domains/zenotravel/p03.pddl [0.897]
+benchmarks/fond-domains/zenotravel/p04.pddl [0.493]
+benchmarks/fond-domains/zenotravel/p05.pddl [0.676]
+benchmarks/fond-domains/zenotravel/p06.pddl [1800.7]
+benchmarks/fond-domains/zenotravel/p07.pddl [1800.7]
+benchmarks/fond-domains/zenotravel/p08.pddl [1800.8]
+benchmarks/fond-domains/zenotravel/p09.pddl [1800.6]
+benchmarks/fond-domains/zenotravel/p10.pddl [1800.6]
+benchmarks/fond-domains/zenotravel/p11.pddl [1800.5]
+benchmarks/fond-domains/zenotravel/p12.pddl [1800.5]
+benchmarks/fond-domains/zenotravel/p13.pddl [1800.4]
+benchmarks/fond-domains/zenotravel/p14.pddl [1800.4]
+benchmarks/fond-domains/zenotravel/p15.pddl [1800.4]
+solvers: SP$_{LPG-TD}$.csv
+results/zenotravel
+
+
+benchmarks/fond-domains/zenotravel
+planners: m
+output: m(-d-s)/m.csv
+benchmarks/fond-domains/zenotravel/results.csv
+benchmarks/fond-domains/zenotravel
+benchmarks/fond-domains/zenotravel/p01.pddl [0.382]
+benchmarks/fond-domains/zenotravel/p02.pddl [96.357]
+benchmarks/fond-domains/zenotravel/p03.pddl [553.608]
+benchmarks/fond-domains/zenotravel/p04.pddl [89.378]
+benchmarks/fond-domains/zenotravel/p05.pddl [25.658]
+benchmarks/fond-domains/zenotravel/p06.pddl [1800.4]
+benchmarks/fond-domains/zenotravel/p07.pddl [1800.4]
+benchmarks/fond-domains/zenotravel/p08.pddl [1800.4]
+benchmarks/fond-domains/zenotravel/p09.pddl [1800.4]
+benchmarks/fond-domains/zenotravel/p10.pddl [1800.4]
+benchmarks/fond-domains/zenotravel/p11.pddl [1800.4]
+benchmarks/fond-domains/zenotravel/p12.pddl [1800.4]
+benchmarks/fond-domains/zenotravel/p13.pddl [1800.4]
+benchmarks/fond-domains/zenotravel/p14.pddl [1800.4]
+benchmarks/fond-domains/zenotravel/p15.pddl [1800.4]
+solvers: SP$_{M}$.csv
+results/zenotravel
+
+
+benchmarks/fond-domains/faults
+planners: lpg-td
+output: lpg-td(-d-s)/lpg-td.csv
+benchmarks/fond-domains/faults/results.csv
+benchmarks/fond-domains/faults/p_1_1.pddl [1800.4]
+benchmarks/fond-domains/faults/p_2_1.pddl [1800.7]
+benchmarks/fond-domains/faults/p_2_2.pddl [1800.5]
+benchmarks/fond-domains/faults/p_3_1.pddl [1800.4]
+benchmarks/fond-domains/faults/p_3_2.pddl [1800.4]
+benchmarks/fond-domains/faults/p_3_3.pddl [1800.4]
+benchmarks/fond-domains/faults/p_4_1.pddl [1800.4]
+benchmarks/fond-domains/faults/p_4_2.pddl [1800.5]
+benchmarks/fond-domains/faults/p_4_3.pddl [1800.4]
+benchmarks/fond-domains/faults/p_4_4.pddl [1800.4]
+benchmarks/fond-domains/faults/p_5_1.pddl [1800.4]
+benchmarks/fond-domains/faults/p_5_2.pddl [1800.4]
+benchmarks/fond-domains/faults/p_5_3.pddl [1800.4]
+benchmarks/fond-domains/faults/p_5_4.pddl [1800.4]
+benchmarks/fond-domains/faults/p_5_5.pddl [1800.5]
+benchmarks/fond-domains/faults/p_6_1.pddl [1800.4]
+benchmarks/fond-domains/faults/p_6_2.pddl [1800.4]
+benchmarks/fond-domains/faults/p_6_3.pddl [1800.4]
+benchmarks/fond-domains/faults/p_6_4.pddl [1800.4]
+benchmarks/fond-domains/faults/p_6_5.pddl [1800.5]
+benchmarks/fond-domains/faults/p_6_6.pddl [1800.4]
+benchmarks/fond-domains/faults/p_7_1.pddl [1800.5]
+benchmarks/fond-domains/faults/p_7_2.pddl [1800.4]
+benchmarks/fond-domains/faults/p_7_3.pddl [1800.4]
+benchmarks/fond-domains/faults/p_7_4.pddl [1800.4]
+benchmarks/fond-domains/faults/p_7_5.pddl [1800.4]
+benchmarks/fond-domains/faults/p_7_6.pddl [1800.5]
+benchmarks/fond-domains/faults/p_7_7.pddl [1800.5]
+benchmarks/fond-domains/faults/p_8_1.pddl [1800.4]
+benchmarks/fond-domains/faults/p_8_2.pddl [1800.4]
+benchmarks/fond-domains/faults/p_8_3.pddl [1800.4]
+benchmarks/fond-domains/faults/p_8_4.pddl [1800.4]
+benchmarks/fond-domains/faults/p_8_5.pddl [1800.4]
+benchmarks/fond-domains/faults/p_8_6.pddl [1800.4]
+benchmarks/fond-domains/faults/p_8_7.pddl [1800.6]
+benchmarks/fond-domains/faults/p_8_8.pddl^[[A^[[B [1800.6]
+benchmarks/fond-domains/faults/p_9_1.pddl [1800.4]
+benchmarks/fond-domains/faults/p_9_2.pddl [1800.6]
+benchmarks/fond-domains/faults/p_9_3.pddl [1800.5]
+benchmarks/fond-domains/faults/p_9_4.pddl [1800.4]
+benchmarks/fond-domains/faults/p_9_5.pddl [1800.4]
+benchmarks/fond-domains/faults/p_9_6.pddl [1800.4]
+benchmarks/fond-domains/faults/p_9_7.pddl [1800.4]
+benchmarks/fond-domains/faults/p_9_8.pddl [1800.5]
+benchmarks/fond-domains/faults/p_9_9.pddl [1800.7]
+benchmarks/fond-domains/faults/p_10_1.pddl [1800.5]
+benchmarks/fond-domains/faults/p_10_2.pddl [1800.4]
+benchmarks/fond-domains/faults/p_10_3.pddl [1800.6]
+benchmarks/fond-domains/faults/p_10_4.pddl [1800.4]
+benchmarks/fond-domains/faults/p_10_5.pddl [1800.4]
+benchmarks/fond-domains/faults/p_10_6.pddl [1800.4]
+benchmarks/fond-domains/faults/p_10_7.pddl [1800.5]
+benchmarks/fond-domains/faults/p_10_8.pddl [1800.6]
+benchmarks/fond-domains/faults/p_10_9.pddl [1800.6]
+benchmarks/fond-domains/faults/p_10_10.pddl [1800.13]
+
+benchmarks/fond-domains/faults
+planners: m
+output: m(-d-s)/m.csv
+benchmarks/fond-domains/faults/results.csv
+benchmarks/fond-domains/faults/p_1_1.pddl [1800.4]
+benchmarks/fond-domains/faults/p_2_1.pddl [1800.4]
+benchmarks/fond-domains/faults/p_2_2.pddl [1800.4]
+benchmarks/fond-domains/faults/p_3_1.pddl [1800.4]
+benchmarks/fond-domains/faults/p_3_2.pddl [1800.4]
+benchmarks/fond-domains/faults/p_3_3.pddl [1800.4]
+benchmarks/fond-domains/faults/p_4_1.pddl [1800.4]
+benchmarks/fond-domains/faults/p_4_2.pddl [1800.4]
+benchmarks/fond-domains/faults/p_4_3.pddl [1800.6]
+benchmarks/fond-domains/faults/p_4_4.pddl [1800.5]
+benchmarks/fond-domains/faults/p_5_1.pddl [1800.3]
+benchmarks/fond-domains/faults/p_5_2.pddl [1800.4]
+benchmarks/fond-domains/faults/p_5_3.pddl [1800.4]
+benchmarks/fond-domains/faults/p_5_4.pddl [1800.4]
+benchmarks/fond-domains/faults/p_5_5.pddl [1800.5]
+benchmarks/fond-domains/faults/p_6_1.pddl [1800.4]
+benchmarks/fond-domains/faults/p_6_2.pddl [1800.4]
+benchmarks/fond-domains/faults/p_6_3.pddl [1800.4]
+benchmarks/fond-domains/faults/p_6_4.pddl [1800.4]
+benchmarks/fond-domains/faults/p_6_5.pddl [1800.4]
+benchmarks/fond-domains/faults/p_6_6.pddl [1800.4]
+benchmarks/fond-domains/faults/p_7_1.pddl [1800.4]
+benchmarks/fond-domains/faults/p_7_2.pddl [1800.4]
+benchmarks/fond-domains/faults/p_7_3.pddl [1800.4]
+benchmarks/fond-domains/faults/p_7_4.pddl [1800.4]
+benchmarks/fond-domains/faults/p_7_5.pddl [1800.5]
+benchmarks/fond-domains/faults/p_7_6.pddl [1800.5]
+benchmarks/fond-domains/faults/p_7_7.pddl [1800.5]
+benchmarks/fond-domains/faults/p_8_1.pddl [1800.4]
+benchmarks/fond-domains/faults/p_8_2.pddl [1800.4]
+benchmarks/fond-domains/faults/p_8_3.pddl [1800.5]
+benchmarks/fond-domains/faults/p_8_4.pddl [1800.4]
+benchmarks/fond-domains/faults/p_8_5.pddl [1800.4]
+benchmarks/fond-domains/faults/p_8_6.pddl [1800.4]
+benchmarks/fond-domains/faults/p_8_7.pddl [1800.4]
+benchmarks/fond-domains/faults/p_8_8.pddl [1800.5]
+benchmarks/fond-domains/faults/p_9_1.pddl [1800.4]
+benchmarks/fond-domains/faults/p_9_2.pddl [1800.4]
+benchmarks/fond-domains/faults/p_9_3.pddl [1800.4]
+benchmarks/fond-domains/faults/p_9_4.pddl [1800.4]
+benchmarks/fond-domains/faults/p_9_5.pddl [1800.4]
+benchmarks/fond-domains/faults/p_9_6.pddl [1800.4]
+benchmarks/fond-domains/faults/p_9_7.pddl [1800.4]
+benchmarks/fond-domains/faults/p_9_8.pddl [1800.5]
+benchmarks/fond-domains/faults/p_9_9.pddl [1800.5]
+benchmarks/fond-domains/faults/p_10_1.pddl [1800.5]
+benchmarks/fond-domains/faults/p_10_2.pddl [1800.4]
+benchmarks/fond-domains/faults/p_10_3.pddl [1800.5]
+benchmarks/fond-domains/faults/p_10_4.pddl [1800.4]
+benchmarks/fond-domains/faults/p_10_5.pddl [1800.4]
+benchmarks/fond-domains/faults/p_10_6.pddl [1800.4]
+benchmarks/fond-domains/faults/p_10_7.pddl [1800.4]
+benchmarks/fond-domains/faults/p_10_8.pddl [1800.5]
+benchmarks/fond-domains/faults/p_10_9.pddl [1800.5]
+benchmarks/fond-domains/faults/p_10_10.pddl [1800.9]
+
+vahid@localhost:~/KULeuven/MultiROB/safe-planner$ 

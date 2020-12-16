@@ -3,7 +3,8 @@ Classes and functions for creating a problem object
 '''
 
 from itertools import product
-from domain import _grounder, GroundedEffect
+
+import domain
 
 ###############################################################################
 ## PROBLEM CLASS
@@ -79,7 +80,7 @@ class State(object):
                 (types, arg_names) = zip(*var_lst)
                 param_lists = [self.objects[t] for t in types]
                 for params in product(*param_lists):
-                    ground = _grounder(arg_names, params)
+                    ground = domain._grounder(arg_names, params)
                     new_preds -= set([ground(eff) for eff in neg_eff_lst])
                     new_preds |= set([ground(eff) for eff in pos_eff_lst])
             ## (forall (var_lst) (when (cnd) (effects)))
@@ -89,7 +90,7 @@ class State(object):
                 (types, arg_names) = zip(*var_lst)
                 param_lists = [self.objects[t] for t in types]
                 for params in product(*param_lists):
-                    ground = _grounder(arg_names, params)
+                    ground = domain._grounder(arg_names, params)
                     if self.is_true([ground(eff) for eff in pos_cnd_lst], [ground(eff) for eff in neg_cnd_lst]):
                         new_preds -= set([ground(eff) for eff in neg_eff_lst])
                         new_preds |= set([ground(eff) for eff in pos_eff_lst])
@@ -123,7 +124,7 @@ class State(object):
                     (types, arg_names) = zip(*var_lst)
                     param_lists = [self.objects[t] for t in types]
                     for params in product(*param_lists):
-                        ground = _grounder(arg_names, params)
+                        ground = domain._grounder(arg_names, params)
                         new_preds -= set([ground(eff) for eff in neg_eff_lst])
                         new_preds |= set([ground(eff) for eff in pos_eff_lst])
                 ## (forall (var_lst) (when (cnd) (effects)))
@@ -133,7 +134,7 @@ class State(object):
                     (types, arg_names) = zip(*var_lst)
                     param_lists = [self.objects[t] for t in types]
                     for params in product(*param_lists):
-                        ground = _grounder(arg_names, params)
+                        ground = domain._grounder(arg_names, params)
                         if self.is_true([ground(eff) for eff in pos_cnd_lst], [ground(eff) for eff in neg_cnd_lst]):
                             new_preds -= set([ground(eff) for eff in neg_eff_lst])
                             new_preds |= set([ground(eff) for eff in pos_eff_lst])
@@ -150,7 +151,7 @@ class State(object):
                 if sum([probability[0] for probability in prob_effects]) == 1:
                     prob_effects_lst.append(prob_effects)
                 else:
-                    prob_effects_lst.append(prob_effects+tuple([(0, GroundedEffect())]))
+                    prob_effects_lst.append(prob_effects+tuple([(0, domain.GroundedEffect())]))
 
             for prob_effects in list(product(*prob_effects_lst)):
                 if prob_effects:
@@ -167,7 +168,7 @@ class State(object):
                 if len(oneof_effects) > 1:
                     oneof_effects_lst.append(oneof_effects)
                 else:
-                    oneof_effects_lst.append(oneof_effects+tuple([GroundedEffect()]))
+                    oneof_effects_lst.append(oneof_effects+tuple([domain.GroundedEffect()]))
 
             for oneof_effects in list(product(*oneof_effects_lst)):
                 if oneof_effects:
@@ -182,7 +183,7 @@ class State(object):
         # deterministic action
         return states
 
-    def constrain_state(self, ex_actions):
+    def constrain_state(self, ex_actions, map_actions={}, nd_actions={}):
         '''
         returns a new state copied from this state and adds 'disallowed' 
         predicates from given @ex_actions into its predicates 
@@ -196,7 +197,12 @@ class State(object):
 
         # add 'disallowed' predicates for given ex_actions
         for ex_action in ex_actions:
-            predicates.append((('disallowed_{}'.format(ex_action[0]),) + ex_action[1:6]))
+            # if ex_action is non-deterministic then add also for all other outcomes/names
+            if ex_action[0] in nd_actions:
+                for i in range(nd_actions[ex_action[0]]):
+                    predicates.append((('disallowed_{}'.format('%s_%s'%(map_actions[ex_action[0]],i)),) + ex_action[1:6]))
+            else:
+                predicates.append((('disallowed_{}'.format(ex_action[0]),) + ex_action[1:6]))
 
         # return a new state
         return State(predicates=frozenset(predicates))

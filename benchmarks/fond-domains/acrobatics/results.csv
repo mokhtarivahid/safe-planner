@@ -1,9 +1,6 @@
 file,problem,planning_time,singlesoutcome_planning_call,alloutcome_planning_call,unsolvable_states,solvable,policy_length,plan_length
-p01.pddl,beam-walk-2,1.506,14,2,0,1,4,3
-p02.pddl,acrobatics-4,8.676,80,10,4,1,8,7
-p03.pddl,acrobatics-8,17.209,158,19,5,0,0,0
-p04.pddl,acrobatics-16,65.571,598,79,13,0,0,0
-p05.pddl,acrobatics-32,162.877,1478,204,23,0,0,0
-p06.pddl,acrobatics-64,32.876,296,38,7,0,0,0
-p07.pddl,acrobatics-128,677.753,3054,342,212,0,0,0
-p08.pddl,acrobatics-256,284.996,214,27,6,0,0,0
+p01.pddl,beam-walk-2,0.041,14,2,0,1,3,3
+p02.pddl,acrobatics-4,0.084,28,4,0,1,7,7
+p03.pddl,acrobatics-8,0.178,56,8,0,1,15,15
+p04.pddl,acrobatics-16,0.378,112,16,0,1,31,31
+p05.pddl,acrobatics-32,1.010,224,32,0,1,63,63

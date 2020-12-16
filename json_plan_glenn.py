@@ -1,13 +1,9 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 import argparse
+import os, time
 import json
 from collections import OrderedDict
-import os, time
-
-from color import fg_green, fg_red, fg_yellow, fg_blue, fg_voilet, fg_beige, bg_voilet, bg_beige
-from planner import Planner
-
 
 def parse():
     usage = 'python3 main.py <DOMAIN> <PROBLEM> [<PLANNER>] [-v | --verbose N] [-h | --help]'
@@ -82,17 +78,20 @@ def gen_json_plan(plan, json_file=None):
 ###############################################################################
 if __name__ == '__main__':
 
+    import color
+    import planner
+
     args = parse()
 
-    policy = Planner(args.domain, args.problem, args.planner, args.verbose)
+    policy = planner.Planner(args.domain, args.problem, args.planner, args.verbose)
 
     plan = policy.plan()
     policy.print_plan()
 
     json_file_path, plan_json = gen_json_plan(plan, args.problem)
 
-    print(fg_yellow('-- json plan object\n') + str(plan_json))
-    print(fg_yellow('-- json file\n') +str(json_file_path))
+    print(color.fg_yellow('-- json plan object\n') + str(plan_json))
+    print(color.fg_yellow('-- json file\n') +str(json_file_path))
 
     # with open(json_file_path) as json_file:
     #     plan_json = json.load(json_file)

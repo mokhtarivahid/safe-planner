@@ -1,11 +1,7 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 import argparse
 import os, time
-
-from color import fg_green, fg_red, fg_yellow, fg_blue, fg_voilet, fg_beige, bg_voilet, bg_beige
-from planner import Planner
-
 
 def parse():
     usage = 'python3 main.py <DOMAIN> <PROBLEM> [<PLANNER>] [-v | --verbose N] [-h | --help]'
@@ -25,7 +21,7 @@ def parse():
 
 
 ###############################################################################
-def gen_dot_plan(plan, del_effect=True, dot_file=None):
+def gen_dot_plan(plan, del_effect=True, domain_file=None, problem_file=None):
 
     dot_str = str()
     dot_str+= 'digraph Struc {\n'
@@ -76,29 +72,34 @@ def gen_dot_plan(plan, del_effect=True, dot_file=None):
     dot_str+= '}'
 
     # create a dot file
-    if dot_file == None:
+    if problem_file is not None:
+        problem_file = '{}.dot'.format(os.path.splitext(problem_file)[0])
+    elif domain_file is not None:
+        problem_file = '{}.dot'.format(os.path.splitext(domain_file)[0])
+    else:
         if not os.path.exists("/tmp/safe-planner/"):
             os.makedirs("/tmp/safe-planner/")
-        dot_file = "/tmp/safe-planner/prob"+str(int(time.time()*1000000))+".dot"
-    else:
-        dot_file = '{}.dot'.format(os.path.splitext(dot_file)[0])
-    with open(dot_file, 'w') as f:
+        problem_file = "/tmp/safe-planner/prob"+str(int(time.time()*1000000))+".dot"
+
+    with open(problem_file, 'w') as f:
         f.write(dot_str)
         f.close()
-    return dot_file
+    return problem_file
 
 
 ###############################################################################
 if __name__ == '__main__':
 
+    import planner 
+
     args = parse()
 
-    policy = Planner(args.domain, args.problem, args.planner, args.verbose)
+    policy = planner.Planner(args.domain, args.problem, args.planner, args.verbose)
 
     plan = policy.plan(tree=True)
     policy.print_plan(plan)
 
-    dot_file = gen_dot_plan(plan=plan, del_effect=False, dot_file=args.problem)
+    dot_file = gen_dot_plan(plan=plan, del_effect=False, domain_file=args.domain, problem_file=args.problem)
     print(dot_file)
 
     print('Planning time: %.3f s' % policy.planning_time)

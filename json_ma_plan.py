@@ -2,20 +2,15 @@
 # transforms a plan into a multi-agent plan and generates two json files 
 # for plan and actions descriptions
 
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 import argparse
-from collections import OrderedDict, defaultdict
 import os, time
-from custom_json import *
+import json
+from collections import OrderedDict, defaultdict
 from graphviz import Digraph
 
-
-# from color import fg_green, fg_red, fg_yellow, fg_blue, fg_voilet, fg_beige, bg_voilet, bg_beige
-from color import *
-from planner import Planner, mergeDict
-from dot_plan import gen_dot_plan
-from pddl import to_pddl
+import color
 
 def parse():
     usage = 'python3 main.py <DOMAIN> <PROBLEM> [<PLANNER>] [-d] [-v] [-h]'
@@ -216,10 +211,14 @@ def json_ma_plan(policy, verbose=False):
     The output is partial parallel plan iff the given plan is partial-order.
     '''
     # get the first pre-order path
-    path = policy.get_paths(policy.plan())[0]
+    try:
+        path = policy.get_paths(policy.plan())[0]
+    except:
+        return None
+
     if verbose: 
-        print(fg_red('[EXPERIMENTAL JSON PLAN!]'))
-        print(fg_red('[APPLIED ONLY TO THE FIRST PRE-ORDER PATH OF THE PLAN]'))
+        print(color.fg_red('[EXPERIMENTAL JSON PLAN!]'))
+        print(color.fg_red('[APPLIED ONLY TO THE FIRST PRE-ORDER PATH OF THE PLAN]'))
         policy.print_plan(path)
 
     # get concurrent executions in concurrent clusters
@@ -400,10 +399,13 @@ def merge_dict(d1, d2):
 #################################################################
 if __name__ == '__main__':
 
+    import planner
+    import dot_plan
+
     args = parse()
 
     # make a policy given domain and problem
-    policy = Planner(args.domain, args.problem, args.planners, args.rank, args.verbose)
+    policy = planner.Planner(args.domain, args.problem, args.planners, args.rank, args.verbose)
 
     # transform the produced policy into a contingency plan and print it
     plan = policy.plan()
@@ -419,16 +421,16 @@ if __name__ == '__main__':
     single_executions, joint_executions = concurrent_executions(policy, plan)
 
     if args.verbose:
-        print(fg_yellow('----------------------------------'))
-        print(fg_yellow('-- possible concurrent executions'))
-        print(fg_yellow('----------------------------------'))
+        print(color.fg_yellow('----------------------------------'))
+        print(color.fg_yellow('-- possible concurrent executions'))
+        print(color.fg_yellow('----------------------------------'))
         for i, single_execution in enumerate(single_executions):
-            print(fg_yellow('-- execution_{}'.format(str(i))))
+            print(color.fg_yellow('-- execution_{}'.format(str(i))))
             for level, (actions, outcomes) in sorted(single_execution.items()):
             # for level, (actions, outcomes) in sorted(merge_dict(single_execution,joint_executions).items()):
                 print('{} : {} {}'.format(str(level), ' '.join(map(str, actions)), outcomes))
 
-        print(fg_yellow('-- joint executions'))
+        print(color.fg_yellow('-- joint executions'))
         for level, (actions, outcomes) in joint_executions.items():
             print('{} : {} {}'.format(str(level), ' '.join(map(str, actions)), outcomes))
 
@@ -437,14 +439,14 @@ if __name__ == '__main__':
     main_list = concurrent_subplans(policy, plan)
 
     if args.verbose:
-        print(fg_yellow('\n----------------------------------'))
-        print(fg_yellow('-- actual multi-agent plan'))
-        print(fg_yellow('----------------------------------'))
+        print(color.fg_yellow('\n----------------------------------'))
+        print(color.fg_yellow('-- actual multi-agent plan'))
+        print(color.fg_yellow('----------------------------------'))
 
         for i, (key, subplans) in enumerate(main_list.items()):
-            print(fg_yellow('---------------------------------- block_{}'.format(str(i))))
+            print(color.fg_yellow('---------------------------------- block_{}'.format(str(i))))
             for j, subplan in enumerate(subplans):
-                if(len(subplans)) > 1: print(fg_beige('-- subplan_{}'.format(str(j))))
+                if(len(subplans)) > 1: print(color.fg_beige('-- subplan_{}'.format(str(j))))
                 for k, (actions, outcomes) in subplan.items():
                     print('{} -- {} {}'.format(k, ' '.join(map(str, actions)), outcomes))
 
@@ -491,16 +493,16 @@ if __name__ == '__main__':
     # convert the plan inti a concurrent plan in json files
     plan_json_file, actions_json_file = json_ma_plan(policy)
 
-    print(fg_yellow('-- plan_json_file:') + plan_json_file)
-    print(fg_yellow('-- actions_json_file:') + actions_json_file)
+    print(color.fg_yellow('-- plan_json_file:') + plan_json_file)
+    print(color.fg_yellow('-- actions_json_file:') + actions_json_file)
     os.system('cd lua && lua json_multiagent_plan.lua ../%s &' % plan_json_file)
     os.system('xdot %s.dot &' % plan_json_file)
     print('')
 
     # generate a graph of the policy as a dot file in graphviz
     if args.dot:
-        dot_file = gen_dot_plan(plan=plan, dot_file=args.problem)
-        print(fg_yellow('-- dot file: ') + dot_file + '\n')
+        dot_file = dot_plan.gen_dot_plan(plan=plan, domain_file=args.domain, problem_file=args.problem)
+        print(color.fg_yellow('-- dot file: ') + dot_file + '\n')
         os.system('xdot %s &' % dot_file)
 
 

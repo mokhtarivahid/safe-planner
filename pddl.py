@@ -3,8 +3,8 @@ functions for creating PDDL-like problem and domain files for planning
 '''
 import os, time
 
-from domain import Domain, Action, Precondition, Effect
-from problem import Problem, State
+import domain
+import problem
 
 def to_pddl(object, state=None, goal=None):
     '''
@@ -14,7 +14,7 @@ def to_pddl(object, state=None, goal=None):
     @goal : a given problem goal (default is the problem goal)
     '''
     ## translate a Precondition object into a pddl string
-    if type(object) is Precondition:
+    if type(object) is domain.Precondition:
         precond_str = '(and '
         for pre in object.literals:
             if pre[0] == -1:
@@ -35,7 +35,7 @@ def to_pddl(object, state=None, goal=None):
         return precond_str
 
     ## translate an Effect object into a pddl string
-    elif type(object) is Effect:
+    elif type(object) is domain.Effect:
         (lit_str, for_str, whn_str) = (str(), str(), str())
         for pre in object.literals:
             if pre[0] == -1:
@@ -54,7 +54,7 @@ def to_pddl(object, state=None, goal=None):
         return (lit_str, for_str, whn_str)
 
     ## translate a Action object into a pddl string
-    elif type(object) is Action:
+    elif type(object) is domain.Action:
         arglist   = ' '.join(['%s - %s' % pair for pair in zip(object.arg_names, object.types)])
         pddl_str  = '\n  (:action {}'.format(object.name)
         pddl_str += '\n   :parameters ({})'.format(arglist)
@@ -87,7 +87,7 @@ def to_pddl(object, state=None, goal=None):
         return pddl_str
 
     ## translate a Domain object into a pddl string
-    elif type(object) is Domain:
+    elif type(object) is domain.Domain:
         pddl_str  = '(define (domain {0})\n\n'.format(object.name)
         if object.requirements:
             pddl_str += '  (:requirements {0})\n\n'.format(' '.join(object.requirements))
@@ -112,7 +112,7 @@ def to_pddl(object, state=None, goal=None):
         return pddl_str
 
     ## translate a Domain object into a pddl string
-    elif type(object) is Problem:
+    elif type(object) is problem.Problem:
         if state == None:
             state = object.initial_state
 

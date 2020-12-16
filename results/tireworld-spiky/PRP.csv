@@ -1,0 +1,12 @@
+file,problem,planning_time,singlesoutcome_planning_call,alloutcome_planning_call,unsolvable_states,solvable,policy_length,plan_length
+p01.pddl,,,,,,,,
+p02.pddl,,,,,,,,
+p03.pddl,,,,,,,,
+p04.pddl,tire_19_0_28845,47.7,,,25,1,23,23
+p05.pddl,,,,,,,,
+p06.pddl,,,,,,,,
+p07.pddl,,,,,,,,
+p08.pddl,,,,,,,,
+p09.pddl,,,,,,,,
+p10.pddl,,,,,,,,
+p11.pddl,,,,,,,,

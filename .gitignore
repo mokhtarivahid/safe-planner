@@ -1,4 +1,5 @@
-*/__pycache__/*
+# Ignore the following files and directories
+__pycache__/
 *.pyc 
 *.out
 *.dot
@@ -10,3 +11,8 @@
 *.csv
 *.sas
 *.SOL
+.~*.csv#
+
+# Recursively allow files under the following subtrees
+!results/**
+!resources/**

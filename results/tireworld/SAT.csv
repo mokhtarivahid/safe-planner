@@ -1,0 +1,16 @@
+file,problem,planning_time,singlesoutcome_planning_call,alloutcome_planning_call,unsolvable_states,solvable,policy_length,plan_length
+p01.pddl,,,,,,0,,
+p02.pddl,tire_19_0_28845,0.183049,,,,1,2,2
+p03.pddl,tire_21_0_4903,0.248807,,,,1,5,5
+p04.pddl,tire_23_0_15471,1.314105,,,,1,8,8
+p05.pddl,tire_25_0_17596,0.296356,,,,1,5,5
+p06.pddl,tire_27_0_29082,0.357362,,,,1,5,5
+p07.pddl,tire_29_0_3597,1.341695,,,,1,8,8
+p08.pddl,tire_31_0_15272,1.781625,,,,1,8,8
+p09.pddl,,,,,,0,,
+p10.pddl,tire_35_0_435,0.350938,,,,1,2,2
+p11.pddl,tire_37_0_4372,0.613938,,,,1,5,5
+p12.pddl,tire_39_0_18652,0.514139,,,,1,2,2
+p13.pddl,tire_41_0_17711,2.467099,,,,1,5,5
+p14.pddl,tire_43_0_12594,12.451857,,,,1,11,11
+p15.pddl,,,,,,0,,

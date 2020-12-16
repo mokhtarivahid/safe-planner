@@ -13,13 +13,12 @@
 # You should have received a copy of the GNU General Public License
 # along with pypddl-parser.  If not, see <http://www.gnu.org/licenses/>.
 
-
 from ply import lex, yacc
 from fractions import Fraction
 import re, io
 
-from domain import Domain, Action, Precondition, Effect
-from problem import Problem, State
+import domain
+import problem
 
 tokens = (
     'NAME',
@@ -181,7 +180,7 @@ def p_domain(p):
       else:
         actions = d
 
-    p[0] = Domain(name, requirements, types, constants, predicates, actions)
+    p[0] = domain.Domain(name, requirements, types, constants, predicates, actions)
 
 
 def p_domain_structure_def_lst(p):
@@ -293,8 +292,8 @@ def p_action_def_lst(p):
 def p_action_def(p):
     '''action_def : LPAREN ACTION_KEY NAME action_def_body_list RPAREN'''
     parameters, probabilistic, oneof = (), (), ()
-    precondition = Precondition()
-    effect = Effect()
+    precondition = domain.Precondition()
+    effect = domain.Effect()
     for d in p[4]:
       if 'PARAMETERS_KEY' in d:
         parameters = d[1]
@@ -305,7 +304,7 @@ def p_action_def(p):
         probabilistic = d[1][1]
         oneof = d[1][2]
 
-    p[0] = Action(p[3], parameters, precondition, effect, probabilistic, oneof)
+    p[0] = domain.Action(p[3], parameters, precondition, effect, probabilistic, oneof)
 
 
 def p_action_def_body_list(p):
@@ -335,9 +334,12 @@ def p_parameters_def(p):
 
 def p_precond_def(p):
     '''precond_def : PRECONDITION_KEY LPAREN AND_KEY preconds_lst RPAREN
+                   | PRECONDITION_KEY LPAREN RPAREN
                    | PRECONDITION_KEY precond'''
     if len(p) == 6:
       prec = p[4]
+    elif len(p) == 4:
+      prec = []
     elif len(p) == 3:
       prec = [p[2]]
 
@@ -350,7 +352,7 @@ def p_precond_def(p):
       else:
         literals.append(d)
 
-    p[0] = ['PRECONDITION_KEY', Precondition(tuple(literals), tuple(universal), tuple(existential))]
+    p[0] = ['PRECONDITION_KEY', domain.Precondition(tuple(literals), tuple(universal), tuple(existential))]
 
 
 def p_preconds_lst(p):
@@ -411,7 +413,7 @@ def p_effect_def(p):
             if 'FORALL_KEY' in e: for_lst.append(tuple(e[1:]))
             elif 'WHEN_KEY' in e: whn_lst.append(tuple(e[1:]))
             else: lit_lst.append(e)
-          prob_lst.append((eff[0], Effect(tuple(lit_lst), tuple(for_lst), tuple(whn_lst))))
+          prob_lst.append((eff[0], domain.Effect(tuple(lit_lst), tuple(for_lst), tuple(whn_lst))))
         probabilistic.append(tuple(prob_lst))
       elif 'ONEOF' in effect:
         nd_lst = list()
@@ -421,12 +423,12 @@ def p_effect_def(p):
             if 'FORALL_KEY' in e: for_lst.append(tuple(e[1:]))
             elif 'WHEN_KEY' in e: whn_lst.append(tuple(e[1:]))
             elif e: lit_lst.append(e)
-          nd_lst.append(Effect(tuple(lit_lst), tuple(for_lst), tuple(whn_lst)))
+          nd_lst.append(domain.Effect(tuple(lit_lst), tuple(for_lst), tuple(whn_lst)))
         oneof.append(tuple(nd_lst))
       else:
         literals.append(effect)
 
-    p[0] = ['EFFECT_KEY', (Effect(tuple(literals), tuple(forall), tuple(when)), tuple(probabilistic), tuple(oneof))]
+    p[0] = ['EFFECT_KEY', (domain.Effect(tuple(literals), tuple(forall), tuple(when)), tuple(probabilistic), tuple(oneof))]
 
 
 def p_effect_lst(p):
@@ -645,14 +647,14 @@ def p_names_lst(p):
 
 def p_problem(p):
     '''problem : LPAREN DEFINE_KEY problem_structure_def_lst RPAREN'''
-    problem = domain = str()
-    init = goal = tuple()
+    prob, dom = None, None
+    init, goal = tuple(), tuple()
     objects = dict()
     for d in p[3]:
       if 'PROBLEM_KEY' in d:
-        problem = d[1]
+        prob = d[1]
       elif 'DOMAIN_KEY' in d:
-        domain = d[1]
+        dom = d[1]
       elif 'OBJECTS_KEY' in d:
         objects = d[1]
       elif 'INIT_KEY' in d:
@@ -661,9 +663,9 @@ def p_problem(p):
         goal = d[1]
 
     # add objects to 'objects' attributes of the State class
-    State.objects = objects
+    problem.State.objects = objects
 
-    p[0] = Problem(problem, domain, State(init), goal)
+    p[0] = problem.Problem(prob, dom, problem.State(init), goal)
 
 
 def p_problem_structure_def_lst(p):
