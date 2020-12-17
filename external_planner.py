@@ -10,6 +10,7 @@ args_profiles = {
     'ff'        : { 0 : '' },
     'm'         : { 0 : '-P 0 -N -m 4096', \
                     1 : '-P 1 -N -m 4096' },
+    'probe'     : { 0 : '' },
     'optic-clp' : { 0 : '-b -N' },
     'lpg-td'    : { 0 : '-speed -noout', \
                     1 : '-quality -v off -noout' },
@@ -147,6 +148,11 @@ def call_planner_mp(planner, domain, problem, args, pwd, returned_plan, failed_p
         plan = call_m(domain, problem, args, pwd, verbose)
         return_plan(planner, plan)
 
+    ## PROBE planner ##
+    elif 'probe' in planner.lower():
+        plan = call_probe(domain, problem, args, pwd, verbose)
+        return_plan(planner, plan)
+
     ## optic-clp planner ##
     elif 'optic-clp' in planner.lower() or 'optic' in planner.lower():
         plan = call_optic_clp(domain, problem, args, pwd, verbose)
@@ -200,6 +206,10 @@ def call_planner_sp(planner, domain, problem, args, pwd, verbose):
     ## Madagascar (M) planner ##
     elif 'm' in planner.lower():
         return call_m(domain, problem, args, pwd, verbose)
+
+    ## PROBE planner ##
+    elif 'probe' in planner.lower():
+        return call_probe(domain, problem, args, pwd, verbose)
 
     ## optic-clp planner ##
     elif 'optic-clp' in planner.lower() or 'optic' in planner.lower():
@@ -288,7 +298,8 @@ def call_ff(domain, problem, args='', pwd='/tmp', verbose=0):
        'undeclared variable' in shell or 'declared to use unknown' in shell or\
        'unknown constant' in shell or 'check input files' in shell or\
        'increase MAX_PLAN_LENGTH!' in shell or\
-       'too many constants!' in shell or 'syntax error in line' in to_str(err):
+       'too many constants!' in shell or 'too many operators!' in shell or\
+       'syntax error in line' in to_str(err):
         # print(color.fg_yellow('[planning failed due to some error in the pddl description]'))
         # print(color.fg_voilet('\n-- planner stdout'))
         # print(shell)
@@ -473,6 +484,72 @@ def call_m(domain, problem, args='-P 1 -t 5 -N', pwd='/tmp', verbose=0):
                 ## extract concurrent action at each step
                 step = line[1].split()[2:]
                 plan.append([tuple(re.split('[, ) (]+',s)[:-1]) for s in step])
+    except: return -1
+
+    return plan
+
+
+###############################################################################
+###############################################################################
+## call probe planner
+def call_probe(domain, problem, args='', pwd='/tmp', verbose=0):
+    '''
+    Call an external planner
+    @domain : path to a given domain 
+    @problem : path to a given problem 
+    @verbose : if True, prints statistics before returning
+
+    @return plan : the output plan is a list of actions as tuples, 
+                   e.g., [[('move-car', 'l1', 'l4')], [('changetire', 'l4')]]
+    '''
+    cmd = 'timeout 1800 ./planners/probe {0} -d {1} -i {2} -o {2}.soln & echo $! >> {3}/prob-pid.txt'.format(args, domain, problem, pwd)
+
+    ## call command ##
+    process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
+
+    (output, err) = process.communicate()
+    # try:
+    #     (output, err) = process.communicate(timeout=1800)
+    # except subprocess.TimeoutExpired:
+    #     if verbose == 2: print(color.fg_red('\n-- planning timeout (30m)'))
+    #     return -1
+
+    ## Wait for cmd to terminate. Get return returncode ##
+    if process.wait() < 0: return -1
+
+    ## bytes to string ##
+    # shell = ''.join(map(chr, output))
+    shell = to_str(output)
+
+    if verbose == 2: 
+        print(color.fg_voilet('\n-- planner stdout'))
+        try: print('\n'+open(problem+'.soln.1').read())
+        except: pass
+        print(shell)
+        if to_str(err):
+            print(color.fg_voilet('-- planner stderr'))
+            print(to_str(err))
+
+    # Permission denied
+    if 'Permission denied' in to_str(err):
+        print(to_str(err))
+        print(color.fg_voilet('-- run \'chmod +x planners/m\''))
+        return -1
+
+    ## if no solution exists try the next domain ##
+    if "Planning task not solvable" in shell or\
+       "goal can be simplified to FALSE." in shell or\
+       "Could not solve problem" in shell:
+        return None
+
+    ## read the solution file
+    plan = list()
+    try:
+        with open(problem+'.soln.1') as f:
+            for line in f:
+                ## extract concurrent action at each step
+                step = re.split('[, ) (]+',line.lower())[1:-1]
+                plan.append([tuple(step)])
     except: return -1
 
     return plan

@@ -124,7 +124,7 @@ def t_VARIABLE(t):
 
 
 def t_PROBABILITY(t):
-    r'[0-9]+/0*[1-9][0-9]*|\d+\.\d+|\.\d+'
+    r'[0-9]+/0*[1-9][0-9]*|\d+\.\d+|\.\d+|\d+'
     if is_fraction(t.value):
         t.value = round(float(sum(Fraction(s) for s in t.value.split())), 2)
     else:

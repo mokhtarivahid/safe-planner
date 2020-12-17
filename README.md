@@ -1,9 +1,9 @@
-# Safe-Planner - A Dual Replanner for Computing Strong Cyclic Solutions in Fully Observable Non-Deterministic Domains
+# Safe-Planner - A Single-Outcome Replanner for Computing Strong Cyclic Solutions in Fully Observable Non-Deterministic Domains
 
 **Safe-Planner (SP)** is an off-line non-deterministic planning algorithm based on replanning that compiles a **Fully Observable Non-Deterministic (FOND)** planning problem into a set of classical planning problems which can be solved using a classical problem solver. SP then merges the obtained classical solutions and forms a non-deterministic solution policy to the original non-deterministic problem. SP avoids dead-end states by 
 modifying a planning problem such that it prevents a classical planner to generate weak plans involving actions leading to dead-ends and therefore it generates safe policies. The execution of a safe policy is guaranteed to terminate in a goal state for all potential outcomes of the actions in the non-deterministic environment (if any exists).
 
-SP can employ any off-the-shelf classical planner for problem solving. Currently, the classical planners [FF], [OPTIC], [MADAGASCAR], [VHPOP], [LPG-TD], and [FAST-DOWNWARD] have been integrated. 
+SP can employ any off-the-shelf classical planner for problem solving. Currently, the classical planners [FF], [OPTIC], [MADAGASCAR], [PROBE], [VHPOP], [LPG-TD], [LPG], and [FAST-DOWNWARD] have been integrated. 
 
 **Note:** OPTIC, MADAGASCAR, VHPOP, and LPG-TD are temporal/partial-order planners and therefore the produced policies are also partial-order.
 
@@ -12,7 +12,9 @@ SP can employ any off-the-shelf classical planner for problem solving. Currently
 [MADAGASCAR]: https://users.aalto.fi/~rintanj1/jussi/satplan.html
 [VHPOP]: http://www.tempastic.org/vhpop/
 [LPG-TD]: https://lpg.unibs.it/lpg/
+[LPG]: https://lpg.unibs.it/lpg/
 [FAST-DOWNWARD]: http://www.fast-downward.org/
+[PROBE]: https://github.com/aig-upf/probe
 
 
 
@@ -116,7 +118,7 @@ python3 main.py <DOMAIN> <PROBLEM> [-c <PLANNERS_LIST>] [-r] [-a] [-d] [-j] [-s]
 
 `-c <PLANNERS_LIST>`: a list of planners for dual planning mode, e.g., `-c ff` or `-c ff m` or `-c ff m fd`, ...
 
-`-r`: reverse the ranking of the classical domain when compiling from non-deterministic to deterministic. The default ranking is Descending according to the length of actions' effects (note that it does not guarantee always to improve the performance, however, in some domains it dramatically improves the performance by avoiding producing misleading plans).
+`-r`: reverse the ranking of the classical domains when compiling from non-deterministic to deterministic. The default ranking is Descending according to the length of actions' effects (note that it does not guarantee always to improve the performance, however, in some domains it dramatically improves the performance by avoiding producing misleading plans).
 
 `-a`: compile the non-deterministic domain into one classical domain using the all-outcome compilation strategy (the default compilation strategy is the single-outcome which translates into a set of ordered classical domains).
 
@@ -130,7 +132,7 @@ python3 main.py <DOMAIN> <PROBLEM> [-c <PLANNERS_LIST>] [-r] [-a] [-d] [-j] [-s]
 
 
 
-The following commands show some examples on how to run Safe-Planner on individual problems:
+##### The following commands show some examples on how to run Safe-Planner on individual problems:
 
 ```bash
 # run Safe-Planner using external planner FF (the default planner)
@@ -143,9 +145,10 @@ python3 main.py benchmarks/fond-domains/elevators/domain.pddl benchmarks/fond-do
 python3 main.py benchmarks/fond-domains/elevators/domain.pddl benchmarks/fond-domains/elevators/p01.pddl -c ff m -r
 ```
 
+##### or in batch:
 
 ```bash
-# run Safe-Planner in batch for each used FOND domain
+# run Safe-Planner in batch for each used FOND domain within 30m for each problem
 ./batch-run.sh benchmarks/fond-domains/acrobatics -r -c ff m
 ./batch-run.sh benchmarks/fond-domains/beam-walk -c ff m
 ./batch-run.sh benchmarks/fond-domains/blocksworld -c ff m
@@ -161,6 +164,14 @@ python3 main.py benchmarks/fond-domains/elevators/domain.pddl benchmarks/fond-do
 ./batch-run.sh benchmarks/fond-domains/miner -r -c ff m
 ./batch-run.sh benchmarks/fond-domains/tireworld-spiky -r -c ff m
 ./batch-run.sh benchmarks/fond-domains/tireworld-truck -r -c ff m
+```
+
+
+```bash
+# run Safe-Planner in batch for all FOND domains in dual replanning mode 
+# using ff and m planners in both single-outcome (safe-planner algorithm) 
+# and all-outcome (ndp2 algorithm)
+./batch-run-fond.sh 
 ```
 
 

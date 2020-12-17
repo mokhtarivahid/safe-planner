@@ -30,6 +30,10 @@ def parse():
     return parser.parse_args()
 
 
+# maximum number of allowed single-outcome deterministic domains
+MAX_DOMAINS = 4096
+
+
 ###############################################################################
 def compilation(domain, rank=False, alloutcome=False, probability=0.4):
     '''given a non-deterministic domain object return 
@@ -158,6 +162,25 @@ def compilation(domain, rank=False, alloutcome=False, probability=0.4):
                     effects=deterministic_effects[0]))
         ## add the compiled actions into deterministic_actions as a tuple
         deterministic_actions.append(tuple(deterministic_action))
+
+    ## test if the length of Cartesian product might exceed the max number (1000)
+    if not alloutcome:
+        domains_product_len = 1
+        for det_actions in deterministic_actions:
+             domains_product_len *= len(det_actions)
+
+        # switch to all-outcome
+        if domains_product_len > MAX_DOMAINS:
+            print(color.fg_yellow('-- the possible combination of single-outcome domains is {}'.format(domains_product_len)))
+            print(color.fg_yellow('-- that exceeds the allowed MAX_DOMAINS [{}]'.format(MAX_DOMAINS)))
+            print(color.fg_yellow('-- switch to all-outcome compilation\n'))
+            alloutcome = True
+
+        # rise a warning to switch to all-outcome
+        elif domains_product_len > MAX_DOMAINS/4:
+            print(color.fg_green('-- the possible combination of single-outcome domains is {}'.format(domains_product_len)))
+            print(color.fg_green('-- this degrades dramatically the planning performance'))
+            print(color.fg_green('-- recommended switching to all-outcome by giving the parameter \'-a\'\n'))
 
     ## make all possible combination of deterministic actions
     if alloutcome:

@@ -20,7 +20,7 @@ def parse():
     parser.add_argument('problem', nargs='?', type=str, help='path to a PDDL problem file')
     parser.add_argument("-c", "--planners", nargs='+', type=str, default=["ff"], 
         choices=os.listdir('planners'), metavar='PLNNER', 
-        help="a list of classical planners: ff, fd, m, optic-clp, lpg-td, lpg, vhpop (e.g. -c ff fd m) (default=[ff])")
+        help="a list of classical planners: ff, fd, m, prob, optic-clp, lpg-td, lpg, vhpop (e.g. -c ff fd m) (default=[ff])")
     parser.add_argument("-r", "--rank", help="if '-r' not given, the compiled classical planning domains \
         are ranked by the number of effects in Ascending order; and if '-r' given, in Descending order \
         (default=Ascending)", action="store_true", default=False)
