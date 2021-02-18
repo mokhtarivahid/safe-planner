@@ -8,16 +8,19 @@ import color
 
 args_profiles = {
     'ff'        : { 0 : '' },
-    'm'         : { 0 : '-P 0 -N -m 4096', \
-                    1 : '-P 1 -N -m 4096' },
+    'ff-x'      : { 0 : '' },
+    'm'         : { 1 : '-P 0 -N -m 4096', \
+                    0 : '-P 1 -N -m 4096' },
     'probe'     : { 0 : '' },
-    'optic-clp' : { 0 : '-b -N' },
+    'optic-clp' : { 0 : '-E -N',
+                    1 : '-b -N' },
     'lpg-td'    : { 0 : '-speed -noout', \
                     1 : '-quality -v off -noout' },
     'lpg'       : { 0 : '-n 1 -noout' },
     'vhpop'     : { 0 : '-g -f DSep-LIFO -s HC -w 5 -l 1500000' },
-    'fd'        : { 0 : '--search "astar(lmcut())"', \
-                    1 : '--evaluator "hff=ff()" --evaluator "hcea=cea()" --search "lazy_greedy([hff, hcea], preferred=[hff, hcea])"'}
+    'fd'        : { 1 : '--search "astar(lmcut())"', \
+                    0 : '--search "astar(add())"',
+                    2 : '--evaluator "hff=ff()" --evaluator "hcea=cea()" --search "lazy_greedy([hff, hcea], preferred=[hff, hcea])"'}
 }
 
 def kill_pid(pid):
@@ -51,7 +54,7 @@ def kill_jobs(pwd, planners):
 
 ###############################################################################
 ###############################################################################
-def Plan(planners, domain, problem, pwd, verbose):
+def Plan(planners, domain, problem, pwd, verbose=False):
     '''
     calls multiple planners to solve a given problem and as soon as 
     the first planner finds a plan, terminates all other planners and returns 
@@ -59,7 +62,8 @@ def Plan(planners, domain, problem, pwd, verbose):
     try:
         # if only one planner then no need multiprocessing
         if len(set(planners)) == 1:
-            plan = call_planner_sp(planners[0], domain, problem, args_profiles[planners[0]][0], pwd, verbose)
+            planner = list(planners)[0]
+            plan = call_planner_sp(planner, domain, problem, args_profiles[planner][planners[planner]], pwd, verbose)
             if plan == -1:
                 if not verbose: 
                     print(color.fg_red('[some error by external planner -- run again with parameter \'-v 2\']'))
@@ -78,10 +82,10 @@ def Plan(planners, domain, problem, pwd, verbose):
         # run in multiprocessing
         for pidx, planner in enumerate(planners):
             # proc = Process(target=call_planner_mp, \
-            #     args=(planner, domain, problem, args_profiles[planner][0], pwd, returned_plan, failed_planners, verbose),
+            #     args=(planner, domain, problem, args_profiles[planner][planners[planner]], pwd, returned_plan, failed_planners, verbose),
             #     daemon=True)
             proc = Process(target=call_planner_mp, \
-                args=(planner, domain, problem, args_profiles[planner][0], pwd, returned_plan, failed_planners, verbose))
+                args=(planner, domain, problem, args_profiles[planner][planners[planner]], pwd, returned_plan, failed_planners, verbose))
             proc.daemon = True
             process_lst.append(proc)
             proc.start()
@@ -90,7 +94,7 @@ def Plan(planners, domain, problem, pwd, verbose):
         while returned_plan.empty():
             # if all processes (planners) failed to solve the problem
             if sum(failed_planners) == len(planners):
-                print(color.fg_red('[error by all external planners: run with \'-v 2\''))
+                print(color.fg_red('[error by all external planners: run with \'-v 2\']'))
                 sys.exit(0)
 
         # kill running planners (subprocesses) if they are running
@@ -140,7 +144,7 @@ def call_planner_mp(planner, domain, problem, args, pwd, returned_plan, failed_p
 
     ## FF planner ##
     if 'ff' in planner.lower():
-        plan = call_ff(domain, problem, args, pwd, verbose)
+        plan = call_ff(planner, domain, problem, args, pwd, verbose)
         return_plan(planner, plan)
 
     ## Madagascar (M) planner ##
@@ -201,7 +205,7 @@ def call_planner_sp(planner, domain, problem, args, pwd, verbose):
     '''
     ## FF planner ##
     if 'ff' in planner.lower():
-        return call_ff(domain, problem, args, pwd, verbose)
+        return call_ff(planner, domain, problem, args, pwd, verbose)
 
     ## Madagascar (M) planner ##
     elif 'm' in planner.lower():
@@ -240,7 +244,7 @@ def call_planner_sp(planner, domain, problem, args, pwd, verbose):
 ###############################################################################
 ###############################################################################
 ## call ff planner
-def call_ff(domain, problem, args='', pwd='/tmp', verbose=0):
+def call_ff(planner, domain, problem, args='', pwd='/tmp', verbose=0):
     '''
     Call an external planner
     @domain : path to a given domain 
@@ -253,7 +257,7 @@ def call_ff(domain, problem, args='', pwd='/tmp', verbose=0):
                    e.g., [[('move-car', 'l1', 'l4')], [('changetire', 'l4')]]
     '''
 
-    cmd = 'timeout 1800 ./planners/ff -o {} -f {} {}  & echo $! >> {}/ff-pid.txt'.format(domain, problem, args, pwd)
+    cmd = 'timeout 1800 ./planners/{} -o {} -f {} {}  & echo $! >> {}/ff-pid.txt'.format(planner, domain, problem, args, pwd)
 
     ## call command ##
     process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, preexec_fn=os.setsid)
@@ -376,7 +380,7 @@ def call_optic_clp(domain, problem, args='-b -N', pwd='/tmp', verbose=0):
         return -1
 
     ## if problem is unsolvable by EHC remove -b (activate best-first search)
-    if "Problem unsolvable by EHC, and best-first search has been disabled":
+    if "Problem unsolvable by EHC, and best-first search has been disabled" in shell:
         ## calling 'optic-clp' again removing '-b' option ##
         cmd = 'timeout 1800 ./planners/optic-clp -N {0} {1}'.format(domain, problem)
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, preexec_fn=os.setsid)

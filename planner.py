@@ -76,46 +76,59 @@ class Planner(object):
         # the working directory if the domain is non-deterministic
         self.working_dir = None
 
-        # if the domain is non-deterministic/probabilistic
-        if ':probabilistic-effects' in self.domain.requirements or \
-           ':non-deterministic' in self.domain.requirements:
+        # compilation time
+        self.compilation_time = time.time()
 
-            # compilation time
-            self.compilation_time = time.time()
+        # compile and records the given non-deterministic domain into a list of deterministic domains
+        if self.verbose: print(color.fg_green('\n[Compilation to non-deterministic domains]'))
+        self.working_dir = compilation.compile(self.domain, rank=rank, alloutcome=alloutcome, verbose=self.verbose)
 
-            # compile and records the given non-deterministic domain into a list of deterministic domains
-            if self.verbose: print(color.fg_green('\n[Compilation to non-deterministic domains]'))
-            self.working_dir = compilation.compile(self.domain, rank=rank, alloutcome=alloutcome, verbose=self.verbose)
+        # parse pddl deterministic domains
+        for domain in sorted(listdir_fullpath(self.working_dir)):
+            # load the actions mapping file
+            if domain.endswith('.acts'):
+                with open(domain) as f:
+                    self.map_actions = json.load(f)
+            # read the names of non-deterministic actions
+            if domain.endswith('.prob'):
+                with open(domain) as f:
+                    self.prob_actions = json.load(f)
+            # parse the deterministic domains
+            if domain.endswith('.pddl'):
+                self.domains[domain] = pddlparser.PDDLParser.parse(domain)
 
-            # parse pddl deterministic domains
-            for domain in sorted(listdir_fullpath(self.working_dir)):
-                # load the actions mapping file
-                if domain.endswith('.acts'):
-                    with open(domain) as f:
-                        self.map_actions = json.load(f)
-                # read the names of non-deterministic actions
-                if domain.endswith('.prob'):
-                    with open(domain) as f:
-                        self.prob_actions = json.load(f)
-                # parse the deterministic domains
-                if domain.endswith('.pddl'):
-                    self.domains[domain] = pddlparser.PDDLParser.parse(domain)
+        self.compilation_time = time.time() - self.compilation_time
 
-            self.compilation_time = time.time() - self.compilation_time
-
-        else:
-            self.domains[domain] = self.domain
-
-        # store the list of external classical planners
-        self.planners = [os.path.basename(planner).lower() for planner in planners]
+        # store the list of external classical planners and assign a profile '0' to each one
+        self.planners = { os.path.basename(planner).lower() : 0 for planner in planners }
 
         # check if the planners are available
-        possible_planners = os.listdir('planners')
+        possible_planners = os.listdir(os.path.split(__file__)[0]+'/planners')
         for planner in self.planners:
             if planner not in map(str.lower, possible_planners):
                 print(color.fg_red("\n'{0}' does not exist in 'planners/' directory!".format(planner)))
                 print(color.fg_yellow("currently these planners are available: ") + str(possible_planners))
                 exit()
+
+        ## check if the domain requires derived predicates then switch to the supporting planner profile 
+        ## THIS IS NOT SOUND AND MIGHT LEAD TO INACCURATE GOALS
+        if len(self.domain.derived_predicates) > 0:
+            for i, planner in enumerate(self.planners):
+                if 'ff' in planner:
+                    # switch to 'ff-x'
+                    del self.planners[planner]
+                    self.planners['ff-x'] = 0
+                elif 'fd' in planner:
+                    # switch to profile 1
+                    self.planners[planner] = 0
+
+            # for planner, profile in planners.items():
+            #     if profile not in args_profiles[planner]:
+            #         print(color.fg_red('-- profile \'{}\' does not exist for \'{}\' planner'.format(profile,planner)))
+            #         print(color.fg_yellow('-- only the following profiles exist for \'{}\':'.format(planner)))
+            #         for i, args in args_profiles[planner].items():
+            #             print('   {} : {}'.format(i, args))
+            #         exit()
 
         # the resulting policy as an ordered dictionary 
         # -- keys as states and values as actions applicable in the associated states
@@ -280,7 +293,7 @@ class Planner(object):
                     print(color.fg_yellow2('    -- domain:') + cons_domain_pddl)
 
                 # call the external classical planner
-                plan = external_planner.Plan(self.planners, cons_domain_pddl, problem_pddl, self.working_dir, self.verbose)
+                plan = external_planner.Plan(self.planners, cons_domain_pddl, problem_pddl, self.working_dir, verbose=self.verbose)
 
                 # increase the number of planning call
                 self.singleoutcome_planning_call += 1
@@ -447,6 +460,16 @@ class Planner(object):
             if policy is not None:
                 self.policy = self.merge_policy(self.policy, policy)
 
+                ## in case of 'ff-x': derived predicates are not yet supported, so terminates the 
+                ## loop as soon as a solution is found (because the goal might not be achievable)
+                ## THIS IS NOT SOUND AND MIGHT LEAD TO INACCURATE GOALS
+                if len(self.domain.derived_predicates) > 0:
+                    # simulate the problem goals
+                    for state, step in self.policy.items():
+                        for new_state in self.apply_step(init=state, step=step):
+                            self.problem.goals = tuple(new_state.predicates)
+                    return
+
             # if no plan found at the initial state then no policy exists and finish the loop
             elif state == self.problem.initial_state: 
                 # verbosity
@@ -538,7 +561,7 @@ class Planner(object):
 
                 # call the external classical planner
                 # plan = call_planner(self.planners, cons_domain_pddl, problem_pddl, verbose=self.verbose)
-                plan = external_planner.Plan(self.planners, cons_domain_pddl, problem_pddl, self.working_dir, self.verbose)
+                plan = external_planner.Plan(self.planners, cons_domain_pddl, problem_pddl, self.working_dir, verbose=self.verbose)
 
                 # increase the number of planning call
                 self.singleoutcome_planning_call += 1

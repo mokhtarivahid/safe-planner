@@ -195,6 +195,7 @@ def compilation(domain, rank=False, alloutcome=False, probability=0.4):
                 requirements = tuple(set(domain.requirements) - set([':probabilistic-effects',':non-deterministic'])), \
                 types = domain.types, \
                 predicates = domain.predicates, \
+                derived_predicates = domain.derived_predicates, \
                 constants = domain.constants, \
                 actions = tuple(actions)) for actions in deterministic_actions],
             nd_actions,
@@ -211,11 +212,12 @@ def compile(domain, rank=False, alloutcome=False, verbose=False):
 
     if not (':probabilistic-effects' in domain.requirements or\
             ':non-deterministic' in domain.requirements):
-        print(color.fg_yellow('-- the \':probabilistic-effects\' requirement is not present'))
-        print(color.fg_yellow('-- \'{}\' is assumed as a deterministic domain'.format(domain.name)))
-        return None
-
-    (deterministic_domains, nd_actions, map_actions) = compilation(domain, rank, alloutcome)
+        if verbose: 
+            print(color.fg_yellow('-- the \':probabilistic-effects\' requirement is not present'))
+            print(color.fg_yellow('-- \'{}\' is assumed as a deterministic domain'.format(domain.name)))
+        (deterministic_domains, nd_actions, map_actions) = compilation(domain, rank, alloutcome=True)
+    else:
+        (deterministic_domains, nd_actions, map_actions) = compilation(domain, rank, alloutcome)
 
     ## create the directory for compiled deterministic domains 
     domains_dir = '/tmp/safe-planner/{}{}/'.format(domain.name, str(int(time.time()*1000000)))

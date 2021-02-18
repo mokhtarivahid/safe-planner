@@ -9,7 +9,7 @@ from itertools import product
 ###############################################################################
 class Domain(object):
 
-    def __init__(self, name=None, requirements=(), types={}, constants={}, predicates=(), actions=()):
+    def __init__(self, name=None, requirements=(), types={}, constants={}, predicates=(), derived_predicates=(), actions=()):
         '''
         Represents a PDDL-like Problem Domain
         @name : string name of the given domain
@@ -25,6 +25,7 @@ class Domain(object):
         self.types = dict(types)
         self.constants = constants
         self.predicates = tuple(predicates)
+        self.derived_predicates = tuple(derived_predicates)
         self.actions = tuple(actions)
 
     def ground_all_actions(self, objects):

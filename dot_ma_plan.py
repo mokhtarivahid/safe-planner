@@ -75,7 +75,40 @@ def parallel_plan(policy, verbose=False):
                     edges[action].add(act)
                 if len(set(action.preconditions.pos_preconditions).intersection(set(act.effects.del_effects))) > 0:
                     edges[action].add(act)
+                # also check for oneof_effects
+                for oneof_effects in action.oneof_effects:
+                    for oneof_effect in oneof_effects:
+                        if len(set(oneof_effect.add_effects).intersection(set(goal_lst))) > 0:
+                            new_progress_list.append( (action, action.preconditions.pos_preconditions) )
+                            edges[action].add(act)
+                for oneof_effects in act.oneof_effects:
+                    for oneof_effect in oneof_effects:
+                        if len(set(action.preconditions.pos_preconditions).intersection(set(oneof_effect.del_effects))) > 0:
+                            edges[action].add(act)
+                # also check for prob_effects
+                for prob_effects in action.prob_effects:
+                    for prob_effect in prob_effects:
+                        if len(set(prob_effect[1].add_effects).intersection(set(goal_lst))) > 0:
+                            new_progress_list.append( (action, action.preconditions.pos_preconditions) )
+                            edges[action].add(act)
+                for prob_effects in act.prob_effects:
+                    for prob_effect in prob_effects:
+                        if len(set(action.preconditions.pos_preconditions).intersection(set(prob_effect[1].del_effects))) > 0:
+                            edges[action].add(act)
+
         progress_list = progress_list + new_progress_list
+
+    # # link 'start' to the actions in the first step 
+    # for action in next(iter(plan.items()))[1][0]:
+    #     edges[start].add(action)
+
+    # link 'start' to all actions whose their preconditions are met in the initial_state 
+    for level, step in reversed(plan.items()):
+        if level == 'GOAL' or step == None or step == 'GOAL': continue
+        (actions, outcomes) = step
+        for action in actions:
+            if len(set(action.preconditions.pos_preconditions).intersection(set(policy.problem.initial_state.predicates))) > 0:
+                edges[start].add(action)
 
     # add a start node to the beginning actions
     # (actions, outcomes) = plan[0]
@@ -94,16 +127,34 @@ def parallel_plan(policy, verbose=False):
 
     # attributes
     # G.graph_attr['label']=prob_name
-    G.node_attr['shape']='ellipse'
+    G.graph_attr['fontname']='helvetica'
+    # G.graph_attr['splines']='curved'
     G.node_attr['fontname']='helvetica'
+    G.node_attr['shape']='ellipse'
     G.edge_attr['fontname']='helvetica'
 
     # add edges to the graph
     for tail, heads in edges.items():
         for head in heads:
             pred_lst = list(set(tail.effects.add_effects).intersection(set(head.preconditions.pos_preconditions)))
+            for oneof_effects in tail.oneof_effects:
+                for oneof_effect in oneof_effects:
+                    pred_lst = pred_lst + list(set(oneof_effect.add_effects).intersection(set(head.preconditions.pos_preconditions)))
+            for prob_effects in tail.prob_effects:
+                for prob_effect in prob_effects:
+                    pred_lst = pred_lst + list(set(prob_effect[1].add_effects).intersection(set(head.preconditions.pos_preconditions)))
             if not head.name == 'end' and not pred_lst: pred_lst = tail.effects.add_effects
             G.add_edge('{}'.format(str(tail)), '{}'.format(str(head)), label=literals_to_pddl(pred_lst))
+
+    # update the attributes of start and end nodes
+    s = G.get_node('(start)')
+    e = G.get_node('(end)')
+    s.attr['shape']='circle'
+    s.attr['label']="start"
+    s.attr['peripheries']=1
+    e.attr['shape']='circle'
+    e.attr['label']="end"
+    e.attr['peripheries']=2
 
     # write to file
     G.write(dot_file) 
@@ -115,8 +166,10 @@ def parallel_plan(policy, verbose=False):
     # T.draw('{}.tred.gv'.format(os.path.splitext(args.problem)[0])) 
 
     # do a transitive reduction
+    G.tred()
     tred_dot_file = '{}.tred.gv'.format(os.path.splitext(problem_file)[0])
-    os.system('tred %s | dot -Tdot > %s &' % (dot_file, tred_dot_file))
+    G.write(tred_dot_file)
+    # os.system('tred %s | dot -Tdot > %s &' % (dot_file, tred_dot_file))
 
     # time.sleep(0.1)
     # create a new graph from file

@@ -1,0 +1,5 @@
+a difference to 'packaging' domain:
+
+in this domain no needed to regrasp a picked up object after checking its orientation and rotation.
+
+the robot can simply assemble after rotating the object in a target direction.

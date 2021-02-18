@@ -5,7 +5,7 @@
 #!/usr/bin/env python
 
 import argparse
-import os, time
+import os, time, sys
 import json
 from collections import OrderedDict, defaultdict
 from graphviz import Digraph
@@ -19,8 +19,11 @@ def parse():
 
     parser.add_argument('domain',  type=str, help='path to a PDDL domain file')
     parser.add_argument('problem', type=str, help='path to a PDDL problem file')
-    parser.add_argument("-c", "--planners", nargs='*', type=str, default=["ff"], #choices=os.listdir('planners'),
-        help="a list of external classical planners: ff, fd, m, optic-clp, lpg-td, vhpop, ... (default=[ff])")
+    parser.add_argument("-a", "--agents", nargs='+', type=str, default=[], 
+        help="a list of agents: e.g., -a left_arm right_arm")
+    parser.add_argument("-c", "--planners", nargs='+', type=str, default=["ff"], 
+        choices=os.listdir('planners'), metavar='PLNNER', 
+        help="a list of classical planners: ff, fd, m, prob, optic-clp, lpg-td, lpg, vhpop (e.g. -c ff fd m) (default=[ff])")
     parser.add_argument("-r", "--rank", help="to disable ranking the compiled classical planning domains \
         by higher probabilistic outcomes (default=True)", action="store_true", default=False)
     parser.add_argument("-d", "--dot", help="draw a graph of the produced policy into a dot file", 
@@ -72,7 +75,43 @@ def add_effects(action, state, initial_state):
     return add_lists
 
 #################################################################
-def concurrent_executions(policy, plan):
+def concurrent_executions(policy, plan, agents=[]):
+    '''
+    return a list of sub-plans that can be run in parallel as well as 
+    joint_executions between sub-plans
+    '''
+    single_executions = [ dict() for _ in range(len(agents)) ]
+    joint_executions = OrderedDict()
+
+    for level, step in plan.items():
+
+        if step == 'GOAL' or step == None: continue
+
+        # unfold step into a tuple of actions and outcomes
+        (actions, outcomes) = step
+
+        for action in actions:
+            # if all agents participate in the action
+            if len(set(action.sig[1:]).intersection(set(agents))) > 1:
+                joint_executions.setdefault(level, (set(), set()))[0].add(action)
+                joint_executions.setdefault(level, (set(), set()))[1].update(set([out[1] for out in outcomes]))
+
+            # if no agents participate in the action
+            elif len(set(action.sig[1:]).intersection(set(agents))) == 0:
+                single_executions.append({ level : ({action}, set([l for ((_, _), l) in outcomes])) })
+
+            # if one agent participates in the action
+            else:
+                for i, agent in enumerate(agents):
+                    if agent in action.sig[1:]:
+                        # create a ConcurrentAction object for each action
+                        single_executions[i].setdefault(level, (set(),set()))[0].add(action)
+                        single_executions[i].setdefault(level, (set(),set()))[1].update(set([out[1] for out in outcomes]))
+
+    return single_executions, joint_executions
+
+#################################################################
+def _concurrent_executions(policy, plan, agents=[]):
     '''
     return a list of sub-plans that can be run in parallel as well as 
     joint_executions between sub-plans
@@ -90,8 +129,8 @@ def concurrent_executions(policy, plan):
         (root, state, add_lists) = queue.pop(0) # FIFO
         visited.append(root)
 
-        if root in plan and (plan[root] == 'GOAL' or plan[root] == None): continue
-        if root == 'GOAL': continue
+        if root not in plan: continue
+        if root == 'GOAL' or plan[root] == 'GOAL' or plan[root] == None: continue
 
         # unfold plan step at current root position
         (step, outcomes) = plan[root]
@@ -99,10 +138,27 @@ def concurrent_executions(policy, plan):
         new_add_lists = [add_list for add_list in add_lists]
 
         if root == 0: # happens only in the first iteration to initialize
-            for i, action in enumerate(step):
-                # create a ConcurrentAction object for each action
-                single_executions.append({ root : (set([action]), set([level for ((add_eff, del_eff), level) in outcomes])) })
-                new_add_lists.append(add_effects(action, state, initial_state))
+            if len(agents) == 0:
+                for action in step:
+                    # create a ConcurrentAction object for each action
+                    if len(single_executions) > 0:
+                        single_executions[0].setdefault(root, (set(),set()))[0].add(action)
+                        single_executions[0].setdefault(root, (set(),set()))[1].update(set([out[1] for out in outcomes]))
+                        new_add_lists[0].update(add_effects(action, state, initial_state))
+                    else:
+                        single_executions.append({ root : (set([action]), set([level for ((add_eff, del_eff), level) in outcomes])) })
+                        new_add_lists.append(add_effects(action, state, initial_state))
+            for i, agent in enumerate(agents):
+                for action in step:
+                    if agent in action.sig[1:]:
+                        # create a ConcurrentAction object for each action
+                        if i < len(single_executions):
+                            single_executions[i].setdefault(root, (set(),set()))[0].add(action)
+                            single_executions[i].setdefault(root, (set(),set()))[1].update(set([out[1] for out in outcomes]))
+                            new_add_lists[i].update(add_effects(action, state, initial_state))
+                        else:
+                            single_executions.append({ root : (set([action]), set([level for ((add_eff, del_eff), level) in outcomes])) })
+                            new_add_lists.append(add_effects(action, state, initial_state))
         else:
             for action in step:
                 # create a ConcurrentAction object for each action
@@ -136,14 +192,18 @@ def concurrent_executions(policy, plan):
     return single_executions, joint_executions
 
 #################################################################
-def concurrent_subplans(policy, plan):
+def concurrent_subplans(policy, plan, agents=[]):
     '''returns a fully multi-agent partial-order plan'''
     # get possible concurrent and joint executions
-    single_executions, joint_executions = concurrent_executions(policy, plan)
+    single_executions, joint_executions = concurrent_executions(policy, plan, agents)
 
     # find the final plan's main list boundaries/clusters 
     main_list_borders = set(joint_executions.keys()) | {max([k for k in plan.keys() if isinstance(k,int)])+1}
     for single_execution in single_executions:
+        # always add the first key in the current single_execution
+        if len(single_execution.keys()) > 0:
+            main_list_borders.add(min(single_execution.keys()))
+
         root = 0
         for i in sorted(single_execution.keys()):
             if abs(root-i) > 1: main_list_borders.add(i)
@@ -205,14 +265,17 @@ def action_json(action):
     return action_json
 
 #################################################################
-def json_ma_plan(policy, verbose=False):
+def json_ma_plan(policy, agents=[], full=False, verbose=False):
     '''
     Convert given plan into a concurrent plan for execution by multi-robot.
     The output is partial parallel plan iff the given plan is partial-order.
     '''
     # get the first pre-order path
     try:
-        path = policy.get_paths(policy.plan())[0]
+        if full:
+            path = policy.plan()
+        else:
+            path = policy.get_paths(policy.plan())[0]
     except:
         return None
 
@@ -222,7 +285,7 @@ def json_ma_plan(policy, verbose=False):
         policy.print_plan(path)
 
     # get concurrent executions in concurrent clusters
-    concurrent_subplans_lists = concurrent_subplans(policy, path)
+    concurrent_subplans_lists = concurrent_subplans(policy, path, agents)
 
     main_list = OrderedDict()
 
@@ -279,11 +342,11 @@ def json_ma_plan(policy, verbose=False):
                     if len(step) == 1: # there is only one action in this step
                         # make a reference to action (key+i)
                         action_ref = 'action_{}_{}'.format(n,i)
-                        action_ref = '_'.join(subplans[0][key][0].sig)
+                        action_ref = '_'.join(step[0].sig)
                         # add ref to main list of the plan
                         plan_json[subplan_ref]['list'].append(action_ref)
                         # add ref and its description into the action_descriptions_json
-                        action_descriptions_json[action_ref] = action_json(subplans[0][key][0])
+                        action_descriptions_json[action_ref] = action_json(step[0])
                     # ----------------------------------------------------
                     else: # there are more actions in this step
                         # make a reference to subplan (n)
@@ -409,16 +472,12 @@ if __name__ == '__main__':
 
     # transform the produced policy into a contingency plan and print it
     plan = policy.plan()
-    policy.print_plan(plan=plan)
-
-    # paths = policy.get_paths(plan)
-    # policy.print_paths(paths=paths, del_effects_included=True)
-
-    # plan = paths[0]
+    path = policy.get_paths(policy.plan())[0]
+    policy.print_plan(plan=path)
 
     #############################
     # get possible concurrent and joint executions
-    single_executions, joint_executions = concurrent_executions(policy, plan)
+    single_executions, joint_executions = concurrent_executions(policy, path, args.agents)
 
     if args.verbose:
         print(color.fg_yellow('----------------------------------'))
@@ -436,7 +495,7 @@ if __name__ == '__main__':
 
     #############################
     # refine and separate the concurrent executions into concurrent clusters
-    main_list = concurrent_subplans(policy, plan)
+    main_list = concurrent_subplans(policy, path, args.agents)
 
     if args.verbose:
         print(color.fg_yellow('\n----------------------------------'))
@@ -450,48 +509,9 @@ if __name__ == '__main__':
                 for k, (actions, outcomes) in subplan.items():
                     print('{} -- {} {}'.format(k, ' '.join(map(str, actions)), outcomes))
 
-    # #############################
-    # # create a graphviz object
-    # dot_filename = '{}.gv'.format(os.path.splitext(args.problem)[0])
-    # prob_name = os.path.splitext(os.path.basename(args.problem))[0]
-
-    # g = Digraph(name=prob_name, filename=dot_filename, strict=False,
-    #     node_attr={'fontname':'helvetica','shape':'ellipse'},
-    #     edge_attr={'fontname':'helvetica'})
-
-    # for i, single_execution in enumerate(single_executions):
-    #     for level, (actions, outcomes) in single_execution.items():
-    #         g.node('n{}{}'.format(str(i), str(level)), label=' '.join(map(str, actions)))
-    #         for outcome in outcomes:
-    #             if not outcome == 'GOAL':
-    #                 if outcome in single_execution.keys():
-    #                     g.edge('n{}{}'.format(str(i), str(level)), 'n{}{}'.format(str(i), str(outcome)), label=str(outcome))
-    #                 else:
-    #                     for j, single_exe in enumerate(single_executions):
-    #                         if outcome in single_exe.keys():
-    #                             g.edge('n{}{}'.format(str(i), str(level)), 'n{}{}'.format(str(j), str(outcome)), label=str(outcome))
-    #                     if outcome in joint_executions.keys():
-    #                         g.edge('n{}{}'.format(str(i), str(level)), 'n{}{}'.format(str(len(single_executions)),str(outcome)), label=str(outcome))
-    #                 for j, single_exe in enumerate(single_executions):
-    #                     if not level in single_exe.keys() and outcome in single_exe.keys():
-    #                         g.edge('n{}{}'.format(str(i), str(level)), 'n{}{}'.format(str(j), str(outcome)), label=str(outcome))
-
-    # for level, (actions, outcomes) in joint_executions.items():
-    #     g.node('n{}{}'.format(str(len(single_executions)),str(level)), label=' '.join(map(str, actions)))
-    #     for outcome in outcomes:
-    #         if not outcome == 'GOAL':
-    #             for j, single_exe in enumerate(single_executions):
-    #                 if outcome in single_exe.keys():
-    #                     g.edge('n{}{}'.format(str(len(single_executions)),str(level)), 'n{}{}'.format(str(j), str(outcome)), label=str(outcome))
-    #             if outcome in joint_executions.keys():
-    #                 g.edge('n{}{}'.format(str(level)), 'n{}{}'.format(str(len(single_executions)),str(outcome)), label=str(outcome))
-
-    # g.view()
-
-
     #############################
     # convert the plan inti a concurrent plan in json files
-    plan_json_file, actions_json_file = json_ma_plan(policy)
+    plan_json_file, actions_json_file = json_ma_plan(policy, args.agents, full=True)
 
     print(color.fg_yellow('-- plan_json_file:') + plan_json_file)
     print(color.fg_yellow('-- actions_json_file:') + actions_json_file)
@@ -505,10 +525,24 @@ if __name__ == '__main__':
         print(color.fg_yellow('-- dot file: ') + dot_file + '\n')
         os.system('xdot %s &' % dot_file)
 
+        # transform the plan into a parallel plan
+        import dot_ma_plan 
+        dot_file, tred_dot_file = dot_ma_plan.parallel_plan(policy, verbose=args.verbose)
+        print(color.fg_yellow('-- graphviz file: ') + dot_file)
+        print(color.fg_yellow('-- transitive reduction: ') + tred_dot_file)
 
-    print('\nPlanning domain: %s' % policy.domain_file)
-    print('Planning problem: %s' % policy.problem_file)
+
+    # print out resulting info
+    if args.problem is not None: 
+        print('\nPlanning domain: %s' % policy.domain_file)
+        print('Planning problem: %s' % policy.problem_file)
+        print('Arguments: %s' % ' '.join(sys.argv[3:]))
+    else: 
+        print('Planning problem: %s' % policy.domain_file)
+        print('Arguments: %s' % ' '.join(sys.argv[2:]))
     print('Policy length: %i' % len(policy.policy))
+    print('Plan length: %i' % (len(plan)-1))
+    print('Compilation time: %.3f s' % policy.compilation_time)
     print('Planning time: %.3f s' % policy.planning_time)
     print('Planning iterations (all-outcome): %i' % policy.alloutcome_planning_call)
     print('Total number of replannings (single-outcome): %i' % policy.singleoutcome_planning_call)

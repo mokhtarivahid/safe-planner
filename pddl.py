@@ -15,23 +15,41 @@ def to_pddl(object, state=None, goal=None):
     '''
     ## translate a Precondition object into a pddl string
     if type(object) is domain.Precondition:
-        precond_str = '(and '
-        for pre in object.literals:
-            if pre[0] == -1:
-                precond_str += '(not ({0}))'.format(' '.join(map(str, pre[1:][0])))
-            else:
-                precond_str += '({0})'.format(' '.join(map(str, pre)))
-        ## universal-preconditions
-        for uni in object.universal:
-            types, variables = zip(*uni[0])
-            varlist = ' '.join(['%s - %s' % pair for pair in zip(variables, types)])
-            precond_str += '\n                 (forall ({}) {})'.format(varlist,literals_to_pddl(uni[1]))
-        ## existential-preconditions
-        for ext in object.existential:
-            types, variables = zip(*ext[0])
-            varlist = ' '.join(['%s - %s' % pair for pair in zip(variables, types)])
-            precond_str += '\n                 (exists ({}) {})'.format(varlist,literals_to_pddl(uni[1]))
-        precond_str += ')'
+        if len(object.literals) + len(object.universal) + len(object.existential) == 1:
+            precond_str = ''
+            for pre in object.literals:
+                if pre[0] == -1:
+                    precond_str += '(not ({0}))'.format(' '.join(map(str, pre[1:][0])))
+                else:
+                    precond_str += '({0})'.format(' '.join(map(str, pre)))
+            ## universal-preconditions
+            for uni in object.universal:
+                types, variables = zip(*uni[0])
+                varlist = ' '.join(['%s - %s' % pair for pair in zip(variables, types)])
+                precond_str += '(forall ({})\n                 {})'.format(varlist,literals_to_pddl(uni[1]))
+            ## existential-preconditions
+            for ext in object.existential:
+                types, variables = zip(*ext[0])
+                varlist = ' '.join(['%s - %s' % pair for pair in zip(variables, types)])
+                precond_str += '(exists ({})\n                 {})'.format(varlist,literals_to_pddl(ext[1]))
+        else:
+            precond_str = '(and '
+            for pre in object.literals:
+                if pre[0] == -1:
+                    precond_str += '(not ({0}))'.format(' '.join(map(str, pre[1:][0])))
+                else:
+                    precond_str += '({0})'.format(' '.join(map(str, pre)))
+            ## universal-preconditions
+            for uni in object.universal:
+                types, variables = zip(*uni[0])
+                varlist = ' '.join(['%s - %s' % pair for pair in zip(variables, types)])
+                precond_str += '\n                 (forall ({})\n                     {})'.format(varlist,literals_to_pddl(uni[1]))
+            ## existential-preconditions
+            for ext in object.existential:
+                types, variables = zip(*ext[0])
+                varlist = ' '.join(['%s - %s' % pair for pair in zip(variables, types)])
+                precond_str += '\n                 (exists ({})\n                     {})'.format(varlist,literals_to_pddl(ext[1]))
+            precond_str += ')'
         return precond_str
 
     ## translate an Effect object into a pddl string
@@ -53,7 +71,7 @@ def to_pddl(object, state=None, goal=None):
             whn_str += '(when {} {})'.format(literals_to_pddl(uni[0]),literals_to_pddl(uni[1]))
         return (lit_str, for_str, whn_str)
 
-    ## translate a Action object into a pddl string
+    ## translate an Action object into a pddl string
     elif type(object) is domain.Action:
         arglist   = ' '.join(['%s - %s' % pair for pair in zip(object.arg_names, object.types)])
         pddl_str  = '\n  (:action {}'.format(object.name)
@@ -106,6 +124,18 @@ def to_pddl(object, state=None, goal=None):
             pddl_str += '\n        ({0} {1})'.format(predicate[0],
                 ' '.join(' - '.join(reversed(p)) for p in predicate[1:]))
         pddl_str += ')\n'
+        if len(object.derived_predicates) > 0:
+            pddl_str += '\n  ;;;;;;;;;;;;;;;;;;;;;;;;;'
+            pddl_str += '\n  ;; derived predicate'
+            pddl_str += '\n  ;;;;;;;;;;;;;;;;;;;;;;;;;\n'
+            for derived_predicate in object.derived_predicates:
+                pddl_str += '\n  (:derived ({0} {1})\n            '.format(derived_predicate[0][0],
+                    ' '.join(' - '.join(reversed(p)) for p in derived_predicate[0][1:]))
+                pddl_str += to_pddl(derived_predicate[1])
+                pddl_str += ')\n'
+        pddl_str += '\n  ;;;;;;;;;;;;;;;;;;;;;;;;;'
+        pddl_str += '\n  ;; actions'
+        pddl_str += '\n  ;;;;;;;;;;;;;;;;;;;;;;;;;\n'
         for action in object.actions:
             pddl_str += to_pddl(action)
         pddl_str += ')\n'

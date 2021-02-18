@@ -42,6 +42,8 @@ tokens = (
     'NEGATIVE_PRECONDITIONS_KEY',
     'UNIVERSAL_PRECONDITIONS_KEY',
     'DISJUNCTIVE_PRECONDITIONS_KEY',
+    'DERIVED_PREDICATES_KEY',
+    'DERIVED_KEY',
     'TYPES_KEY',
     'PREDICATES_KEY',
     'ACTION_KEY',
@@ -85,6 +87,8 @@ reserved = {
     ':probabilistic-effects'    : 'PROBABILISTIC_EFFECTS_KEY',
     ':non-deterministic'        : 'NON_DETERMINISTIC_KEY',
     ':disjunctive-preconditions': 'DISJUNCTIVE_PRECONDITIONS_KEY', 
+    ':derived-predicates'       : 'DERIVED_PREDICATES_KEY',
+    ':derived'                  : 'DERIVED_KEY',
     ':types'                    : 'TYPES_KEY',
     ':predicates'               : 'PREDICATES_KEY',
     ':action'                   : 'ACTION_KEY',
@@ -165,6 +169,7 @@ def p_domain(p):
     '''domain : LPAREN DEFINE_KEY domain_structure_def_lst RPAREN'''
     name = str()
     requirements, predicates, actions = (), (), ()
+    derived_predicates = []
     types, constants = {}, {}
     for d in p[3]:
       if 'DOMAIN_KEY' in d:
@@ -177,10 +182,12 @@ def p_domain(p):
         constants = d[1]
       elif 'PREDICATES_KEY' in d:
         predicates = d[1]
+      elif 'DERIVED_KEY' in d:
+        derived_predicates.append(d[1])
       else:
         actions = d
 
-    p[0] = domain.Domain(name, requirements, types, constants, predicates, actions)
+    p[0] = domain.Domain(name, requirements, types, constants, predicates, derived_predicates, actions)
 
 
 def p_domain_structure_def_lst(p):
@@ -198,6 +205,7 @@ def p_domain_structure_def(p):
                      | types_def 
                      | constants_def 
                      | predicates_def
+                     | derived_predicates_def
                      | action_def_lst'''
     p[0] = p[1]
 
@@ -232,7 +240,8 @@ def p_require_key(p):
                    | EXISTENTIAL_PRECONDITIONS_KEY
                    | NEGATIVE_PRECONDITIONS_KEY
                    | UNIVERSAL_PRECONDITIONS_KEY
-                   | DISJUNCTIVE_PRECONDITIONS_KEY'''
+                   | DISJUNCTIVE_PRECONDITIONS_KEY
+                   | DERIVED_PREDICATES_KEY'''
     p[0] = str(p[1])
 
 
@@ -278,6 +287,51 @@ def p_predicate_def(p):
         # p[0] = tuple([p[2],''])
     elif len(p) == 5:
         p[0] = tuple([p[2]]) + tuple(p[3])
+
+
+def p_derived_predicates_def_lst(p):
+    '''derived_predicates_def_lst : derived_predicates_def derived_predicates_def_lst
+                                  | derived_predicates_def'''
+    if len(p) == 2:
+        p[0] = tuple([p[1]])
+    elif len(p) == 3:
+        p[0] = tuple([p[1]]) + p[2]
+
+
+def p_derived_predicates_def(p):
+    '''derived_predicates_def :
+               | LPAREN DERIVED_KEY LPAREN NAME typed_variables_lst RPAREN precond RPAREN
+               | LPAREN DERIVED_KEY LPAREN NAME typed_variables_lst RPAREN LPAREN AND_KEY preconds_lst RPAREN RPAREN
+               | LPAREN DERIVED_KEY LPAREN NAME RPAREN precond RPAREN
+               | LPAREN DERIVED_KEY LPAREN NAME RPAREN LPAREN AND_KEY preconds_lst RPAREN RPAREN'''
+
+    def order_logical_expressions(exp):
+      (literals, universal, existential) = ([],[],[])
+      if isinstance(exp, tuple):
+        if 'FORALL_KEY' in exp:
+          universal.append(tuple(exp[1:]))
+        elif 'EXISTS_KEY' in exp:
+          existential.append(tuple(exp[1:]))
+        else:
+          literals.append(exp)
+      else:
+        for d in exp:
+          if 'FORALL_KEY' in d:
+            universal.append(tuple(d[1:]))
+          elif 'EXISTS_KEY' in d:
+            existential.append(tuple(d[1:]))
+          else:
+            literals.append(d)
+      return domain.Precondition(tuple(literals), tuple(universal), tuple(existential))
+
+    if len(p) == 9:
+        p[0] = ('DERIVED_KEY', (tuple([p[4]]) + tuple(p[5]), order_logical_expressions(p[7])))
+    elif len(p) == 12:
+        p[0] = ('DERIVED_KEY', (tuple([p[4]]) + tuple(p[5]), order_logical_expressions(p[9])))
+    elif len(p) == 8:
+        p[0] = ('DERIVED_KEY', (tuple([p[4]]), order_logical_expressions(p[6])))
+    elif len(p) == 11:
+        p[0] = ('DERIVED_KEY', (tuple([p[4]]), order_logical_expressions(p[8])))
 
 
 def p_action_def_lst(p):

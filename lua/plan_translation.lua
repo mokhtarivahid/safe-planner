@@ -72,17 +72,29 @@ function plan_translation.gen_graph(plan,s_name,graph) -- plan structure, a stri
 		end
 		return ( s_name)
 
-	elseif plan[s_name].ordering=='mut' then
-		-- print('cluster_' .. s_name .. " :partial")
+	elseif plan[s_name].ordering=='mutex' then
+		-- print('cluster_' .. s_name .. " :mutex")
 		graph.subgraphs['cluster_' .. s_name].graph.style:update({style="filled",fillcolor="dimgray"})
 		for key, value in ipairs(plan[s_name].list) do
 			local new_name=plan_translation.gen_graph(plan,value,graph.subgraphs['cluster_' .. s_name])
 			if new_name==null then
-				print ("error in calling cluster " .. 'cluster_' .. s_name .. " :mut")
+				print ("error in calling cluster " .. 'cluster_' .. s_name .. " :mutex")
 			end
 		end
 		return ( s_name)
-	end    
+
+	elseif plan[s_name].ordering=='concurrent' then
+		-- print('cluster_' .. s_name .. " :concurrent")
+		graph.subgraphs['cluster_' .. s_name].graph.style:update({style="filled",fillcolor="dimgray"})
+		for key, value in ipairs(plan[s_name].list) do
+			local new_name=plan_translation.gen_graph(plan,value,graph.subgraphs['cluster_' .. s_name])
+			if new_name==null then
+				print ("error in calling cluster " .. 'cluster_' .. s_name .. " :concurrent")
+			end
+		end
+		return ( s_name)
+	end
+
 	print('ERROR ' .. s_name)
 end
 
@@ -116,7 +128,7 @@ function plan_translation.find_the_start(plan,s_name)
 	end
 	if plan[s_name].ordering=='total' then
 		ret=plan_translation.find_the_start(plan,plan[s_name].list[1])
-	elseif plan[s_name].ordering=='partial' or plan[s_name].ordering=='mut' then
+	elseif plan[s_name].ordering=='partial' or plan[s_name].ordering=='mutex' or plan[s_name].ordering=='concurrent' then
 		for i,v in ipairs (plan[s_name].list) do
 			table.insert(ret, plan_translation.find_the_start(plan,v))
 		end
@@ -144,7 +156,7 @@ function plan_translation.find_the_end(plan,s_name)
 	end
 	if plan[s_name].ordering=='total' then
 		ret=plan_translation.find_the_end(plan,plan[s_name].list[#plan[s_name].list])
-	elseif plan[s_name].ordering=='partial' or plan[s_name].ordering=='mutex' then
+	elseif plan[s_name].ordering=='partial' or plan[s_name].ordering=='mutex' or plan[s_name].ordering=='concurrent' then
 		for i,v in ipairs (plan[s_name].list) do
 			--print("con  " .. v)
 			table.insert(ret, plan_translation.find_the_end(plan,v))

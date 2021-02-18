@@ -9,7 +9,13 @@ colors = require 'ansicolors'
 Graphviz = require("graphviz")
 graph = Graphviz()
 
-pt=require("plan_translation")
+-- find the current directory
+local curdir = debug.getinfo(1).source:match("^@(.-)([^\\/]-%.([^\\/%.]-))%.?$")
+if string.len(curdir) > 0 then
+    pt=require(curdir.."plan_translation")
+else
+    pt=require("plan_translation")
+end
 
 -------- PRINT USAGE  -----------------------------
 local function print_usage(arg)
