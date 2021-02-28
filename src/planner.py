@@ -113,7 +113,7 @@ class Planner(object):
         ## check if the domain requires derived predicates then switch to the supporting planner profile 
         ## THIS IS NOT SOUND AND MIGHT LEAD TO INACCURATE GOALS
         if len(self.domain.derived_predicates) > 0:
-            for i, planner in enumerate(self.planners):
+            for planner in list(self.planners):
                 if 'ff' in planner:
                     # switch to 'ff-x'
                     del self.planners[planner]
@@ -1036,7 +1036,7 @@ class Planner(object):
                 plan_str+= color.fg_voilet('None!')
             else:
                 (actions, outcomes) = step
-                plan_str+= '{}'.format(' '.join(map(str, actions)))
+                plan_str+= '{{{}}}'.format(' '.join(map(str, actions)))
                 for (conditions, jump) in outcomes:
                     ## represent jump in different color
                     jump_str = color.fg_voilet(str(jump))  # voile if there is a jump
@@ -1049,28 +1049,28 @@ class Planner(object):
                         (add_list, del_list) = conditions
                         # if there is non-deterministic delete list in outcomes
                         if del_effect_inc and len(del_list) > 0:
-                            plan_str+= color.fg_yellow(' -- ({}) ({}) {}'.format( \
+                            plan_str+= color.fg_yellow(' -- {{{}}} \\ {{{}}} {}'.format( \
                                     ''.join(['({0})'.format(' '.join(map(str, c))) for c in add_list]), \
                                     ''.join(['({0})'.format(' '.join(map(str, c))) for c in del_list]), \
                                     jump_str))
                         # otherwise, exclude delete list in the representation of the plan
                         else:
-                            plan_str+= color.fg_yellow(' -- ({}) {}'.format( \
+                            plan_str+= color.fg_yellow(' -- {{{}}} {}'.format( \
                                     ''.join(['({0})'.format(' '.join(map(str, c))) for c in add_list]), \
                                     jump_str))
                     elif det_effect_inc:
                         (add_list, del_list) = conditions
                         if del_effect_inc and len(del_list) > 0:
-                            plan_str+= color.fg_yellow(' -- ({}) ({}) {}'.format( \
+                            plan_str+= color.fg_yellow(' -- {{{}}} \\ {{{}}} {}'.format( \
                                     ''.join(['({0})'.format(' '.join(map(str, c))) for c in add_list]), \
                                     ''.join(['({0})'.format(' '.join(map(str, c))) for c in del_list]), \
                                     jump_str))
                         else:
-                            plan_str+= color.fg_yellow(' -- ({}) {}'.format( \
+                            plan_str+= color.fg_yellow(' -- {{{}}} {}'.format( \
                                     ''.join(['({0})'.format(' '.join(map(str, c))) for c in add_list]), \
                                     jump_str))
                     else:
-                        plan_str+= color.fg_yellow(' -- () {}'.format(jump_str))
+                        plan_str+= color.fg_yellow(' -- {{}} {}'.format(jump_str))
             plan_str+= '\n'
         print(plan_str)
 

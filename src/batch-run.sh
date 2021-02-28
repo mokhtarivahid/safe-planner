@@ -137,7 +137,7 @@ echo 'solvers:' "$solver${solvers^^}.csv"
 echo "results/$(basename -- $path)"
 
 # create a directory of the benchmark in the 'results' folder (if not any)
-mkdir -p "results/$(basename -- $path)"
-cp $path/$planners_dir/$csv_file "results/$(basename -- $path)/$solver${solvers^^}.csv" 2>/dev/null
+mkdir -p "../results/$(basename -- $path)"
+cp $path/$planners_dir/$csv_file "../results/$(basename -- $path)/$solver${solvers^^}.csv" 2>/dev/null
 
 echo

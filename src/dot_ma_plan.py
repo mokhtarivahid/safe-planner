@@ -145,6 +145,8 @@ def parallel_plan(policy, verbose=False):
                     pred_lst = pred_lst + list(set(prob_effect[1].add_effects).intersection(set(head.preconditions.pos_preconditions)))
             if not head.name == 'end' and not pred_lst: pred_lst = tail.effects.add_effects
             G.add_edge('{}'.format(str(tail)), '{}'.format(str(head)), label=literals_to_pddl(pred_lst))
+            if head.name in policy.prob_actions:
+                G.add_node('{}'.format(str(head)), style='filled', color='lightgrey')
 
     # update the attributes of start and end nodes
     s = G.get_node('(start)')

@@ -49,6 +49,9 @@ CWHITEBG2  = '\33[107m'
 def fg_green(*str):
     return (CGREEN + ' '.join(str) + CEND)
 
+def fg_green2(*str):
+    return (CGREEN2 + ' '.join(str) + CEND)
+
 def fg_red(*str):
     return (CRED + ' '.join(str) + CEND)
 
@@ -72,6 +75,9 @@ def fg_beige(*str):
 
 def bg_green(*str):
     return (CGREENBG + ' '.join(str) + CEND)
+
+def bg_green2(*str):
+    return (CGREENBG2 + ' '.join(str) + CEND)
 
 def bg_red(*str):
     return (CREDBG + ' '.join(str) + CEND)

@@ -11,7 +11,7 @@ import dot_plan
 sys.setrecursionlimit(20000)
 
 
-def parse():
+def parse_args(dir_path=''):
     usage = 'python3 main.py <DOMAIN> <PROBLEM> [-c <PLANNERS>] [-r] [-a] [-p] [-d] [-j] [-s] [-v N] [-h]'
     description = "Safe-Planner is a non-deterministic planner for PPDDL."
     parser = argparse.ArgumentParser(usage=usage, description=description)
@@ -19,7 +19,7 @@ def parse():
     parser.add_argument('domain',  nargs='?', type=str, help='path to a PDDL domain file')
     parser.add_argument('problem', nargs='?', type=str, help='path to a PDDL problem file')
     parser.add_argument("-c", "--planners", nargs='+', type=str, default=["ff"], 
-        choices=os.listdir('planners'), metavar='PLNNER', 
+        choices=os.listdir(os.path.join(dir_path, 'planners')), metavar='PLNNER', 
         help="a list of classical planners: ff, fd, m, prob, optic-clp, lpg-td, lpg, vhpop (e.g. -c ff fd m) (default=[ff])")
     parser.add_argument("-r", "--rank", help="if '-r' not given, the compiled classical planning domains \
         are ranked by the number of effects in Ascending order; and if '-r' given, in Descending order \
@@ -43,13 +43,52 @@ def parse():
     return parser
 
 
-def main():
-    ## parse arguments
-    parser = parse()
+def parse_relative_path():
+
+    # store the input working directory
+    cwd = os.getcwd()
+
+    # find the absolute path of 'main.py'
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+
+    # find the relative path between 'cwd' and 'dir_path'
+    rel_path = os.path.relpath(dir_path,cwd)
+
+    # change working directory to the absolute path of __file__ ('main.py')
+    os.chdir(dir_path)
+
+    # parse arguments
+    parser = parse_args(dir_path)
     args = parser.parse_args()
     if args.domain == None:
         parser.print_help()
         sys.exit()
+
+    # if the path of the given domain and problem files is absolute
+    # update the path of the given domain and problem files
+    if not os.path.isabs(args.domain):
+        args.domain = os.path.relpath(args.domain,rel_path)
+
+    if not args.problem is None:
+        if not os.path.isabs(args.problem): 
+            args.problem = os.path.relpath(args.problem,rel_path)
+
+    # a trick when only a problem is passed, the domain is inferred automatically
+    # note: there must a 'domain.pddl' file in the same path
+    if args.problem is None:
+        with open(args.domain) as f:
+            data = f.read()
+            if not all(x in data for x in ['(problem','(domain']):
+                args.problem = args.domain
+                args.domain = os.path.join( os.path.dirname(args.domain), 'domain.pddl')
+
+    return args
+
+
+def main():
+
+    # parse and refine relative input paths as well as arguments
+    args = parse_relative_path()
 
     ## make a policy given domain and problem
     policy = planner.Planner(args.domain, args.problem, args.planners, args.safe_planner, args.rank, args.all_outcome, args.verbose)
@@ -94,7 +133,10 @@ def main():
             plan_json_file, actions_json_file = json_output
             print(color.fg_yellow('-- plan_json_file:') + plan_json_file + color.fg_red(' [EXPERIMENTAL!]'))
             print(color.fg_yellow('-- actions_json_file:') + actions_json_file + color.fg_red(' [EXPERIMENTAL!]'))
-            os.system('cd lua && lua json_multiagent_plan.lua ../%s &' % plan_json_file)
+            if os.path.isabs(plan_json_file):
+                os.system('cd lua && lua json_multiagent_plan.lua %s &' % plan_json_file)
+            else:
+                os.system('cd lua && lua json_multiagent_plan.lua ../%s &' % plan_json_file)
             print(color.fg_yellow('-- plan_json_dot_file:') + ('%s.dot' % plan_json_file) + color.fg_red(' [EXPERIMENTAL!]'))
             # transform the plan into a parallel plan
             dot_file, tred_dot_file = dot_ma_plan.parallel_plan(policy, verbose=args.verbose)

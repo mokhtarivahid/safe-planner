@@ -23,7 +23,6 @@ SP can employ any off-the-shelf classical planner for problem solving. Currently
 2. [PPDDL](#ppddl)
 3. [Usage](#usage)
 4. [The planner output](#the-planner-output)
-5. [How to refer](#how-to-refer)
 
 
 
@@ -110,9 +109,27 @@ More precisely, the following combinations are supported by Safe-Planner for mod
 
 ## Usage
 
+
 ```bash
+# using the 'sp' script
+./sp <DOMAIN> <PROBLEM> [-c <PLANNERS_LIST>] [-r] [-a] [-d] [-j] [-s] [-v 1|2]
+```
+
+```bash
+# for ease of use, one can only pass a problem file, however 'domain.pddl' must be in the same directory
+./sp <PROBLEM> [-c <PLANNERS_LIST>] [-r] [-a] [-d] [-j] [-s] [-v 1|2]
+```
+```bash
+# in case of both domain and problem in one file
+./sp <FILE> [-c <PLANNERS_LIST>] [-r] [-a] [-d] [-j] [-s] [-v 1|2]
+```
+
+```bash
+# using python3 command in the directory 'src/' (cd src/)
 python3 main.py <DOMAIN> <PROBLEM> [-c <PLANNERS_LIST>] [-r] [-a] [-d] [-j] [-s] [-v 1|2]
 ```
+
+
 
 ### optional parameters
 
@@ -136,34 +153,35 @@ python3 main.py <DOMAIN> <PROBLEM> [-c <PLANNERS_LIST>] [-r] [-a] [-d] [-j] [-s]
 
 ```bash
 # run Safe-Planner using external planner FF (the default planner)
-python3 main.py benchmarks/fond-domains/elevators/domain.pddl benchmarks/fond-domains/elevators/p01.pddl 
+./sp benchmarks/fond-domains/elevators/domain.pddl benchmarks/fond-domains/elevators/p01.pddl 
 
 # run Safe-Planner using external planners FF and Madagascar (dual replanning) with default ranking (Descending)
-python3 main.py benchmarks/fond-domains/elevators/domain.pddl benchmarks/fond-domains/elevators/p01.pddl -c ff m
+./sp benchmarks/fond-domains/elevators/domain.pddl benchmarks/fond-domains/elevators/p01.pddl -c ff m
 
 # run Safe-Planner using external planners FF and Madagascar with reverse ranking (Ascending)
-python3 main.py benchmarks/fond-domains/elevators/domain.pddl benchmarks/fond-domains/elevators/p01.pddl -c ff m -r
+./sp benchmarks/fond-domains/elevators/domain.pddl benchmarks/fond-domains/elevators/p01.pddl -c ff m -r
 ```
 
 ##### or in batch:
 
 ```bash
+# cd src/
 # run Safe-Planner in batch for each used FOND domain within 30m for each problem
-./batch-run.sh benchmarks/fond-domains/acrobatics -r -c ff m
-./batch-run.sh benchmarks/fond-domains/beam-walk -c ff m
-./batch-run.sh benchmarks/fond-domains/blocksworld -c ff m
-./batch-run.sh benchmarks/fond-domains/elevators -c ff m
-./batch-run.sh benchmarks/fond-domains/ex-blocksworld -c ff m
-./batch-run.sh benchmarks/fond-domains/first-responders -c ff m
-./batch-run.sh benchmarks/fond-domains/forest -c ff m
-./batch-run.sh benchmarks/fond-domains/tireworld -c ff m
-./batch-run.sh benchmarks/fond-domains/triangle-tireworld -c ff m
-./batch-run.sh benchmarks/fond-domains/zenotravel -c ff m
-./batch-run.sh benchmarks/fond-domains/doors -r -c ff m
-./batch-run.sh benchmarks/fond-domains/islands -r -c ff m
-./batch-run.sh benchmarks/fond-domains/miner -r -c ff m
-./batch-run.sh benchmarks/fond-domains/tireworld-spiky -r -c ff m
-./batch-run.sh benchmarks/fond-domains/tireworld-truck -r -c ff m
+./batch-run.sh ../benchmarks/fond-domains/acrobatics -r -c ff m
+./batch-run.sh ../benchmarks/fond-domains/beam-walk -c ff m
+./batch-run.sh ../benchmarks/fond-domains/blocksworld -c ff m
+./batch-run.sh ../benchmarks/fond-domains/elevators -c ff m
+./batch-run.sh ../benchmarks/fond-domains/ex-blocksworld -c ff m
+./batch-run.sh ../benchmarks/fond-domains/first-responders -c ff m
+./batch-run.sh ../benchmarks/fond-domains/forest -c ff m
+./batch-run.sh ../benchmarks/fond-domains/tireworld -c ff m
+./batch-run.sh ../benchmarks/fond-domains/triangle-tireworld -c ff m
+./batch-run.sh ../benchmarks/fond-domains/zenotravel -c ff m
+./batch-run.sh ../benchmarks/fond-domains/doors -r -c ff m
+./batch-run.sh ../benchmarks/fond-domains/islands -r -c ff m
+./batch-run.sh ../benchmarks/fond-domains/miner -r -c ff m
+./batch-run.sh ../benchmarks/fond-domains/tireworld-spiky -r -c ff m
+./batch-run.sh ../benchmarks/fond-domains/tireworld-truck -r -c ff m
 ```
 
 
@@ -180,25 +198,25 @@ python3 main.py benchmarks/fond-domains/elevators/domain.pddl benchmarks/fond-do
 
 SP represent a policy as a sequence of numbered steps such that:
 
-- Each step contains either a single action or a set of actions in one of the following formats:
+- Each step contains either a set of actions in one of the following formats:
 
-    ```number : (actions) -- () number/GOAL```
+    ```number : {actions} -- {} number/GOAL```
 
-    ```number : (actions) -- (add_list) number/GOAL ...```
+    ```number : {actions} -- {add_list} number/GOAL ...```
 
-    ```number : (actions) -- (add_list) (del_list) number/GOAL ...```
+    ```number : {actions} -- {add_list} \ {del_list} number/GOAL ...```
 
 - Each `number` represents the order/level of the execution of each step; 
 
-- The set of actions `(actions)` at each step are followed by tuples of conditions under which next steps are chosen (each condition comes after one `--`)  ; 
+- The set of actions `{actions}` at each step are followed by sets of conditions under which next steps are chosen (sets of conditions comes after one `--` for each outcome)  ; 
 
 - Conditions are the different possible outcomes of actions in a step; 
 
-- Empty conditions `()` are true conditions and only appear for deterministic actions in a step; 
+- Empty conditions `{}` are true conditions and only appear for deterministic actions in a step; 
 
-- Steps containing nondeterministic actions have more than one conditions;
+- Steps containing nondeterministic actions have more than one conditions and outcomes;
 
-- Conditions include a tuple of `(add_list)` and a tuple of `(del_list)` (if any) of a nondeterministic step, that is, the effects added to a new state and the effects removed from the old state after the step is applied;
+- Conditions include a set of `{add_list}` and a set of `{del_list}` (if any) of a nondeterministic step, that is, the effects added to a new state and the effects removed from the old state after the step is applied;
 
 - The `number` after each condition represents the next step for the execution;
 
@@ -210,12 +228,12 @@ SP represent a policy as a sequence of numbered steps such that:
 
 
 ```bash
-python3 main.py benchmarks/prob_interesting/bus-fare.pddl -j -d
+./sp benchmarks/prob_interesting/bus-fare.pddl -j -d
 
 @ PLAN
- 0 : (wash-car-1) -- ((have-1-coin )) 0 -- ((have-2-coin )) ((have-1-coin )) 1
- 1 : (bet-coin-2) -- ((have-1-coin )) ((have-2-coin )) 0 -- ((have-3-coin )) ((have-2-coin )) 2
- 2 : (buy-fare) -- () GOAL
+ 0 : {(wash-car-1)} -- {(have-2-coin)} \ {(have-1-coin)} 1 -- {(have-1-coin)} 0
+ 1 : {(bet-coin-2)} -- {(have-1-coin)} \ {(have-2-coin)} 0 -- {(have-3-coin)} \ {(have-2-coin)} 2
+ 2 : {(buy-fare)} -- {} GOAL
 ```
 
 the optional parameter `-d` translates the produced plan into a dot file in the same path:
@@ -236,16 +254,16 @@ the optional parameter `-d` translates the produced plan into a dot file in the 
             {"name": "wash-car-1", "arguments": []}
         ],
         "outcomes": [
-            {"next": "step_1", "condition": ["(have-2-coin )"]}, 
-            {"next": "step_0", "condition": ["(have-1-coin )"]}
+            {"next": "step_1", "condition": ["(have-2-coin)"]}, 
+            {"next": "step_0", "condition": ["(have-1-coin)"]}
         ]
     },
     "step_1": {
         "actions": [{"name": "bet-coin-2", "arguments": []}
         ],
         "outcomes": [
-            {"next": "step_0", "condition": ["(have-1-coin )"]},
-            {"next": "step_2", "condition": ["(have-3-coin )"]}
+            {"next": "step_0", "condition": ["(have-1-coin)"]},
+            {"next": "step_2", "condition": ["(have-3-coin)"]}
         ]
     },
     "step_2": {
@@ -253,32 +271,9 @@ the optional parameter `-d` translates the produced plan into a dot file in the 
             {"name": "buy-fare", "arguments": []}
         ],
         "outcomes": [
-            {"next": "GOAL", "condition": ["(have-fare )"]}
+            {"next": "GOAL", "condition": ["(have-fare)"]}
         ]
     }
-}
-```
-
-
-## How to refer
-
-The following references describe the algorithm of **Safe-Planner**.
-
-```bibliography
-@inproceedings{vahid:2019:sp,
-  Author    = {Mokhtari, Vahid and Sathya, Ajay and Decr\'e, Wilm and Borghesan, Gianni and Vochten, Maxim},
-  Title     = {Planning for cyclic safe solutions in fully observable non-deterministic robotic tasks},
-  Maintitle = {IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS 2019)},
-  Booktitle = {4th Workshop on Semantic Policy and Action Representations for Autonomous Robots (SPAR)},
-  Url       = {https://bit.ly/2Bo4DQM},
-  Year      = {2019}
-}
-
-@inproceedings{vahid:2019:d3.1,
-  Title     = {{MULTIROB} -- {D}eliverable 3.1: design and implementation of the discrete coordinator inputs: declarative rules and skill prototypes},
-  Author    = {Mokhtari, Vahid and Scioni, Enea and Borghesan, Gianni and Sathya, Ajay and Decr\'e, Wilm},
-  Booktitle = {Technical report, {MULTIROB-SBO} project at {KU Leuven}},
-  Year      = {2019}
 }
 ```
 
