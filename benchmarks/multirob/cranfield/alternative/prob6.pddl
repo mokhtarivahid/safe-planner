@@ -1,10 +1,10 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Cranfield assembly domain
 ;; Planners supporting derived-predicates: FF-X, LPG-TD, FD using additive heuristic
-;; initial state: all objects are initially on the table
+;; initial state: all objects are initially assembled in the faceplate_top
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define (problem assemble_table_to_faceplate_bottom)
+(define (problem disassemble_faceplate_top_to_faceplate_bottom)
 
   (:domain cranfield)
 
@@ -48,13 +48,22 @@
             ; (arm_free arm_right)
 
             ; objects initial locations
-            (object_at pendulum pendulum_home_pos table)
-            (object_at spacer spacer_home_pos table)
-            (object_at shaft shaft_home_pos table)
-            (object_at square_peg_left square_peg_home_pos_left table)
-            (object_at square_peg_right square_peg_home_pos_right table)
-            (object_at round_peg_left round_peg_home_pos_left table)
-            (object_at round_peg_right round_peg_home_pos_right table)
+            (object_at pendulum pendulum_pos faceplate_top)
+            (object_at spacer spacer_pos faceplate_top)
+            (object_at shaft shaft_pos faceplate_top)
+            (object_at square_peg_left square_peg_pos_left faceplate_top)
+            (object_at square_peg_right square_peg_pos_right faceplate_top)
+            (object_at round_peg_left round_peg_pos_left faceplate_top)
+            (object_at round_peg_right round_peg_pos_right faceplate_top)
+
+            ; objects initial locations
+            (inserted pendulum faceplate_top)
+            (inserted spacer faceplate_top)
+            (inserted shaft faceplate_top)
+            (inserted square_peg_left faceplate_top)
+            (inserted square_peg_right faceplate_top)
+            (inserted round_peg_left faceplate_top)
+            (inserted round_peg_right faceplate_top)
 
             ; objects are empty to reach
             (reachable pendulum)
@@ -64,6 +73,15 @@
             (reachable square_peg_right)
             (reachable round_peg_left)
             (reachable round_peg_right)
+
+            ; home positions are empty to reach
+            (reachable shaft_home_pos)
+            (reachable square_peg_home_pos_left)
+            (reachable square_peg_home_pos_right)
+            (reachable round_peg_home_pos_left)
+            (reachable round_peg_home_pos_right)
+            (reachable pendulum_home_pos)
+            (reachable spacer_home_pos)
 
             ; positions are empty to reach
             (reachable shaft_pos)
@@ -75,13 +93,13 @@
             (reachable spacer_pos)
 
             ; positions are empty to insert
-            (empty shaft_pos faceplate_top)
-            (empty square_peg_pos_left faceplate_top)
-            (empty square_peg_pos_right faceplate_top)
-            (empty round_peg_pos_left faceplate_top)
-            (empty round_peg_pos_right faceplate_top)
-            (empty pendulum_pos faceplate_top)
-            (empty spacer_pos faceplate_top)
+            (empty shaft_home_pos table)
+            (empty square_peg_home_pos_left table)
+            (empty square_peg_home_pos_right table)
+            (empty round_peg_home_pos_left table)
+            (empty round_peg_home_pos_right table)
+            (empty pendulum_home_pos table)
+            (empty spacer_home_pos table)
 
             ; positions are empty to insert
             (empty shaft_pos faceplate_bottom)
@@ -94,6 +112,6 @@
             )
 
   (:goal (and
-            (cranfield_assembled faceplate_bottom)
+            (cranfield_disassembled_to faceplate_bottom)
           ))
 )

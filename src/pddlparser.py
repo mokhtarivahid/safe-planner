@@ -51,6 +51,7 @@ tokens = (
     'PRECONDITION_KEY',
     'EFFECT_KEY',
     'AND_KEY',
+    'OR_KEY',
     'NOT_KEY',
     'PROBABILISTIC_KEY',
     'PROBLEM_KEY',
@@ -61,7 +62,8 @@ tokens = (
     'GOAL_KEY',
     'WHEN_KEY',
     'EXISTS_KEY',
-    'FORALL_KEY'
+    'FORALL_KEY',
+    'CONJUNCTION'
 )
 
 
@@ -96,6 +98,7 @@ reserved = {
     ':precondition'             : 'PRECONDITION_KEY',
     ':effect'                   : 'EFFECT_KEY',
     'and'                       : 'AND_KEY',
+    'or'                        : 'OR_KEY',
     'not'                       : 'NOT_KEY',
     'probabilistic'             : 'PROBABILISTIC_KEY',
     'oneof'                     : 'ONEOF_KEY',
@@ -302,10 +305,12 @@ def p_derived_predicates_def(p):
     '''derived_predicates_def :
                | LPAREN DERIVED_KEY LPAREN NAME typed_variables_lst RPAREN precond RPAREN
                | LPAREN DERIVED_KEY LPAREN NAME typed_variables_lst RPAREN LPAREN AND_KEY preconds_lst RPAREN RPAREN
+               | LPAREN DERIVED_KEY LPAREN NAME typed_variables_lst RPAREN LPAREN OR_KEY preconds_lst RPAREN RPAREN
                | LPAREN DERIVED_KEY LPAREN NAME RPAREN precond RPAREN
-               | LPAREN DERIVED_KEY LPAREN NAME RPAREN LPAREN AND_KEY preconds_lst RPAREN RPAREN'''
+               | LPAREN DERIVED_KEY LPAREN NAME RPAREN LPAREN AND_KEY preconds_lst RPAREN RPAREN
+               | LPAREN DERIVED_KEY LPAREN NAME RPAREN LPAREN OR_KEY preconds_lst RPAREN RPAREN'''
 
-    def order_logical_expressions(exp):
+    def order_logical_expressions(exp, conjunction='and'):
       (literals, universal, existential) = ([],[],[])
       if isinstance(exp, tuple):
         if 'FORALL_KEY' in exp:
@@ -322,16 +327,16 @@ def p_derived_predicates_def(p):
             existential.append(tuple(d[1:]))
           else:
             literals.append(d)
-      return domain.Precondition(tuple(literals), tuple(universal), tuple(existential))
+      return domain.Precondition(tuple(literals), tuple(universal), tuple(existential), conjunction)
 
     if len(p) == 9:
         p[0] = ('DERIVED_KEY', (tuple([p[4]]) + tuple(p[5]), order_logical_expressions(p[7])))
     elif len(p) == 12:
-        p[0] = ('DERIVED_KEY', (tuple([p[4]]) + tuple(p[5]), order_logical_expressions(p[9])))
+        p[0] = ('DERIVED_KEY', (tuple([p[4]]) + tuple(p[5]), order_logical_expressions(p[9],p[8])))
     elif len(p) == 8:
         p[0] = ('DERIVED_KEY', (tuple([p[4]]), order_logical_expressions(p[6])))
     elif len(p) == 11:
-        p[0] = ('DERIVED_KEY', (tuple([p[4]]), order_logical_expressions(p[8])))
+        p[0] = ('DERIVED_KEY', (tuple([p[4]]), order_logical_expressions(p[8],p[7])))
 
 
 def p_action_def_lst(p):
@@ -784,7 +789,9 @@ def p_constant(p):
 
 
 def p_error(p):
-    print("Error: syntax error when parsing '{}'".format(p))
+    print("Error: syntax error when parsing {{'type': {}, 'value': '{}', 'lineno': {}}})".format(\
+      p.type, p.value, p.lineno-1))
+    # print("Error: syntax error when parsing '{}'".format(p), p.__dict__)
     exit()
 
 

@@ -2,9 +2,11 @@
 ;; Cranfield assembly domain
 ;; Planners supporting derived-predicates: FF-X, LPG-TD, FD using additive heuristic
 ;; initial state: all objects are initially assembled in the faceplate_top
+;; goal: replace old items, e.g., shaft, with new ones, e.g., shaft2, 
+;;       in an already assembled cranfield on faceplate_top
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(define (problem assemble_faceplate_top_to_faceplate_bottom)
+(define (problem replace_assemble_faceplate_top)
 
   (:domain cranfield)
 
@@ -22,7 +24,6 @@
             pendulum - pendulum
             spacer - spacer
 
-            ; home position on the table
             square_peg_home_pos_left square_peg_home_pos_right - square_peg_pos
             round_peg_home_pos_left round_peg_home_pos_right - round_peg_pos
             shaft_home_pos - shaft_pos
@@ -35,6 +36,21 @@
             shaft_pos - shaft_pos 
             pendulum_pos - pendulum_pos 
             spacer_pos - spacer_pos
+
+            ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+            ; extra objects
+            square_peg_left2 square_peg_right2 - square_peg
+            round_peg_left2 round_peg_right2 - round_peg
+            shaft2 - shaft
+            pendulum2 - pendulum
+            spacer2 - spacer
+
+            ; extra objects home position on the table
+            square_peg_home_pos_left2 square_peg_home_pos_right2 - square_peg_pos
+            round_peg_home_pos_left2 round_peg_home_pos_right2 - round_peg_pos
+            shaft_home_pos2 - shaft_pos
+            pendulum_home_pos2 - pendulum_pos
+            spacer_home_pos2 - spacer_pos
 
             )
 
@@ -109,9 +125,48 @@
             (empty round_peg_pos_right faceplate_bottom)
             (empty pendulum_pos faceplate_bottom)
             (empty spacer_pos faceplate_bottom)
+
+            ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+            ; extra objects initial locations
+            (object_at shaft2 shaft_home_pos2 table)
+            (object_at square_peg_left2 square_peg_home_pos_left2 table)
+            (object_at square_peg_right2 square_peg_home_pos_right2 table)
+            (object_at round_peg_left2 round_peg_home_pos_left2 table)
+            (object_at round_peg_right2 round_peg_home_pos_right2 table)
+            (object_at pendulum2 pendulum_home_pos2 table)
+            (object_at spacer2 spacer_home_pos2 table)
+
+            ; extra objects are empty to reach
+            (reachable shaft2)
+            (reachable square_peg_left2)
+            (reachable square_peg_right2)
+            (reachable round_peg_left2)
+            (reachable round_peg_right2)
+            (reachable pendulum2)
+            (reachable spacer2)
+
+            ; extra objects home positions are empty to reach
+            (reachable shaft_home_pos2)
+            (reachable square_peg_home_pos_left2)
+            (reachable square_peg_home_pos_right2)
+            (reachable round_peg_home_pos_left2)
+            (reachable round_peg_home_pos_right2)
+            (reachable pendulum_home_pos2)
+            (reachable spacer_home_pos2)
+
             )
 
   (:goal (and
-            (cranfield_assembled faceplate_bottom)
+            (cranfield_assembled faceplate_top)
+            ; (object_at pendulum2 pendulum_pos faceplate_top)
+            ; (inserted pendulum2 faceplate_top)
+            (object_at shaft2 shaft_pos faceplate_top)
+            (inserted shaft2 faceplate_top)
+            ; (object_at spacer2 spacer_pos faceplate_top)
+            ; (inserted spacer2 faceplate_top)
+            ; (object_at round_peg_left2 round_peg_pos_left faceplate_top)
+            ; (object_at round_peg_right2 round_peg_pos_right faceplate_top)
+            ; (inserted round_peg_left2 faceplate_top)
+            ; (inserted round_peg_right2 faceplate_top)
           ))
 )

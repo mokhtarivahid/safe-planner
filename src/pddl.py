@@ -33,7 +33,7 @@ def to_pddl(object, state=None, goal=None):
                 varlist = ' '.join(['%s - %s' % pair for pair in zip(variables, types)])
                 precond_str += '(exists ({})\n                 {})'.format(varlist,literals_to_pddl(ext[1]))
         else:
-            precond_str = '(and '
+            precond_str = '({:3} '.format(object.conjunction)
             for pre in object.literals:
                 if pre[0] == -1:
                     precond_str += '(not ({0}))'.format(' '.join(map(str, pre[1:][0])))

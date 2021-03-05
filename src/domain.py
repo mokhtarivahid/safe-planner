@@ -139,7 +139,7 @@ class Domain(object):
 ###############################################################################
 class Precondition(object):
 
-    def __init__(self, literals=(), universal=(), existential=()):
+    def __init__(self, literals=(), universal=(), existential=(), conjunction='and'):
         '''
         A precondition schema
         @literals : preconditions as a tuple of literals
@@ -149,6 +149,7 @@ class Precondition(object):
         self.literals = literals
         self.universal = universal
         self.existential = existential
+        self.conjunction = conjunction
 
     def __str__(self):
         '''Return the precondition as a string'''

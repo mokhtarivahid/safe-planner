@@ -398,8 +398,7 @@ def call_optic_clp(domain, problem, args='-b -N', pwd='/tmp', verbose=0):
         return None
 
     ## if no solution exists try the next domain ##
-    if "file appear to violate part of the PDDL" in to_str(err) or\
-       "problem has been encountered, and the planner has to terminate" in to_str(err):
+    if "problem has been encountered, and the planner has to terminate" in to_str(err):
         if not verbose == 2: 
             print(color.fg_red('[error by external planner: run with \'-v 2\''))
         return None
@@ -535,9 +534,13 @@ def call_probe(domain, problem, args='', pwd='/tmp', verbose=0):
             print(to_str(err))
 
     # Permission denied
-    if 'Permission denied' in to_str(err):
+    if "Permission denied" in to_str(err):
         print(to_str(err))
         print(color.fg_voilet('-- run \'chmod +x planners/m\''))
+        return -1
+
+    # unsupported features or syntax error
+    if "syntax error" in to_str(err):
         return -1
 
     ## if no solution exists try the next domain ##
@@ -609,7 +612,8 @@ def call_vhpop(domain, problem, args='-g -f DSep-LIFO -s HC -w 5 -l 1500000', pw
 
     ## if not supported some PDDL features by planner ##
     if "undeclared type" in to_str(err) or\
-       "type mismatch" in to_str(err):
+       "type mismatch" in to_str(err) or\
+       "syntax error" in to_str(err):
         # print(color.fg_yellow("[planning failed due to some error in the pddl description]"))
         # print(color.fg_voilet('\n-- planner stdout'))
         # print(shell)
@@ -783,7 +787,8 @@ def call_lpg(domain, problem, args='-n 1', pwd='/tmp', verbose=0):
     if "not supported by this exp version" in shell \
        or "type mismatch" in shell \
        or "Unexpected node:" in shell \
-       or "Segmentation Fault" in shell:
+       or "Segmentation Fault" in shell \
+       or "syntax error" in str(err):
         # print(color.fg_yellow("[planning failed due to some error in the pddl description]"))
         # print(color.fg_voilet('\n-- planner stdout'))
         # print(shell)

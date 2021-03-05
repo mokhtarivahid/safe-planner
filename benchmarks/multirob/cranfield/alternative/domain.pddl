@@ -32,131 +32,9 @@
               (can_fit ?o - graspable ?s - position ?f - place)
 
               ; assembly axioms
-              (square_pegs_inserted ?f - faceplate)
-              (round_pegs_inserted ?f - faceplate)
-              (shaft_inserted ?f - faceplate)
-              (spacer_inserted ?f - faceplate)
-              (pendulum_inserted ?f - faceplate)
               (cranfield_assembled ?f - faceplate)
-
-              ; disassembly axioms 
-              (pendulum_disassembled_to ?p - place)
-              (shaft_disassembled_to ?p - place)
-              (square_pegs_disassembled_to ?p - place)
-              (round_pegs_disassembled_to ?p - place)
-              (spacer_disassembled_to ?p - place)
               (cranfield_disassembled_to ?p - place)
-
-              ; disassembly axioms (from faceplate)
-              (shaft_disassembled ?f - faceplate)
-              (pendulum_disassembled ?f - faceplate)
-              (round_pegs_disassembled ?f - faceplate)
-              (square_pegs_disassembled ?f - faceplate)
-              (spacer_disassembled ?f - faceplate)
               (cranfield_disassembled ?f - faceplate)
-)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; assembly axioms (constraints)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(:derived (shaft_inserted ?f - faceplate)
-    (exists (?o - shaft ?p - shaft_pos) (and (inserted ?o ?f) (object_at ?o ?p ?f)))
-)
-
-(:derived (pendulum_inserted ?f - faceplate)
-    (and (shaft_inserted ?f) 
-         (exists (?o - pendulum ?p - pendulum_pos) (and (inserted ?o ?f) (object_at ?o ?p ?f))))
-)
-
-(:derived (square_pegs_inserted ?f - faceplate)
-    (exists (?o1 ?o2 - square_peg ?p1 ?p2 - square_peg_pos) 
-        (and (inserted ?o1 ?f) (inserted ?o2 ?f) (object_at ?o1 ?p1 ?f) (object_at ?o2 ?p2 ?f) (not (= ?o1 ?o2)) (not (= ?p1 ?p2))))
-)
-
-(:derived (round_pegs_inserted ?f - faceplate)
-    (exists (?o1 ?o2 - round_peg ?p1 ?p2 - round_peg_pos) 
-        (and (inserted ?o1 ?f) (inserted ?o2 ?f) (object_at ?o1 ?p1 ?f) (object_at ?o2 ?p2 ?f) (not (= ?o1 ?o2)) (not (= ?p1 ?p2))))
-)
-
-(:derived (spacer_inserted ?f - faceplate)
-    (and (square_pegs_inserted ?f)
-         (exists (?o - spacer ?p - spacer_pos) (and (inserted ?o ?f) (object_at ?o ?p ?f))))
-)
-
-(:derived (cranfield_assembled ?f - faceplate)
-    (and (round_pegs_inserted ?f) 
-         ; (square_pegs_inserted ?f)
-         ; (shaft_inserted ?f)
-         (pendulum_inserted ?f)
-         (spacer_inserted ?f)
-         )
-)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; disassembly axioms to table (constraints)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(:derived (pendulum_disassembled_to ?t - place)
-    (exists (?o - pendulum ?p - pendulum_pos) (object_at ?o ?p ?t))
-)
-
-(:derived (spacer_disassembled_to ?t - place)
-    (exists (?o - spacer ?p - spacer_pos) (object_at ?o ?p ?t))
-)
-
-(:derived (shaft_disassembled_to ?t - place)
-    (and (pendulum_disassembled_to ?t) 
-         (exists (?o - shaft ?p - shaft_pos) (object_at ?o ?p ?t)))
-)
-
-(:derived (square_pegs_disassembled_to ?t - place)
-    (and (spacer_disassembled_to ?t)
-         (exists (?o1 ?o2 - square_peg ?p1 ?p2 - square_peg_pos)
-            (and (object_at ?o1 ?p1 ?t) (object_at ?o2 ?p2 ?t) (not (= ?o1 ?o2)) (not (= ?p1 ?p2)))))
-)
-
-(:derived (round_pegs_disassembled_to ?t - place)
-    (exists (?o1 ?o2 - round_peg ?p1 ?p2 - round_peg_pos)
-        (and (object_at ?o1 ?p1 ?t) (object_at ?o2 ?p2 ?t) (not (= ?o1 ?o2)) (not (= ?p1 ?p2))))
-)
-
-(:derived (cranfield_disassembled_to ?t - place)
-    (and (shaft_disassembled_to ?t)
-         (square_pegs_disassembled_to ?t)
-         (round_pegs_disassembled_to ?t))
-)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; disassembly axioms (constraints)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(:derived (pendulum_disassembled ?f - faceplate)
-    (exists (?p - pendulum_pos) (empty ?p ?f))
-)
-
-(:derived (spacer_disassembled ?f - faceplate)
-    (exists (?p - spacer_pos) (empty ?p ?f))
-)
-
-(:derived (shaft_disassembled ?f - faceplate)
-    (and (pendulum_disassembled ?f)
-         (exists (?p - shaft_pos) (empty ?p ?f)))
-)
-
-(:derived (round_pegs_disassembled ?f - faceplate)
-    (exists (?p1 ?p2 - round_peg_pos)
-        (and (empty ?p1 ?f) (empty ?p2 ?f) (not (= ?p1 ?p2))))
-)
-
-(:derived (square_pegs_disassembled ?f - faceplate)
-    (and (spacer_disassembled ?f)
-         (exists (?p1 ?p2 - square_peg_pos)
-              (and (empty ?p1 ?f) (empty ?p2 ?f) (not (= ?p1 ?p2)))))
-)
-
-(:derived (cranfield_disassembled ?f - faceplate)
-    (and (shaft_disassembled ?f) (square_pegs_disassembled ?f) (round_pegs_disassembled ?f))
 )
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -211,6 +89,54 @@
         (exists (?g - pendulum ?p - pendulum_pos) (and (empty ?p ?f) (= ?o ?g) (= ?s ?p)))
         (exists (?g - shaft ?p - shaft_pos) (and (empty ?p ?f) (= ?o ?g) (= ?s ?p)))
         (exists (?g - square_peg ?p - square_peg_pos) (and (empty ?p ?f) (= ?o ?g) (= ?s ?p)))
+    )
+)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; assembly axioms (constraints)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(:derived (cranfield_assembled ?f - faceplate)
+    (and 
+        (exists (?o - shaft ?p - shaft_pos) (and (inserted ?o ?f) (object_at ?o ?p ?f)))
+        (exists (?o - pendulum ?p - pendulum_pos) (and (inserted ?o ?f) (object_at ?o ?p ?f)))
+        (exists (?o - spacer ?p - spacer_pos) (and (inserted ?o ?f) (object_at ?o ?p ?f)))
+        (exists (?o1 ?o2 - square_peg ?p1 ?p2 - square_peg_pos) 
+            (and (inserted ?o1 ?f) (inserted ?o2 ?f) (object_at ?o1 ?p1 ?f) (object_at ?o2 ?p2 ?f) 
+                 (not (= ?o1 ?o2)) (not (= ?p1 ?p2))))
+        (exists (?o1 ?o2 - round_peg ?p1 ?p2 - round_peg_pos)
+            (and (inserted ?o1 ?f) (inserted ?o2 ?f) (object_at ?o1 ?p1 ?f) (object_at ?o2 ?p2 ?f) 
+                 (not (= ?o1 ?o2)) (not (= ?p1 ?p2))))
+    )
+)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; disassembly axioms (constraints)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(:derived (cranfield_disassembled ?f - faceplate)
+    (and 
+        (exists (?p - shaft_pos) (empty ?p ?f))
+        (exists (?p - pendulum_pos) (empty ?p ?f))
+        (exists (?p1 ?p2 - square_peg_pos) (and (empty ?p1 ?f) (empty ?p2 ?f) (not (= ?p1 ?p2))))
+        (exists (?p1 ?p2 - round_peg_pos) (and (empty ?p1 ?f) (empty ?p2 ?f) (not (= ?p1 ?p2))))
+        (exists (?p - spacer_pos) (empty ?p ?f))
+    )
+)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; disassembly axioms to table/faceplate (constraints)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(:derived (cranfield_disassembled_to ?t - place)
+    (and 
+        (exists (?o - pendulum ?p - pendulum_pos) (object_at ?o ?p ?t))
+        (exists (?o - spacer ?p - spacer_pos) (object_at ?o ?p ?t))
+        (exists (?o - shaft ?p - shaft_pos) (object_at ?o ?p ?t))
+        (exists (?o1 ?o2 - square_peg ?p1 ?p2 - square_peg_pos)
+            (and (object_at ?o1 ?p1 ?t) (object_at ?o2 ?p2 ?t) (not (= ?o1 ?o2)) (not (= ?p1 ?p2))))
+        (exists (?o1 ?o2 - round_peg ?p1 ?p2 - round_peg_pos)
+            (and (object_at ?o1 ?p1 ?t) (object_at ?o2 ?p2 ?t) (not (= ?o1 ?o2)) (not (= ?p1 ?p2))))
     )
 )
 

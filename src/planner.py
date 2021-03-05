@@ -110,6 +110,9 @@ class Planner(object):
                 print(color.fg_yellow("currently these planners are available: ") + str(possible_planners))
                 exit()
 
+        # test the precondition of actions before apply
+        self.ignore_test = False
+
         ## check if the domain requires derived predicates then switch to the supporting planner profile 
         ## THIS IS NOT SOUND AND MIGHT LEAD TO INACCURATE GOALS
         if len(self.domain.derived_predicates) > 0:
@@ -121,6 +124,9 @@ class Planner(object):
                 elif 'fd' in planner:
                     # switch to profile 1
                     self.planners[planner] = 0
+
+            # ignore testing the precondition of actions (due to unsupported derived predicates)
+            self.ignore_test = True
 
             # for planner, profile in planners.items():
             #     if profile not in args_profiles[planner]:
@@ -465,9 +471,12 @@ class Planner(object):
                 ## THIS IS NOT SOUND AND MIGHT LEAD TO INACCURATE GOALS
                 if len(self.domain.derived_predicates) > 0:
                     # simulate the problem goals
-                    for state, step in self.policy.items():
-                        for new_state in self.apply_step(init=state, step=step):
-                            self.problem.goals = tuple(new_state.predicates)
+                    if self.policy:
+                        for state, step in self.policy.items():
+                            for new_state in self.apply_step(init=state, step=step):
+                                self.problem.goals = tuple(new_state.predicates)
+                    else:
+                        self.problem.goals = self.problem.initial_state.predicates
                     return
 
             # if no plan found at the initial state then no policy exists and finish the loop
@@ -905,10 +914,10 @@ class Planner(object):
                     del_effects |= set(grounded_action.effects.del_effects)
                     for effect in grounded_action.effects.when_effects:
                         (pos_cnd_lst, neg_cnd_lst, pos_eff_lst, neg_eff_lst) = effect
-                        if state.is_true(pos_cnd_lst, neg_cnd_lst):
+                        if self.ignore_test or state.is_true(pos_cnd_lst, neg_cnd_lst):
                             add_effects |= set(pos_eff_lst)
                             del_effects |= set(neg_eff_lst)
-                if state.is_true(grounded_action.preconditions.pos_preconditions,\
+                if self.ignore_test or state.is_true(grounded_action.preconditions.pos_preconditions,\
                                  grounded_action.preconditions.neg_preconditions):
                     state = state.apply(grounded_action)
             states[state] = (add_effects, del_effects)
