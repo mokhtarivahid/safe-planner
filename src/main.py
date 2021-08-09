@@ -82,6 +82,11 @@ def parse_relative_path():
                 args.problem = args.domain
                 args.domain = os.path.join( os.path.dirname(args.domain), 'domain.pddl')
 
+    if not os.path.isfile(args.domain):
+        print(color.fg_yellow("the domain file '{}' not exist".format(args.domain)))
+        print(color.fg_yellow("pass the absolute path of the domain file"))
+        exit()
+
     return args
 
 
@@ -166,7 +171,8 @@ def main():
         print('Arguments: %s' % ' '.join(sys.argv[2:]))
     print('Policy length: %i' % len(policy.policy))
     print('Plan length: %i' % (len(plan)-1))
-    print('Compilation time: %.3f s' % policy.compilation_time)
+    print('Compilation time: %.3f s [%i domains]' % \
+    	(policy.compilation_time,len(policy.domains)))
     print('Planning time: %.3f s' % policy.planning_time)
     print('Planning iterations (all-outcome): %i' % policy.alloutcome_planning_call)
     print('Total number of replannings (single-outcome): %i' % policy.singleoutcome_planning_call)

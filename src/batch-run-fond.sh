@@ -3,6 +3,14 @@
 # @Description: run the planner in all fond benchmarks
 ##
 
+# ```bash
+# # run Safe-Planner in batch for all FOND domains in dual replanning mode 
+# # using ff and m planners in both single-outcome (safe-planner algorithm) 
+# # and all-outcome (ndp2 algorithm)
+# ./batch-run-fond.sh 
+# ```
+
+
 declare -a domains=("../benchmarks/fond-domains/acrobatics"
                     "../benchmarks/fond-domains/beam-walk -r"
                     "../benchmarks/fond-domains/blocksworld"
@@ -33,7 +41,7 @@ done
 
 # run on 'faults' domain
 for j in "${configurations[@]}"; do
-    ./run-faults.sh -r $j
+    ./batch-run-faults.sh -r $j
     sleep 1
     echo
 done

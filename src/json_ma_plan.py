@@ -12,17 +12,17 @@ from graphviz import Digraph
 
 import color
 
-def parse():
+def parse_args(dir_path=''):
     usage = 'python3 main.py <DOMAIN> <PROBLEM> [<PLANNER>] [-d] [-v] [-h]'
     description = "Safe-Planner is a non-deterministic planner for PPDDL."
     parser = argparse.ArgumentParser(usage=usage, description=description)
 
-    parser.add_argument('domain',  type=str, help='path to a PDDL domain file')
-    parser.add_argument('problem', type=str, help='path to a PDDL problem file')
+    parser.add_argument('domain',  nargs='?', type=str, help='path to a PDDL domain file')
+    parser.add_argument('problem', nargs='?', type=str, help='path to a PDDL problem file')
     parser.add_argument("-a", "--agents", nargs='+', type=str, default=[], 
         help="a list of agents: e.g., -a left_arm right_arm")
     parser.add_argument("-c", "--planners", nargs='+', type=str, default=["ff"], 
-        choices=os.listdir('planners'), metavar='PLNNER', 
+        choices=os.listdir(os.path.join(dir_path, 'planners')), metavar='PLNNER', 
         help="a list of classical planners: ff, fd, m, prob, optic-clp, lpg-td, lpg, vhpop (e.g. -c ff fd m) (default=[ff])")
     parser.add_argument("-r", "--rank", help="to disable ranking the compiled classical planning domains \
         by higher probabilistic outcomes (default=True)", action="store_true", default=False)
@@ -31,7 +31,7 @@ def parse():
     parser.add_argument("-v", "--verbose", help="increase output verbosity", 
         action="store_true")
 
-    return parser.parse_args()
+    return parser
 
 
 #################################################################
@@ -462,10 +462,52 @@ def merge_dict(d1, d2):
 #################################################################
 if __name__ == '__main__':
 
+    def parse_relative_path():
+
+        # store the input working directory
+        cwd = os.getcwd()
+
+        # find the absolute path of 'main.py'
+        dir_path = os.path.dirname(os.path.realpath(__file__))
+
+        # find the relative path between 'cwd' and 'dir_path'
+        rel_path = os.path.relpath(dir_path,cwd)
+
+        # change working directory to the absolute path of __file__ ('main.py')
+        os.chdir(dir_path)
+
+        # parse arguments
+        parser = parse_args(dir_path)
+        args = parser.parse_args()
+        if args.domain == None:
+            parser.print_help()
+            sys.exit()
+
+        # if the path of the given domain and problem files is absolute
+        # update the path of the given domain and problem files
+        if not os.path.isabs(args.domain):
+            args.domain = os.path.relpath(args.domain,rel_path)
+
+        if not args.problem is None:
+            if not os.path.isabs(args.problem): 
+                args.problem = os.path.relpath(args.problem,rel_path)
+
+        # a trick when only a problem is passed, the domain is inferred automatically
+        # note: there must a 'domain.pddl' file in the same path
+        if args.problem is None:
+            with open(args.domain) as f:
+                data = f.read()
+                if not all(x in data for x in ['(problem','(domain']):
+                    args.problem = args.domain
+                    args.domain = os.path.join( os.path.dirname(args.domain), 'domain.pddl')
+
+        return args
+
     import planner
     import dot_plan
 
-    args = parse()
+    # parse and refine relative input paths as well as arguments
+    args = parse_relative_path()
 
     # make a policy given domain and problem
     policy = planner.Planner(args.domain, args.problem, args.planners, args.rank, args.verbose)

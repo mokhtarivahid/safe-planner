@@ -3,6 +3,29 @@
 # @Description: run the planner in batch of problems in a directory
 ##
 
+##### or in batch:
+
+# ```bash
+# # cd src/
+# # run Safe-Planner in batch for each used FOND domain within 30m for each problem
+# ./batch-run.sh ../benchmarks/fond-domains/acrobatics -r -c ff m
+# ./batch-run.sh ../benchmarks/fond-domains/beam-walk -c ff m
+# ./batch-run.sh ../benchmarks/fond-domains/blocksworld -c ff m
+# ./batch-run.sh ../benchmarks/fond-domains/elevators -c ff m
+# ./batch-run.sh ../benchmarks/fond-domains/ex-blocksworld -c ff m
+# ./batch-run.sh ../benchmarks/fond-domains/first-responders -c ff m
+# ./batch-run.sh ../benchmarks/fond-domains/forest -c ff m
+# ./batch-run.sh ../benchmarks/fond-domains/tireworld -c ff m
+# ./batch-run.sh ../benchmarks/fond-domains/triangle-tireworld -c ff m
+# ./batch-run.sh ../benchmarks/fond-domains/zenotravel -c ff m
+# ./batch-run.sh ../benchmarks/fond-domains/doors -r -c ff m
+# ./batch-run.sh ../benchmarks/fond-domains/islands -r -c ff m
+# ./batch-run.sh ../benchmarks/fond-domains/miner -r -c ff m
+# ./batch-run.sh ../benchmarks/fond-domains/tireworld-spiky -r -c ff m
+# ./batch-run.sh ../benchmarks/fond-domains/tireworld-truck -r -c ff m
+# ```
+
+
 time_out=1800  # timeout in s
 
 function show_usage (){

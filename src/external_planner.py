@@ -19,8 +19,8 @@ args_profiles = {
     'lpg'       : { 0 : '-n 1 -noout' },
     'vhpop'     : { 0 : '-g -f DSep-LIFO -s HC -w 5 -l 1500000' },
     'fd'        : { 1 : '--search "astar(lmcut())"', \
-                    0 : '--search "astar(add())"',
-                    2 : '--evaluator "hff=ff()" --evaluator "hcea=cea()" --search "lazy_greedy([hff, hcea], preferred=[hff, hcea])"'}
+                    2 : '--search "astar(add())"',
+                    0 : '--evaluator "hff=ff()" --evaluator "hcea=cea()" --search "lazy_greedy([hff, hcea], preferred=[hff, hcea])"'}
 }
 
 def kill_pid(pid):

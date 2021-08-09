@@ -1,8 +1,8 @@
-Metric,SP_{LPG-TD},SP_{FD},SP_{FF},SP,SAT,SP_{M},PRP,NDP2
-avg. time,2,212,11,16,0,0,12,37
-avg. policy size,8,126,126,126,0,0,128,41
-no. of solved problems,3,8,8,8,0,0,8,6
-no. of unsolvable problems,5,0,0,0,8,8,0,2
-no. of proved unsolvable problems,0,0,0,0,0,0,0,0
-avg. planning call,37,446,446,446,0,0,0,470
-avg. unsolvable states,0,0,0,0,0,0,155,10
+Metric,NDP2,SP_{LPG-TD},SP_{FD},SP_{M},SP_{FF},SAT,NDP2_{FF},SP,PRP
+avg. time,37,2,212,0,11,0,33,16,12
+avg. policy size,41,8,126,0,126,0,24,126,128
+no. of solved problems,6,3,8,0,8,0,5,8,8
+no. of unsolvable problems,2,5,0,8,0,8,3,0,0
+no. of proved unsolvable problems,0,0,0,0,0,0,0,0,0
+avg. planning call,470,37,446,0,446,0,1185,446,0
+avg. unsolvable states,10,0,0,0,0,0,5,0,155

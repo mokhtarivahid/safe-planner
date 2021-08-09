@@ -123,7 +123,7 @@ class Planner(object):
                     self.planners['ff-x'] = 0
                 elif 'fd' in planner:
                     # switch to profile 1
-                    self.planners[planner] = 0
+                    self.planners[planner] = 2
 
             # ignore testing the precondition of actions (due to unsupported derived predicates)
             self.ignore_test = True
@@ -466,6 +466,7 @@ class Planner(object):
             if policy is not None:
                 self.policy = self.merge_policy(self.policy, policy)
 
+                #################################################################################
                 ## in case of 'ff-x': derived predicates are not yet supported, so terminates the 
                 ## loop as soon as a solution is found (because the goal might not be achievable)
                 ## THIS IS NOT SOUND AND MIGHT LEAD TO INACCURATE GOALS
@@ -477,7 +478,9 @@ class Planner(object):
                                 self.problem.goals = tuple(new_state.predicates)
                     else:
                         self.problem.goals = self.problem.initial_state.predicates
+
                     return
+                #################################################################################
 
             # if no plan found at the initial state then no policy exists and finish the loop
             elif state == self.problem.initial_state: 

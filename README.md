@@ -153,43 +153,13 @@ python3 main.py <DOMAIN> <PROBLEM> [-c <PLANNERS_LIST>] [-r] [-a] [-d] [-j] [-s]
 
 ```bash
 # run Safe-Planner using external planner FF (the default planner)
-./sp benchmarks/fond-domains/elevators/domain.pddl benchmarks/fond-domains/elevators/p01.pddl 
+./sp benchmarks/fond-domains/elevators/p01.pddl 
 
 # run Safe-Planner using external planners FF and Madagascar (dual replanning) with default ranking (Descending)
-./sp benchmarks/fond-domains/elevators/domain.pddl benchmarks/fond-domains/elevators/p01.pddl -c ff m
+./sp benchmarks/fond-domains/elevators/p01.pddl -c ff m
 
 # run Safe-Planner using external planners FF and Madagascar with reverse ranking (Ascending)
-./sp benchmarks/fond-domains/elevators/domain.pddl benchmarks/fond-domains/elevators/p01.pddl -c ff m -r
-```
-
-##### or in batch:
-
-```bash
-# cd src/
-# run Safe-Planner in batch for each used FOND domain within 30m for each problem
-./batch-run.sh ../benchmarks/fond-domains/acrobatics -r -c ff m
-./batch-run.sh ../benchmarks/fond-domains/beam-walk -c ff m
-./batch-run.sh ../benchmarks/fond-domains/blocksworld -c ff m
-./batch-run.sh ../benchmarks/fond-domains/elevators -c ff m
-./batch-run.sh ../benchmarks/fond-domains/ex-blocksworld -c ff m
-./batch-run.sh ../benchmarks/fond-domains/first-responders -c ff m
-./batch-run.sh ../benchmarks/fond-domains/forest -c ff m
-./batch-run.sh ../benchmarks/fond-domains/tireworld -c ff m
-./batch-run.sh ../benchmarks/fond-domains/triangle-tireworld -c ff m
-./batch-run.sh ../benchmarks/fond-domains/zenotravel -c ff m
-./batch-run.sh ../benchmarks/fond-domains/doors -r -c ff m
-./batch-run.sh ../benchmarks/fond-domains/islands -r -c ff m
-./batch-run.sh ../benchmarks/fond-domains/miner -r -c ff m
-./batch-run.sh ../benchmarks/fond-domains/tireworld-spiky -r -c ff m
-./batch-run.sh ../benchmarks/fond-domains/tireworld-truck -r -c ff m
-```
-
-
-```bash
-# run Safe-Planner in batch for all FOND domains in dual replanning mode 
-# using ff and m planners in both single-outcome (safe-planner algorithm) 
-# and all-outcome (ndp2 algorithm)
-./batch-run-fond.sh 
+./sp benchmarks/fond-domains/elevators/p01.pddl -c ff m -r
 ```
 
 
