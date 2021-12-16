@@ -12,8 +12,9 @@ args_profiles = {
     'm'         : { 1 : '-P 0 -N -m 4096', \
                     0 : '-P 1 -N -m 4096' },
     'probe'     : { 0 : '' },
-    'optic-clp' : { 0 : '-E -N',
-                    1 : '-b -N' },
+    'optic-clp' : { 0 : '-c -N',
+                    1 : '-m -N',
+                    2 : '-E -N' },
     'lpg-td'    : { 0 : '-speed -noout', \
                     1 : '-quality -v off -noout' },
     'lpg'       : { 0 : '-n 1 -noout' },

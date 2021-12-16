@@ -23,6 +23,7 @@ SP can employ any off-the-shelf classical planner for problem solving. Currently
 2. [PPDDL](#ppddl)
 3. [Usage](#usage)
 4. [The planner output](#the-planner-output)
+5. [How to cite](#how-to-cite)
 
 
 
@@ -245,5 +246,24 @@ the optional parameter `-d` translates the produced plan into a dot file in the 
         ]
     }
 }
+```
+
+
+
+## How to cite
+
+The following reference describes the algorithm of **Safe-Planner**.
+
+```bibliography
+
+@inproceedings{vahid:2021:icar, 
+  Author    = {Mokhtari, Vahid and Sathya, Ajay and Tsiogkas, Nikolaos and Decr\'e, Wilm},
+  Booktitle = {Proceedings of the 20th International Conference on Advanced Robotics (ICAR)},
+  Title     = {{Safe-Planner}: A single-outcome replanner for computing strong cyclic policies in fully observable non-deterministic domains},
+  Pages     = {974--981},
+  Year      = {2021},
+  Publisher = {IEEE}
+}
+
 ```
 
