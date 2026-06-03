@@ -3,9 +3,11 @@
 **Safe-Planner (SP)** is an off-line non-deterministic planning algorithm based on replanning that compiles a **Fully Observable Non-Deterministic (FOND)** planning problem into a set of classical planning problems which can be solved using a classical problem solver. SP then merges the obtained classical solutions and forms a non-deterministic solution policy to the original non-deterministic problem. SP avoids dead-end states by 
 modifying a planning problem such that it prevents a classical planner to generate weak plans involving actions leading to dead-ends and therefore it generates safe policies. The execution of a safe policy is guaranteed to terminate in a goal state for all potential outcomes of the actions in the non-deterministic environment (if any exists).
 
-SP can employ any off-the-shelf classical planner for problem solving. Currently, the classical planners [FF], [OPTIC], [MADAGASCAR], [PROBE], [VHPOP], [LPG-TD], [LPG], and [FAST-DOWNWARD] have been integrated. 
-
-**Note:** OPTIC, MADAGASCAR, VHPOP, and LPG-TD are temporal/partial-order planners and therefore the produced policies are also partial-order.
+SP can employ any off-the-shelf classical planner for problem solving. Planners are bundled via the
+[`pddl-solvers`](https://github.com/mokhtarivahid/pddl-solvers) submodule, which provides FF (and the
+conformant / contingent / metric / probabilistic variants), Fast-Downward, SymK, ENHSP, OPTIC, POPF, TFD,
+LPG / LPG-TD, MADAGASCAR, VHPOP, PowerLifted and NextFLAP. Safe-Planner discovers the built planner
+binaries at runtime; whatever you compile in the submodule becomes available via `-c <PLANNERS>`.
 
 [FF]: https://fai.cs.uni-saarland.de/hoffmann/ff.html
 [OPTIC]: https://nms.kcl.ac.uk/planning/software/optic.html
@@ -19,7 +21,7 @@ SP can employ any off-the-shelf classical planner for problem solving. Currently
 
 
 ## Contents
-1. [Requirement](#requirement)
+1. [Installation](#installation)
 2. [PPDDL](#ppddl)
 3. [Usage](#usage)
 4. [The planner output](#the-planner-output)
@@ -27,25 +29,78 @@ SP can employ any off-the-shelf classical planner for problem solving. Currently
 
 
 
-## Requirement
+## Installation
 
-SP has been implemented in `Python3` and the following packages are required to install: 
+Safe-Planner targets **Python 3.8+** on Linux. The recommended workflow uses a
+virtual environment and an editable install of the package:
 
 ```bash
-sudo apt install python3-pip
-pip3 install ply
+# 1. clone the repository together with the planner submodule
+git clone --recursive https://github.com/mokhtarivahid/safe-planner.git
+cd safe-planner
+# if you forgot --recursive:
+#   git submodule update --init --recursive
+
+# 2. (recommended) isolated Python environment
+python3 -m venv .venv
+source .venv/bin/activate
+
+# 3a. install the project itself in editable mode — preferred
+pip install -e .
+
+# 3b. or, if you only want the runtime dependencies without installing the
+#     package, use the plain requirements file
+pip install -r requirements.txt
 ```
 
-### optional
+Both flows pull in [PLY] for PDDL parsing and PyYAML for the planner-profile
+catalogue. The editable install additionally registers the `safe-planner`
+console script. You can always invoke the planner without installing it via
+the `./sp` wrapper, which sets `PYTHONPATH=src` automatically.
 
-For running with `-j` parameter and translating plans into json, also install:
+[PLY]: https://www.dabeaz.com/ply/
+
+### System packages
+
+A handful of OS-level tools are required to build the classical planners and
+to render policy graphs:
+
+```bash
+sudo apt install -y \
+    build-essential cmake bison flex \
+    gawk g++ gcc make \
+    graphviz                     # for `dot` (used by --render svg|pdf|png)
+```
+
+### Building the bundled planners
+
+The optional extra planners live in the
+[`pddl-solvers`](https://github.com/mokhtarivahid/pddl-solvers) submodule at
+`third_party/pddl-solvers`. Compile one or all of them:
+
+```bash
+cd third_party/pddl-solvers
+./build_all.sh                  # build every planner
+./build_all.sh --planner symk   # build only one
+./build_all.sh --planner ff fd madagascar   # build a subset
+```
+
+Safe-Planner discovers the compiled binaries on the fly through
+`src/safe_planner/planners/registry.py`. Planners that are not built simply
+disappear from the `-c` help list.
+
+### Optional Python extras
+
+For programmatic GraphViz access (most users won't need this — the CLI shells
+out to the `dot` binary directly for `--render`):
 
 ```bash
 sudo apt install -y graphviz-dev
-pip3 install graphviz pygraphviz
+pip install graphviz pygraphviz
 ```
 
-and the following `Lua` libraries (optional: only for parsing json files):
+For parsing the legacy multi-agent JSON output via Lua scripts (only used by
+`-j` with multi-agent domains):
 
 ```bash
 sudo apt install -y lua-penlight lua-json lua-ansicolors luarocks
@@ -113,54 +168,145 @@ More precisely, the following combinations are supported by Safe-Planner for mod
 
 ```bash
 # using the 'sp' script
-./sp <DOMAIN> <PROBLEM> [-c <PLANNERS_LIST>] [-r] [-a] [-d] [-j] [-s] [-v 1|2]
+./sp <DOMAIN> <PROBLEM> [-c <PLANNERS_LIST>] [-r] [-a] [-sp] \
+     [-d] [--render svg|pdf|png] [-p] [-j] [-s] \
+     [--profile PLANNER:NAME] [--list-profiles [PLANNER]] \
+     [--summary] [--no-color] [-v 0|1|2]
 ```
 
 ```bash
-# for ease of use, one can only pass a problem file, however 'domain.pddl' must be in the same directory
-./sp <PROBLEM> [-c <PLANNERS_LIST>] [-r] [-a] [-d] [-j] [-s] [-v 1|2]
+# for ease of use, one can pass only a problem file; a sibling 'domain.pddl' is auto-detected
+./sp <PROBLEM> [...]
 ```
 ```bash
 # in case of both domain and problem in one file
-./sp <FILE> [-c <PLANNERS_LIST>] [-r] [-a] [-d] [-j] [-s] [-v 1|2]
+./sp <FILE> [...]
 ```
 
 ```bash
-# using python3 command in the directory 'src/' (cd src/)
-python3 main.py <DOMAIN> <PROBLEM> [-c <PLANNERS_LIST>] [-r] [-a] [-d] [-j] [-s] [-v 1|2]
+# using python3 module form (works from anywhere once installed with `pip install -e .`)
+python3 -m safe_planner <DOMAIN> <PROBLEM> [...]
+# or, equivalently, the installed console script:
+safe-planner <DOMAIN> <PROBLEM> [...]
+```
+
+
+### Project layout
+
+```
+safe-planner/
+├── sp                        # convenience wrapper -> `python3 -m safe_planner`
+├── pyproject.toml            # src-layout packaging metadata
+├── requirements.txt          # plain pip dependency list (mirrors pyproject)
+├── src/safe_planner/         # Python package
+│   ├── cli.py                # command-line entry point (argparse)
+│   ├── color.py              # TTY-aware ANSI colour helpers
+│   ├── planner.py            # SP / NDP2 algorithm core
+│   ├── compilation.py        # PPDDL -> classical compilation
+│   ├── pddl/                 # PDDL/PPDDL parser (PLY) + AST
+│   ├── io/                   # dot / json output formatters
+│   │   ├── dot_plan.py       # GraphViz dot generator
+│   │   ├── report.py         # versioned JSON report + run summary
+│   │   └── json_plan.py      # legacy JSON output
+│   └── planners/             # external-planner integration
+│       ├── registry.py       # planner discovery (pddl-solvers)
+│       ├── profiles.py       # YAML-backed planner argument profiles
+│       ├── runner.py         # multiprocessing planner race + dispatch
+│       └── adapters/extras.py# wrappers for the new pddl-solvers planners
+├── third_party/pddl-solvers/ # git submodule with all integrated planners
+├── benchmarks/               # FOND + classical benchmark suites
+├── tests/                    # unit tests
+├── src/                      # batch-run shell scripts (batch-run*.sh)
+└── results/                  # generated stats and plots
 ```
 
 
 
 ### optional parameters
 
-`-c <PLANNERS_LIST>`: a list of planners for dual planning mode, e.g., `-c ff` or `-c ff m` or `-c ff m fd`, ...
+`-c <PLANNERS_LIST>`: a list of classical planners to race in parallel,
+e.g. `-c ff`, `-c ff madagascar`, `-c ff fd madagascar`, ... (default `ff`).
 
-`-r`: reverse the ranking of the classical domains when compiling from non-deterministic to deterministic. The default ranking is Descending according to the length of actions' effects (note that it does not guarantee always to improve the performance, however, in some domains it dramatically improves the performance by avoiding producing misleading plans).
+`--profile PLANNER:NAME`: override the default argument profile for a
+planner. Repeatable. Example: `--profile fd:optimal-lmcut`. Profiles
+are loaded from
+[`third_party/pddl-solvers/planner_configurations.yaml`](third_party/pddl-solvers/planner_configurations.yaml)
+so every preset bundled with the submodule is selectable. Each planner's
+default is whatever its YAML file lists first (e.g. Fast-Downward defaults
+to the optimal `astar(lmcut())`).
 
-`-a`: compile the non-deterministic domain into one classical domain using the all-outcome compilation strategy (the default compilation strategy is the single-outcome which translates into a set of ordered classical domains).
+`--list-profiles [PLANNER]`: print the profile catalogue and exit. With no
+argument it dumps every planner; with a planner name it filters to just
+that one. The currently-selected default is marked with `*`. Examples:
 
-`-d`: draw graphically the plan in the dot format.
+```bash
+./sp --list-profiles            # all planners
+./sp --list-profiles fd         # only Fast-Downward
+./sp --list-profiles symk
+```
 
-`-j`: translate the produced plan into a json file [experimental].
+`-r`: reverse the ranking of compiled classical domains when going from
+non-deterministic to deterministic (default ranking is ascending by effect
+count). Sometimes helps avoid misleading plans.
 
-`-s`: record the planner's performance in `.stat` file.
+`-a`: compile the non-deterministic domain into one classical domain using
+the all-outcome compilation strategy only (skips single-outcome).
 
-`-v 1|2`: increase verbosity.
+`-sp`: switch from the default sound NDP2 algorithm to the (unsound) SP
+algorithm. Faster on some domains, but does not guarantee strong-cyclic
+solutions.
 
+`-p`: print the enumerated execution paths of the produced policy.
+
+`-d`: emit a GraphViz dot file alongside the problem file.
+
+`--render svg|pdf|png`: rasterise/vectorise the generated dot file via the
+`dot` binary from GraphViz. Implies `-d`.
+
+`-j`: also emit the legacy JSON plan format (experimental).
+
+`-s`: store a structured run report at `<problem>.stat.json` with policy
+states, outcomes, timings, planner configuration and an overall verdict.
+Also appends a row to `results.csv` in the problem's directory.
+
+`--summary`: print a colour-aware end-of-run summary (verdict + hints).
+Automatically shown for non-solved runs.
+
+`--no-color`: disable ANSI colour escapes regardless of TTY / env vars.
+Colour can also be controlled via the `NO_COLOR` and `SP_COLOR=always|never|auto`
+environment variables.
+
+`-v 0|1|2`: verbosity. `0` minimal, `1` high-level, `2` external planners
+output.
+
+#### Exit codes
+
+The CLI returns an exit code that mirrors the policy verdict, useful in
+shell pipelines / CI:
+
+| Code | Verdict   | Meaning                                                |
+|------|-----------|--------------------------------------------------------|
+| 0    | solved    | strong-cyclic policy; every leaf is a goal             |
+| 0    | trivial   | initial state already satisfies the goal               |
+| 3    | partial   | weak / cyclic-but-not-strong policy                    |
+| 4    | unsolved  | no plan at the initial state                           |
 
 
 ##### The following commands show some examples on how to run Safe-Planner on individual problems:
 
 ```bash
-# run Safe-Planner using external planner FF (the default planner)
-./sp benchmarks/fond-domains/elevators/p01.pddl 
+# Run Safe-Planner with FF (the default planner).
+./sp benchmarks/fond-domains/elevators/p01.pddl
 
-# run Safe-Planner using external planners FF and Madagascar (dual replanning) with default ranking (Descending)
-./sp benchmarks/fond-domains/elevators/p01.pddl -c ff m
+# Race FF + Madagascar (dual replanning) with default ranking.
+./sp benchmarks/fond-domains/elevators/p01.pddl -c ff madagascar
 
-# run Safe-Planner using external planners FF and Madagascar with reverse ranking (Ascending)
-./sp benchmarks/fond-domains/elevators/p01.pddl -c ff m -r
+# Same race, reversed ranking, with full output: dot + PDF + structured report.
+./sp benchmarks/fond-domains/elevators/p01.pddl -c ff madagascar -r \
+     -d --render pdf -s --summary
+
+# Override the FD profile.
+./sp benchmarks/fond-domains/blocksworld/p01.pddl -c fd --profile fd:satisficing-lama-first
 ```
 
 
@@ -210,6 +356,15 @@ SP represent a policy as a sequence of numbered steps such that:
 the optional parameter `-d` translates the produced plan into a dot file in the same path:
 
 ![bus-fare](resources/bus-fare.png)
+
+Combine `-d` with `--render svg|pdf|png` to additionally rasterise the diagram
+via the `dot` binary from GraphViz.
+
+The optional parameter `-s` writes a structured run report next to the problem
+file at `<problem>.stat.json`. The schema (`"schema": "1.0"`) is stable and
+contains per-state actions/outcomes, timings, planner configuration, the
+non-deterministic action set, and an overall verdict
+(`solved` / `partial` / `trivial` / `unsolved`).
 
 [**EXPERIMENTAL!**] the optional parameter `-j` translates the produced plan into a json file in the same path:
 

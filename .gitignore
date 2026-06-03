@@ -3,6 +3,9 @@ __pycache__/
 *.pyc 
 *.out
 *.dot
+*.dot.svg
+*.dot.png
+*.dot.pdf
 *.json
 *.gv
 *.pdf
@@ -16,3 +19,16 @@ __pycache__/
 # Recursively allow files under the following subtrees
 !results/**
 !resources/**
+
+# Editor and Environment specific files
+.venv/
+.vscode/
+
+# Build / packaging artifacts
+build/
+dist/
+*.egg-info/
+
+# PLY parser tables generated at runtime if missing (the canonical one is
+# committed under src/safe_planner/pddl/parsetab.py)
+parser.out

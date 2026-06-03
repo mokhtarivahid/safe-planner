@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "safe-planner"
+version = "0.2.0"
+description = "A single-outcome replanner that computes strong-cyclic policies for FOND PPDDL planning problems."
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "GPL-3.0-or-later" }
+authors = [{ name = "Vahid Mokhtari" }]
+keywords = ["pddl", "ppddl", "planning", "fond", "non-deterministic"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Operating System :: POSIX :: Linux",
+]
+dependencies = ["ply>=3.11", "PyYAML>=5.4"]
+
+[project.optional-dependencies]
+viz = ["graphviz", "pygraphviz"]
+dev = ["pytest>=7.0"]
+
+[project.scripts]
+safe-planner = "safe_planner.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/mokhtarivahid/safe-planner"
+Source = "https://github.com/mokhtarivahid/safe-planner"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"safe_planner.pddl" = ["parsetab.py"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]

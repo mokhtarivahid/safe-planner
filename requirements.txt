@@ -1,0 +1,7 @@
+ply>=3.11
+PyYAML>=5.4
+
+# Optional: GraphViz Python bindings and test runner.
+graphviz>=0.20
+pygraphviz>=1.11
+pytest>=7.0
