@@ -1,3 +1,4 @@
 [submodule "third_party/pddl-solvers"]
 	path = third_party/pddl-solvers
 	url = https://github.com/mokhtarivahid/pddl-solvers.git
+	ignore = all
