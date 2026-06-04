@@ -93,11 +93,6 @@ cd third_party/pddl-solvers
 ./build_all.sh --planner val    # build only VAL (needed for -V)
 ```
 
-Safe-Planner discovers the compiled binaries on the fly through
-`src/safe_planner/planners/registry.py`. Planners that are not built simply
-disappear from the `-c` help list. VAL is built separately and is required
-for the `-V/--validate` option.
-
 ### Optional Python extras
 
 For programmatic GraphViz access (most users won't need this — the CLI shells
