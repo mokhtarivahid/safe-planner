@@ -151,12 +151,23 @@ def to_pddl(object, state=None, goal=None):
 
         pddl_str  = '(define (problem {0})\n'.format(object.problem)
         pddl_str += '  (:domain {0})\n'.format(object.domain)
-        if len(object.initial_state.objects) > 0:
+        # Names already declared as domain `:constants` are kept in
+        # `state.objects` for internal grounding but must NOT be re-emitted
+        # here, otherwise the resulting problem file would duplicate them
+        # against the domain and some PDDL parsers reject the redeclaration.
+        constant_objects = getattr(object.initial_state, 'constant_objects', {}) or {}
+        objects_for_emit = {}
+        for tp, names in object.initial_state.objects.items():
+            const_names = set(constant_objects.get(tp, ()))
+            filtered = [n for n in names if n not in const_names]
+            if filtered:
+                objects_for_emit[tp] = filtered
+        if len(objects_for_emit) > 0:
             pddl_str += '  (:objects \n'
-            for tp in sorted(object.initial_state.objects.keys())[:-1]:
-                pddl_str += '\t\t{0} - {1}\n'.format(' '.join(sorted(object.initial_state.objects[tp])), tp)
-            tp = sorted(object.initial_state.objects.keys())[-1]
-            pddl_str += '\t\t{0} - {1})\n'.format(' '.join(sorted(object.initial_state.objects[tp])), tp)
+            for tp in sorted(objects_for_emit.keys())[:-1]:
+                pddl_str += '\t\t{0} - {1}\n'.format(' '.join(sorted(objects_for_emit[tp])), tp)
+            tp = sorted(objects_for_emit.keys())[-1]
+            pddl_str += '\t\t{0} - {1})\n'.format(' '.join(sorted(objects_for_emit[tp])), tp)
         pddl_str += '  (:init'
         for predicate in sorted(state.predicates):
             pddl_str += '\n\t\t({0})'.format(' '.join(map(str, predicate)))

@@ -1,24 +1,25 @@
 """Adapter between Safe-Planner and the pddl-solvers profile catalogue.
 
 pddl-solvers ships a YAML file
-(:file:`third_party/pddl-solvers/planner_configurations.yaml`) that describes
-each planner together with one or more named *configurations* (a.k.a.
-"profiles"). A configuration carries either an ``args`` list (CLI flags) or
-a ``search`` expression (for search-driven planners like Fast-Downward, SymK
-and ENHSP), plus an optional ``executable`` override (used by Madagascar to
-switch between its ``M`` / ``Mp`` / ``MpC`` binaries, and by LPG to switch
-between ``lpg`` and ``lpg-probing``).
+(:file:`third_party/pddl-solvers/planner_profiles.yaml`) that describes
+each planner together with one or more named *profiles*. A profile carries
+either an ``args`` list (CLI flags) or a ``search`` expression (for
+search-driven planners like Fast-Downward, SymK and ENHSP), plus an
+optional ``executable`` override (used by Madagascar to switch between its
+``M`` / ``Mp`` / ``MpC`` binaries, and by LPG to switch between ``lpg`` and
+``lpg-probing``).
 
-This module wraps :class:`PlannerConfigurations` from pddl-solvers and
-exposes a :data:`profiles` singleton with :meth:`Profiles.resolve` /
+This module wraps :class:`PlannerProfiles` from pddl-solvers and exposes a
+:data:`profiles` singleton with :meth:`Profiles.resolve` /
 :meth:`Profiles.args` helpers. Each planner has a single *active* profile;
-that profile is the first entry of the planner's YAML configuration block
-by default, but can be overridden at runtime via
-:meth:`Profiles.set_default` (driven by the CLI's ``--profile`` flag) or
-compile-time via :data:`_DEFAULT_CONFIG_OVERRIDES`.
+that profile is the YAML entry named ``default`` (when present) or the
+first entry of the planner's YAML ``profiles`` block, and can be
+overridden at runtime via :meth:`Profiles.set_default` (driven by the
+CLI's ``--profile`` flag) or compile-time via
+:data:`_DEFAULT_PROFILE_OVERRIDES`.
 
 When the pddl-solvers submodule (or PyYAML) is not available, the module
-falls back to a small built-in mirror of the configs that used to live
+falls back to a small built-in mirror of the profiles that used to live
 inline in :mod:`safe_planner.planners.runner`. That guarantees the project
 still runs even before ``git submodule update --init`` is executed.
 """
@@ -37,32 +38,40 @@ from . import registry
 # ---------------------------------------------------------------------------
 
 _PDDL_SOLVERS_REPO = registry.REPO_ROOT / "third_party" / "pddl-solvers"
-_CONFIG_YAML = _PDDL_SOLVERS_REPO / "planner_configurations.yaml"
+_PROFILES_YAML = _PDDL_SOLVERS_REPO / "planner_profiles.yaml"
+# Legacy filename kept around for users that haven't pulled the rename yet.
+_LEGACY_CONFIG_YAML = _PDDL_SOLVERS_REPO / "planner_configurations.yaml"
 
 
 def _load_pddl_solvers_spec():
     """Return the parsed YAML spec, or ``None`` if unavailable."""
-    if not _CONFIG_YAML.is_file():
+    yaml_path = _PROFILES_YAML if _PROFILES_YAML.is_file() else _LEGACY_CONFIG_YAML
+    if not yaml_path.is_file():
         return None
     # Prefer the upstream loader so we get the exact same parsing semantics.
     if str(_PDDL_SOLVERS_REPO) not in sys.path:
         sys.path.insert(0, str(_PDDL_SOLVERS_REPO))
+    # New module name first; fall back to the legacy class for older checkouts.
     try:
-        from planner_configurations import PlannerConfigurations  # type: ignore
-        return PlannerConfigurations(str(_CONFIG_YAML))
+        from planner_profiles import PlannerProfiles  # type: ignore
+        return PlannerProfiles(str(yaml_path))
     except Exception:
-        # Fallback to a direct YAML read if PyYAML is installed.
         try:
-            import yaml  # type: ignore
-        except ImportError:
-            return None
-        with open(_CONFIG_YAML) as f:
-            data = yaml.safe_load(f) or {}
-        return _MiniSpec(data)
+            from planner_configurations import PlannerConfigurations  # type: ignore
+            return _LegacySpecAdapter(PlannerConfigurations(str(yaml_path)))
+        except Exception:
+            # Fallback to a direct YAML read if PyYAML is installed.
+            try:
+                import yaml  # type: ignore
+            except ImportError:
+                return None
+            with open(yaml_path) as f:
+                data = yaml.safe_load(f) or {}
+            return _MiniSpec(data)
 
 
 class _MiniSpec:
-    """Minimal stand-in mimicking the bits of ``PlannerConfigurations`` we use."""
+    """Minimal stand-in mimicking the bits of ``PlannerProfiles`` we use."""
 
     def __init__(self, data: Mapping[str, Any]) -> None:
         self._planners = (data or {}).get("planners", {})
@@ -70,11 +79,29 @@ class _MiniSpec:
     def has_planner(self, name: str) -> bool:
         return name in self._planners
 
-    def get_configurations(self, name: str) -> dict:
-        return self._planners.get(name, {}).get("configurations", {})
+    def get_profiles(self, name: str) -> dict:
+        info = self._planners.get(name, {})
+        # New schema uses ``profiles``; legacy used ``configurations``.
+        return info.get("profiles") or info.get("configurations", {})
 
     def get_planner_executable(self, name: str) -> str:
         return self._planners.get(name, {}).get("executable", name)
+
+
+class _LegacySpecAdapter:
+    """Adapter that exposes the new ``get_profiles`` name on legacy specs."""
+
+    def __init__(self, legacy_spec) -> None:
+        self._spec = legacy_spec
+
+    def has_planner(self, name: str) -> bool:
+        return self._spec.has_planner(name)
+
+    def get_profiles(self, name: str) -> dict:
+        return self._spec.get_configurations(name)
+
+    def get_planner_executable(self, name: str) -> str:
+        return self._spec.get_planner_executable(name)
 
 
 # ---------------------------------------------------------------------------
@@ -147,13 +174,15 @@ _YAML_ALIASES: dict[str, str] = {
 }
 
 
-# Per-planner remap of the default configuration (profile index ``0``). Use
-# this only when the YAML's first entry is unsuitable for Safe-Planner's
-# FOND replanning loop. Override at runtime with ``--profile PLANNER:NAME``.
-# Currently empty: every planner uses the first configuration declared in
-# ``pddl-solvers/planner_configurations.yaml`` (e.g. Fast-Downward's
+# Per-planner remap of the default profile. Use this only when the YAML's
+# default entry is unsuitable for Safe-Planner's FOND replanning loop.
+# Override at runtime with ``--profile PLANNER:NAME``. Currently empty:
+# every planner uses the ``default`` profile declared in
+# ``pddl-solvers/planner_profiles.yaml`` (e.g. Fast-Downward's
 # ``astar(lmcut())`` optimal default).
-_DEFAULT_CONFIG_OVERRIDES: dict[str, str] = {}
+_DEFAULT_PROFILE_OVERRIDES: dict[str, str] = {}
+# Backwards-compatible alias for callers that still import the old name.
+_DEFAULT_CONFIG_OVERRIDES = _DEFAULT_PROFILE_OVERRIDES
 
 
 # Per-planner whitelist of profile names that support axioms / derived
@@ -217,7 +246,7 @@ class Profiles:
         if spec is None or not spec.has_planner(yaml_name):
             return {}
         # Preserve insertion order.
-        return dict(spec.get_configurations(yaml_name))
+        return dict(spec.get_profiles(yaml_name))
 
     def _fallback_configs(self, planner: str) -> dict:
         return _FALLBACK_PROFILES.get(planner, {})
@@ -234,14 +263,17 @@ class Profiles:
         return self._yaml_configs(canonical) or self._fallback_configs(canonical)
 
     def default_name(self, planner: str) -> str | None:
-        """Name of the configuration used for profile index ``0``."""
+        """Name of the profile used when no override is in effect."""
         canonical = registry.canonical_name(planner)
         if canonical in self._runtime_default:
             return self._runtime_default[canonical]
-        if canonical in _DEFAULT_CONFIG_OVERRIDES:
-            return _DEFAULT_CONFIG_OVERRIDES[canonical]
+        if canonical in _DEFAULT_PROFILE_OVERRIDES:
+            return _DEFAULT_PROFILE_OVERRIDES[canonical]
         names = self.list_configs(canonical)
-        return names[0] if names else None
+        if not names:
+            return None
+        # New YAML schema uses an explicit ``default`` key when present.
+        return "default" if "default" in names else names[0]
 
     # -- resolution --------------------------------------------------------
     def _select(self, planner: str) -> tuple[str, dict]:
@@ -253,10 +285,13 @@ class Profiles:
             preferred = self._runtime_default[planner]
             if preferred in configs:
                 return (preferred, configs[preferred])
-        if planner in _DEFAULT_CONFIG_OVERRIDES:
-            preferred = _DEFAULT_CONFIG_OVERRIDES[planner]
+        if planner in _DEFAULT_PROFILE_OVERRIDES:
+            preferred = _DEFAULT_PROFILE_OVERRIDES[planner]
             if preferred in configs:
                 return (preferred, configs[preferred])
+        # Prefer the explicit ``default`` profile when present (new schema).
+        if "default" in configs:
+            return ("default", configs["default"])
         name = next(iter(configs))
         return (name, configs[name])
 

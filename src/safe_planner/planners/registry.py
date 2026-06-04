@@ -242,8 +242,8 @@ def planner_entry(name: str) -> PlannerEntry | None:
 def executable_in_dir(name: str, basename: str) -> Path | None:
     """Return ``<planner-dir>/<basename>`` if it exists for ``name``.
 
-    This is used to honour per-configuration executable overrides declared in
-    pddl-solvers' ``planner_configurations.yaml`` (e.g. Madagascar's
+    This is used to honour per-profile executable overrides declared in
+    pddl-solvers' ``planner_profiles.yaml`` (e.g. Madagascar's
     ``Mp`` / ``MpC`` / ``M`` binaries, or LPG's ``lpg-probing`` variant).
     """
     entry = planner_entry(name)

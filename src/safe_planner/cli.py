@@ -27,7 +27,9 @@ sys.setrecursionlimit(20000)
 
 def parse_args(dir_path=''):
     usage = ('safe-planner <DOMAIN> <PROBLEM> [-c <PLANNERS>] [-r] [-a] [-p] '
-             '[-d] [-m] [--render FMT] [-j] [-s] [--summary] [--no-color] [-v N] [-h]')
+             '[-d] [-m] [--render FMT] [-j] [-s] [--summary] [--no-color] '
+             '[-V] [--val-timeout SECS] [--val-epsilon EPS] [--val-verbose] '
+             '[-v N] [-h]')
     description = "Safe-Planner is a non-deterministic planner for PPDDL."
     parser = argparse.ArgumentParser(usage=usage, description=description)
 
@@ -45,7 +47,7 @@ def parse_args(dir_path=''):
     parser.add_argument("--list-profiles", nargs="?", const="__all__", default=None,
         metavar="PLANNER",
         help="list the argument profiles defined in pddl-solvers' "
-             "planner_configurations.yaml and exit. Pass a planner name to "
+             "planner_profiles.yaml and exit. Pass a planner name to "
              "filter (e.g. '--list-profiles fd'); omit to list all planners.")
     parser.add_argument("-r", "--rank", action="store_true", default=False,
         help="rank compiled classical planning domains by descending effect count "
@@ -73,6 +75,28 @@ def parse_args(dir_path=''):
 
     parser.add_argument("-v", "--verbose", default=0, type=int, choices=(0, 1, 2),
         help="0=minimal, 1=high-level, 2=external planners output (default=0)")
+
+    # ---- optional VAL plan validation (per-call, expensive) ----
+    # VAL validates classical plans only. Safe-Planner builds FOND policies 
+    # (conditional trees) so we cannot validate the *final* policy directly; 
+    # instead, with -V we validate every internal classical planning call performed 
+    # during the FOND replanning loop. This is expensive but useful for debugging.
+    parser.add_argument("-V", "--validate", action="store_true",
+        help="validate every internal classical plan with VAL (requires "
+             "VAL to be built: cd third_party/pddl-solvers && ./build_all.sh --planner val). "
+             "NOTE: this is expensive and runs once per internal planning call.")
+    parser.add_argument("--val-timeout", type=int, default=60, metavar="SECS",
+        help="timeout in seconds for each VAL invocation (default: 60)")
+    parser.add_argument("--val-epsilon", type=float, default=None, metavar="EPS",
+        help="epsilon tolerance passed to VAL via -t (auto-set for temporal plans)")
+    parser.add_argument("--val-verbose", action="store_true",
+        help="pass -v to VAL for verbose plan-check reporting")
+
+    # ---- planner backend selection ----
+    parser.add_argument("--direct", action="store_true",
+        help="call planner binaries directly (legacy path) instead of routing "
+             "through pddl-solvers/run_planner.py. In direct mode VAL (-V) is "
+             "invoked independently after each classical call.")
 
     return parser
 
@@ -168,6 +192,50 @@ def _apply_profiles(profiles):
             print(color.fg_red("invalid --profile '{}': {}".format(raw, exc)))
 
 
+def _apply_validation(args):
+    """Configure VAL based on the selected planner backend.
+
+    * Default (``run_planner``) backend: forward the flags to
+      ``run_planner.py`` via :data:`runner.VAL_CONFIG`.
+    * Direct backend: populate :data:`validation.CONFIG` so the
+      in-process VAL wrapper runs after every classical call.
+    """
+    if not getattr(args, "validate", False):
+        return
+    from .planners import runner as _runner
+    if _runner.BACKEND == "direct":
+        from .planners import validation as val_mod
+        val_mod.CONFIG.enabled = True
+        val_mod.CONFIG.timeout = args.val_timeout
+        val_mod.CONFIG.epsilon = args.val_epsilon
+        val_mod.CONFIG.verbose = args.val_verbose
+        exe = val_mod.get_val_executable("Validate")
+        if exe is None:
+            print(color.fg_red(
+                "-- --validate requested but VAL 'Validate' was not found at "
+                "third_party/pddl-solvers/VAL/build/bin/Validate."))
+            print(color.fg_yellow(
+                "   build it with: cd third_party/pddl-solvers && "
+                "./build_all.sh --planner val"))
+        else:
+            print(color.fg_yellow("-- VAL plan validation enabled (direct, in-process): ") + str(exe))
+    else:
+        _runner.VAL_CONFIG.enabled = True
+        _runner.VAL_CONFIG.timeout = args.val_timeout
+        _runner.VAL_CONFIG.epsilon = args.val_epsilon
+        _runner.VAL_CONFIG.verbose = args.val_verbose
+        print(color.fg_yellow(
+            "-- VAL plan validation enabled (forwarded to pddl-solvers/run_planner.py)"))
+
+
+def _apply_backend(args):
+    """Switch the planner runner backend before any planner call."""
+    if getattr(args, "direct", False):
+        from .planners import runner as _runner
+        _runner.BACKEND = "direct"
+        print(color.fg_yellow("-- planner backend: ") + "direct (legacy)")
+
+
 def _render_dot(dot_file, fmt):
     import shutil, subprocess
     if shutil.which("dot") is None:
@@ -191,6 +259,8 @@ def main():
         color.set_enabled(False)
 
     _apply_profiles(args.profile)
+    _apply_backend(args)
+    _apply_validation(args)
 
     policy = planner.Planner(
         args.domain, args.problem, args.planners,
@@ -268,6 +338,14 @@ def main():
     print('Planning iterations (all-outcome): %i' % policy.alloutcome_planning_call)
     print('Total number of replannings (single-outcome): %i' % policy.singleoutcome_planning_call)
     print('Total number of unsolvable states: %i' % len(policy.unsolvable_states))
+
+    # Direct-backend VAL summary (run_planner backend prints per-call instead).
+    from .planners import runner as _runner
+    if _runner.BACKEND == "direct":
+        from .planners import validation as _val
+        val_summary = _val.summary_line()
+        if val_summary is not None:
+            print(val_summary)
 
     if args.summary or verdict != "solved":
         print('')

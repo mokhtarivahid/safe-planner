@@ -85,10 +85,34 @@ class Planner(object):
             # parse pddl problem
             self.problem = pddlparser.PDDLParser.parse(problem)
 
-        # merge constants and objects (if any exists)
+        # Constants handling.
+        #
+        # Internally, Safe-Planner enumerates all ground objects via
+        # `state.objects[type]` (e.g. when grounding forall/conditional
+        # effects in `State.apply`). Domain `:constants` must be visible to
+        # this enumeration, otherwise grounding misses them.
+        #
+        # However we must NOT clear `self.domain.constants` after the merge:
+        # the compiled deterministic domains preserve action bodies that
+        # reference these constants by literal name (e.g.
+        # `(when (gate ?f ?p) (at f1 p1))`). VAL type-checks the domain and
+        # resolves bare symbols as either action parameters or domain-level
+        # constants; stripping `:constants` from the emitted domain triggers
+        # "Object with unknown type" type-check errors.
+        #
+        # To avoid duplicating the same names in both `(:constants ...)` of
+        # the domain and `(:objects ...)` of the problem on disk, we record
+        # which entries of `state.objects` originated from the domain's
+        # constants so the problem PDDL emitter can skip them. Internal
+        # grounding (which reads `state.objects` directly) is unaffected.
         if self.domain.constants:
             self.problem.initial_state.objects = mergeDict(self.problem.initial_state.objects, self.domain.constants)
-            self.domain.constants.clear()
+            # Snapshot of constant names per type; consumed by ast.to_pddl()
+            # when serialising the problem to avoid duplicating constants as
+            # objects on disk.
+            self.problem.initial_state.constant_objects = {
+                tp: tuple(names) for tp, names in self.domain.constants.items()
+            }
 
         # store domain and problem files paths
         self.problem_file = problem
