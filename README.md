@@ -3,16 +3,7 @@
 **Safe-Planner (SP)** is an off-line non-deterministic planning algorithm based on replanning that compiles a **Fully Observable Non-Deterministic (FOND)** planning problem into a set of classical planning problems which can be solved using a classical problem solver. SP then merges the obtained classical solutions and forms a non-deterministic solution policy to the original non-deterministic problem. SP avoids dead-end states by 
 modifying a planning problem such that it prevents a classical planner to generate weak plans involving actions leading to dead-ends and therefore it generates safe policies. The execution of a safe policy is guaranteed to terminate in a goal state for all potential outcomes of the actions in the non-deterministic environment (if any exists).
 
-SP can employ any off-the-shelf classical planner for problem solving. Planners are bundled via the
-[`pddl-solvers`](https://github.com/mokhtarivahid/pddl-solvers) submodule, which provides FF (and the
-conformant / contingent / metric / probabilistic variants), Fast-Downward, SymK, ENHSP, OPTIC, POPF, TFD,
-LPG / LPG-TD, MADAGASCAR, VHPOP, PowerLifted and NextFLAP. The submodule also bundles [VAL] for plan
-validation. Safe-Planner discovers the built planner binaries at runtime; whatever you compile in the
-submodule becomes available via `-c <PLANNERS>`.
-
-By default Safe-Planner dispatches each classical call through
-`pddl-solvers/run_planner.py`, which handles profile selection, timeouts, normalised plan extraction
-and (optionally) VAL plan validation. The legacy in-process path is still available via `--direct`.
+SP can employ any off-the-shelf classical planner for problem solving. Planners are bundled via the [`pddl-solvers`](https://github.com/mokhtarivahid/pddl-solvers) submodule, which provides [FF] (and the conformant / contingent / metric / probabilistic variants), [Fast-Downward], [SymK], [ENHSP], [OPTIC], [POPF], [TFD], [LPG], [MADAGASCAR], [VHPOP], [PowerLifted] and [NextFLAP]. The submodule also bundles [VAL] for plan validation.
 
 [VAL]: https://github.com/KCL-Planning/VAL
 
@@ -20,10 +11,15 @@ and (optionally) VAL plan validation. The legacy in-process path is still availa
 [OPTIC]: https://nms.kcl.ac.uk/planning/software/optic.html
 [MADAGASCAR]: https://users.aalto.fi/~rintanj1/jussi/satplan.html
 [VHPOP]: http://www.tempastic.org/vhpop/
-[LPG-TD]: https://lpg.unibs.it/lpg/
 [LPG]: https://lpg.unibs.it/lpg/
-[FAST-DOWNWARD]: http://www.fast-downward.org/
+[Fast-Downward]: http://www.fast-downward.org/
 [PROBE]: https://github.com/aig-upf/probe
+[SymK]: https://github.com/speckdavid/symk
+[ENHSP]: https://github.com/hstairs/enhsp
+[POPF]: https://github.com/fmrico/popf
+[TFD]: https://github.com/neighthan/tfd
+[PowerLifted]: https://github.com/abcorrea/powerlifted
+[NextFLAP]: https://github.com/ossaver/NextFLAP
 
 
 
@@ -397,7 +393,7 @@ SP represent a policy as a sequence of numbered steps such that:
 
 the optional parameter `-d` translates the produced plan into a dot file in the same path:
 
-![bus-fare](resources/bus-fare.png)
+![bus-fare](resources/bus-fare.svg)
 
 Combine `-d` with `--render svg|pdf|png` to additionally rasterise the diagram
 via the `dot` binary from GraphViz.
