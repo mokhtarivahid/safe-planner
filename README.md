@@ -6,8 +6,15 @@ modifying a planning problem such that it prevents a classical planner to genera
 SP can employ any off-the-shelf classical planner for problem solving. Planners are bundled via the
 [`pddl-solvers`](https://github.com/mokhtarivahid/pddl-solvers) submodule, which provides FF (and the
 conformant / contingent / metric / probabilistic variants), Fast-Downward, SymK, ENHSP, OPTIC, POPF, TFD,
-LPG / LPG-TD, MADAGASCAR, VHPOP, PowerLifted and NextFLAP. Safe-Planner discovers the built planner
-binaries at runtime; whatever you compile in the submodule becomes available via `-c <PLANNERS>`.
+LPG / LPG-TD, MADAGASCAR, VHPOP, PowerLifted and NextFLAP. The submodule also bundles [VAL] for plan
+validation. Safe-Planner discovers the built planner binaries at runtime; whatever you compile in the
+submodule becomes available via `-c <PLANNERS>`.
+
+By default Safe-Planner dispatches each classical call through
+`pddl-solvers/run_planner.py`, which handles profile selection, timeouts, normalised plan extraction
+and (optionally) VAL plan validation. The legacy in-process path is still available via `--direct`.
+
+[VAL]: https://github.com/KCL-Planning/VAL
 
 [FF]: https://fai.cs.uni-saarland.de/hoffmann/ff.html
 [OPTIC]: https://nms.kcl.ac.uk/planning/software/optic.html
@@ -80,14 +87,16 @@ The optional extra planners live in the
 
 ```bash
 cd third_party/pddl-solvers
-./build_all.sh                  # build every planner
+./build_all.sh                  # build every planner (and VAL)
 ./build_all.sh --planner symk   # build only one
 ./build_all.sh --planner ff fd madagascar   # build a subset
+./build_all.sh --planner val    # build only VAL (needed for -V)
 ```
 
 Safe-Planner discovers the compiled binaries on the fly through
 `src/safe_planner/planners/registry.py`. Planners that are not built simply
-disappear from the `-c` help list.
+disappear from the `-c` help list. VAL is built separately and is required
+for the `-V/--validate` option.
 
 ### Optional Python extras
 
@@ -171,7 +180,8 @@ More precisely, the following combinations are supported by Safe-Planner for mod
 ./sp <DOMAIN> <PROBLEM> [-c <PLANNERS_LIST>] [-r] [-a] [-sp] \
      [-d] [--render svg|pdf|png] [-p] [-j] [-s] \
      [--profile PLANNER:NAME] [--list-profiles [PLANNER]] \
-     [--summary] [--no-color] [-v 0|1|2]
+     [-V] [--val-timeout SECS] [--val-epsilon EPS] [--val-verbose] \
+     [--direct] [--summary] [--no-color] [-v 0|1|2]
 ```
 
 ```bash
@@ -211,7 +221,10 @@ safe-planner/
 │   └── planners/             # external-planner integration
 │       ├── registry.py       # planner discovery (pddl-solvers)
 │       ├── profiles.py       # YAML-backed planner argument profiles
-│       ├── runner.py         # multiprocessing planner race + dispatch
+│       ├── runner.py         # multiprocessing planner race + backend dispatch
+│       ├── _run_planner_backend.py # default: shell out to pddl-solvers/run_planner.py (+ VAL)
+│       ├── _direct_backend.py      # legacy in-process backend (--direct)
+│       ├── validation.py     # in-process VAL wrapper used by --direct
 │       └── adapters/extras.py# wrappers for the new pddl-solvers planners
 ├── third_party/pddl-solvers/ # git submodule with all integrated planners
 ├── benchmarks/               # FOND + classical benchmark suites
@@ -230,7 +243,7 @@ e.g. `-c ff`, `-c ff madagascar`, `-c ff fd madagascar`, ... (default `ff`).
 `--profile PLANNER:NAME`: override the default argument profile for a
 planner. Repeatable. Example: `--profile fd:optimal-lmcut`. Profiles
 are loaded from
-[`third_party/pddl-solvers/planner_configurations.yaml`](third_party/pddl-solvers/planner_configurations.yaml)
+[`third_party/pddl-solvers/planner_profiles.yaml`](third_party/pddl-solvers/planner_profiles.yaml)
 so every preset bundled with the submodule is selectable. Each planner's
 default is whatever its YAML file lists first (e.g. Fast-Downward defaults
 to the optimal `astar(lmcut())`).
@@ -277,7 +290,32 @@ Colour can also be controlled via the `NO_COLOR` and `SP_COLOR=always|never|auto
 environment variables.
 
 `-v 0|1|2`: verbosity. `0` minimal, `1` high-level, `2` external planners
-output.
+output plus the full VAL plan-validation report (command, runtime, exit
+code, VALID/INVALID verdict, VAL stdout/stderr).
+
+#### Plan validation with VAL
+
+`-V`, `--validate`: validate every internal classical plan with [VAL]. VAL
+must be built first via `cd third_party/pddl-solvers && ./build_all.sh
+--planner val`. With the default backend (`run_planner.py`) the validation
+flags are forwarded so that each per-planner call produces its own VAL
+report. With `--direct`, VAL is invoked in-process after each classical
+call via `src/safe_planner/planners/validation.py`.
+
+- `--val-timeout SECS`: per-invocation timeout (default `60`).
+- `--val-epsilon EPS`: epsilon tolerance passed to VAL via `-t`
+  (auto-set for temporal plans).
+- `--val-verbose`: pass `-v` to VAL for verbose plan-check reporting.
+
+At `-v 0/1` Safe-Planner prints only a one-line summary per call
+(`VAL[ff]: valid`); at `-v 2` it prints the full detailed VAL report block.
+
+#### Backend selection
+
+`--direct`: call planner binaries directly (legacy path) instead of
+routing through `pddl-solvers/run_planner.py` (the default). The direct
+backend bypasses the YAML profile catalogue's runtime/timeout handling and
+invokes VAL in-process after each classical call when `-V` is set.
 
 #### Exit codes
 
@@ -307,6 +345,15 @@ shell pipelines / CI:
 
 # Override the FD profile.
 ./sp benchmarks/fond-domains/blocksworld/p01.pddl -c fd --profile fd:satisficing-lama-first
+
+# Validate every internal classical plan with VAL (requires VAL to be built).
+./sp benchmarks/fond-domains/tireworld/p03.pddl -c ff -V
+
+# Same, but show the full VAL diagnostic report per internal call.
+./sp benchmarks/fond-domains/tireworld/p03.pddl -c ff -V -v 2
+
+# Use the legacy in-process backend (skips pddl-solvers/run_planner.py).
+./sp benchmarks/fond-domains/elevators/p01.pddl -c ff --direct
 ```
 
 
