@@ -208,6 +208,47 @@ def _parse_parallel_step(line: str) -> tuple[int, list[tuple[str, ...]]] | None:
     return (step, tuples)
 
 
+def _action_obj_to_tuple(action: dict) -> tuple[str, ...] | None:
+    """Convert a ``steps[*].actions[*]`` dict into a lowercase tuple.
+
+    The dict has shape ``{"name": str, "args": [str, ...], "pddl": str,
+    "duration": float | None}``. ``name`` + ``args`` are preferred; we
+    fall back to parsing ``pddl`` when ``name`` is missing.
+    """
+    name = action.get("name")
+    if name:
+        args = action.get("args") or []
+        return tuple([str(name).lower()] + [str(a).lower() for a in args])
+    pddl = action.get("pddl")
+    if pddl:
+        return _tokenize_action_body(pddl)
+    return None
+
+
+def _convert_steps(steps: list[dict]) -> list[list[tuple[str, ...]]]:
+    """Convert ``plans[*].steps`` into Safe-Planner's plan structure.
+
+    Each step becomes one parallel level (a list of action tuples).
+    ``index``, ``start_time`` and ``end_time`` are ignored -- ordering
+    follows the array order produced by ``run_planner.py``. Empty
+    steps and unparsable actions are silently dropped.
+    """
+    plan: list[list[tuple[str, ...]]] = []
+    for step in steps:
+        if not isinstance(step, dict):
+            continue
+        level: list[tuple[str, ...]] = []
+        for act in step.get("actions") or []:
+            if not isinstance(act, dict):
+                continue
+            tup = _action_obj_to_tuple(act)
+            if tup:
+                level.append(tup)
+        if level:
+            plan.append(level)
+    return plan
+
+
 def _convert_actions(action_lines: list[str], fmt: str) -> list[list[tuple[str, ...]]]:
     """Convert ``plans[*].actions`` into Safe-Planner's plan structure."""
     plan: list[list[tuple[str, ...]]] = []
@@ -457,6 +498,21 @@ def call_run_planner(planner: str, domain: str, problem: str, pwd: str, verbose=
         return []
 
     selected = next((p for p in plans if p.get("is_selected")), plans[0])
+
+    # Prefer the structured ``steps`` array (introduced in pddl-solvers
+    # commit 5c75935): each step is one parallel level holding one or more
+    # action objects. Falls back to legacy ``actions`` text parsing for
+    # older planner outputs that omit ``steps``.
+    steps = selected.get("steps")
+    if steps:
+        converted = _convert_steps(steps)
+        if not converted:
+            if verbose:
+                print(color.fg_red(
+                    "[run_planner: could not parse 'steps' field]"))
+            return -1
+        return converted
+
     actions = selected.get("actions") or []
     fmt = selected.get("format") or _FORMAT_SEQUENTIAL
 
