@@ -335,7 +335,7 @@ shell pipelines / CI:
      -d --render pdf -s --summary
 
 # Override the FD profile.
-./sp benchmarks/fond-domains/blocksworld/p01.pddl -c fd --profile fd:satisficing-lama-first
+./sp benchmarks/fond-domains/blocksworld/p01.pddl -c fd --profile fd:satisficing-lmcut
 
 # Validate every internal classical plan with VAL (requires VAL to be built).
 ./sp benchmarks/fond-domains/tireworld/p03.pddl -c ff -V

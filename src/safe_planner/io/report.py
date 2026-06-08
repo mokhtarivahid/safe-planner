@@ -27,7 +27,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 from .. import color
 
-SCHEMA_VERSION = "1.0"
+SCHEMA_VERSION = "2.0"
 
 
 # ---------------------------------------------------------------------------
@@ -82,94 +82,69 @@ def classify_plan(plan: Dict[Any, Any]) -> str:
 # Reports
 # ---------------------------------------------------------------------------
 
-def build_policy_report(policy, plan: Optional[Dict[Any, Any]] = None,
-                        include_paths: bool = False) -> Dict[str, Any]:
+def build_policy_report(policy, plan: Optional[Dict[Any, Any]] = None) -> Dict[str, Any]:
     """Produce a JSON-serialisable description of the produced policy."""
     if plan is None:
         plan = policy.plan()
 
-    states: List[Dict[str, Any]] = []
+    nodes: Dict[str, Any] = {}
     for level, step in plan.items():
-        if level == "GOAL":
+        # Skip the terminal goal state; it is represented as a target in transitions
+        if level == "GOAL" or step == "GOAL":
             continue
-        if step == "GOAL":
-            states.append({"id": str(level), "type": "goal"})
-            continue
+
+        node_id = str(level)
         if step is None:
-            states.append({"id": str(level), "type": "dead-end"})
+            # Dead-end states are represented as nodes with no transitions
+            nodes[node_id] = {
+                "actions": [],
+                "transitions": [],
+            }
             continue
+
         actions, outcomes = step
-        outcome_records: List[Dict[str, Any]] = []
+        transitions: List[Dict[str, Any]] = []
         for (conditions, jump) in outcomes:
             add_atoms: List[str] = []
             del_atoms: List[str] = []
             if conditions:
-                # conditions is (add_list, del_list)
                 try:
                     add_atoms = [_atom_to_str(a) for a in conditions[0]]
                     del_atoms = [_atom_to_str(a) for a in conditions[1]]
                 except (IndexError, TypeError):
                     pass
-            outcome_records.append({
-                "next": "GOAL" if jump == "GOAL" else str(jump),
-                "add": add_atoms,
-                "del": del_atoms,
+
+            transitions.append({
+                "effects": {"add": add_atoms, "del": del_atoms},
+                "target": "GOAL" if jump == "GOAL" else str(jump),
             })
-        states.append({
-            "id": str(level),
-            "type": "action",
+
+        nodes[node_id] = {
             "actions": [_atom_to_str(a.sig) if hasattr(a, "sig") else str(a)
                         for a in actions],
-            "outcomes": outcome_records,
-            "nondeterministic": any(
-                hasattr(a, "sig") and a.sig[0] in getattr(policy, "prob_actions", {})
-                for a in actions
-            ),
-        })
+            "transitions": transitions,
+        }
 
     report: Dict[str, Any] = {
-        "schema": SCHEMA_VERSION,
+        "version": "2.0",
+        "type": "fond-policy",
+        "root": "0",
         "verdict": classify_plan(plan),
         "policy_length": len(policy.policy),
         "plan_length": max(0, len(plan) - 1),
-        "states": states,
+        "nodes": nodes,
     }
-
-    if include_paths:
-        try:
-            paths = policy.get_paths(plan)
-            report["paths"] = [
-                {
-                    "length": len(p),
-                    "steps": [
-                        {
-                            "id": str(level),
-                            "actions": [_atom_to_str(a.sig) if hasattr(a, "sig") else str(a)
-                                        for a in step[0]] if step not in ("GOAL", None) else [],
-                            "next": ("GOAL" if step[1][0][1] == "GOAL" else str(step[1][0][1]))
-                                    if step not in ("GOAL", None) else "GOAL",
-                        }
-                        for level, step in p.items()
-                    ],
-                }
-                for p in paths
-            ]
-        except Exception:
-            # `get_paths` can be brittle on degenerate policies; never let
-            # the report build crash the run.
-            report["paths_error"] = "could not enumerate paths"
 
     return report
 
 
 def build_run_report(policy, plan: Optional[Dict[Any, Any]] = None,
                      planners: Optional[List[str]] = None,
-                     arguments: Optional[List[str]] = None,
-                     include_paths: bool = True) -> Dict[str, Any]:
+                     arguments: Optional[List[str]] = None) -> Dict[str, Any]:
     """Extend :func:`build_policy_report` with run-level metadata."""
     if plan is None:
         plan = policy.plan()
-    report = build_policy_report(policy, plan, include_paths=include_paths)
+    report = build_policy_report(policy, plan)
 
     report["safe_planner"] = {
         "domain_file": policy.domain_file,
