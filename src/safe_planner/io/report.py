@@ -180,7 +180,7 @@ def _stat_path(policy) -> str:
 
 def write_run_report(policy, plan: Optional[Dict[Any, Any]] = None,
                      path: Optional[str] = None,
-                     csv_append: bool = True,
+                     csv_append: bool = False,
                      planners: Optional[List[str]] = None,
                      arguments: Optional[List[str]] = None) -> str:
     """Write the structured JSON report and optionally append a CSV row."""
