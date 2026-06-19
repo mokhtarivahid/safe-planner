@@ -133,7 +133,9 @@ def t_VARIABLE(t):
 def t_PROBABILITY(t):
     r'[0-9]+/0*[1-9][0-9]*|\d+\.\d+|\.\d+|\d+'
     if is_fraction(t.value):
-        t.value = round(float(sum(Fraction(s) for s in t.value.split())), 2)
+        # Keep the available precision so residual and joint probabilities
+        # used by determinization ranking are not distorted by early rounding.
+        t.value = float(Fraction(t.value))
     else:
         t.value = float(t.value)
     return t

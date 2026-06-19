@@ -64,12 +64,14 @@ def sig_cleanup(signum, frame):
 
 class Planner(object):
 
-    def __init__(self, domain, problem, planners=['ff'], safe_planner=False, rank=False, alloutcome=False, verbose=False):
+    def __init__(self, domain, problem, planners=['ff'], safe_planner=False,
+                 ranking=compilation.DEFAULT_RANKING, alloutcome=False,
+                 verbose=False):
         '''
         @domain : path to pddl domain (string)
         @problem : path to pddl problem (string)
         @planners : a list the external planners (list of strings)
-        @rank : if True, rank the compile classical planning domains
+        @ranking : determinization ordering strategy (default: source)
         @verbose : if True, prints out statistics 
         '''
         # store the given verbosity
@@ -136,7 +138,13 @@ class Planner(object):
 
         # compile and records the given non-deterministic domain into a list of deterministic domains
         if self.verbose: print(color.fg_green('\n[Compilation to non-deterministic domains]'))
-        self.working_dir = compilation.compile(self.domain, rank=rank, alloutcome=alloutcome, verbose=self.verbose)
+        self.ranking = compilation.normalize_ranking(ranking)
+        self.working_dir = compilation.compile(
+            self.domain,
+            ranking=self.ranking,
+            alloutcome=alloutcome,
+            verbose=self.verbose,
+        )
 
         # parse pddl deterministic domains
         for domain in sorted(listdir_fullpath(self.working_dir)):
@@ -1253,4 +1261,3 @@ def step_to_str(step):
         return ' '.join([str('('+' '.join(a)+')') for a in step])
     except:
         return 
-

@@ -12,20 +12,25 @@ import os, time
 from collections import defaultdict
 from pygraphviz import *
 
+from .. import compilation
 from ..pddl import domain
 
 def parse_args(dir_path=''):
-    usage = 'python3 main.py <DOMAIN> <PROBLEM> [<PLANNER>] [-d] [-v] [-h]'
+    usage = ('python3 dot_ma_plan.py <DOMAIN> <PROBLEM> [-r MODE] '
+             '[-d] [-v]')
     description = "Safe-Planner is a non-deterministic planner for PPDDL."
-    parser = argparse.ArgumentParser(usage=usage, description=description)
+    parser = argparse.ArgumentParser(
+        usage=usage,
+        description=description,
+        allow_abbrev=False,
+    )
 
     parser.add_argument('domain',  nargs='?', type=str, help='path to a PDDL domain file')
     parser.add_argument('problem', nargs='?', type=str, help='path to a PDDL problem file')
     parser.add_argument("-c", "--planners", nargs='+', type=str, default=["ff"], 
         choices=os.listdir(os.path.join(dir_path, 'planners')), metavar='PLNNER', 
         help="a list of classical planners: ff, fd, m, prob, optic-clp, lpg-td, lpg, vhpop (e.g. -c ff fd m) (default=[ff])")
-    parser.add_argument("-r", "--rank", help="to disable ranking the compiled classical planning domains \
-        by higher probabilistic outcomes (default=True)", action="store_true", default=False)
+    compilation.add_ranking_arguments(parser)
     parser.add_argument("-d", "--dot", help="draw a graph of the produced policy into a dot file", 
         action="store_true")
     parser.add_argument("-v", "--verbose", help="increase output verbosity", 
@@ -202,6 +207,7 @@ if __name__ == '__main__':
         # parse arguments
         parser = parse_args(dir_path)
         args = parser.parse_args()
+        compilation.resolve_cli_ranking(args)
         if args.domain == None:
             parser.print_help()
             sys.exit()
@@ -233,7 +239,13 @@ if __name__ == '__main__':
     from safe_planner import color
 
     # make a policy given domain and problem
-    policy = planner.Planner(args.domain, args.problem, args.planners, args.rank, args.verbose)
+    policy = planner.Planner(
+        args.domain,
+        args.problem,
+        planners=args.planners,
+        ranking=args.ranking,
+        verbose=args.verbose,
+    )
 
     # transform the produced policy into a contingency plan and print it
     plan = policy.plan()

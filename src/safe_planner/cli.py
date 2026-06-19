@@ -4,7 +4,8 @@
 Wires the FOND planner (:mod:`safe_planner.planner`) to the various output
 formatters in :mod:`safe_planner.io` and exposes argparse flags for the
 planner race (`-c`), profile overrides (`--profile`), policy rendering
-(`-d`, `-m`, `--render`), structured reports (`-s`) and feedback
+(`-d`, `-m`, `--render`), determinization ordering (`--ranking`),
+structured reports (`-s`) and feedback
 (`--summary`, `--no-color`).
 
 The CLI exit code mirrors the policy verdict (0=solved/trivial, 3=partial,
@@ -16,6 +17,7 @@ import os
 import sys
 
 from . import color
+from . import compilation
 from . import planner
 from .io import dot_plan, report as report_io
 from .planners import registry
@@ -26,12 +28,17 @@ sys.setrecursionlimit(20000)
 
 
 def parse_args(dir_path=''):
-    usage = ('safe-planner <DOMAIN> <PROBLEM> [-c <PLANNERS>] [-r] [-a] [-p] '
+    usage = ('safe-planner <DOMAIN> <PROBLEM> [-c <PLANNERS>] '
+             '[-r MODE] [-a] [-p] '
              '[-d] [-m] [--render FMT] [-j] [-s] [--summary] [--no-color] '
              '[-V] [--val-timeout SECS] [--val-epsilon EPS] [--val-verbose] '
              '[-v N] [-h]')
     description = "Safe-Planner is a non-deterministic planner for PPDDL."
-    parser = argparse.ArgumentParser(usage=usage, description=description)
+    parser = argparse.ArgumentParser(
+        usage=usage,
+        description=description,
+        allow_abbrev=False,
+    )
 
     parser.add_argument('domain',  nargs='?', type=str, help='path to a PDDL domain file')
     parser.add_argument('problem', nargs='?', type=str, help='path to a PDDL problem file')
@@ -49,9 +56,7 @@ def parse_args(dir_path=''):
         help="list the argument profiles defined in pddl-solvers' "
              "planner_profiles.yaml and exit. Pass a planner name to "
              "filter (e.g. '--list-profiles fd'); omit to list all planners.")
-    parser.add_argument("-r", "--rank", action="store_true", default=False,
-        help="rank compiled classical planning domains by descending effect count "
-             "(default: ascending).")
+    compilation.add_ranking_arguments(parser)
     parser.add_argument("-a", "--all-outcome", action="store_true", default=False,
         help="use only the all-outcome compilation strategy (skip single-outcome).")
     parser.add_argument("-sp", "--safe-planner", action="store_true", default=False,
@@ -115,6 +120,8 @@ def parse_relative_path():
     if args.domain is None:
         parser.print_help()
         sys.exit()
+
+    compilation.resolve_cli_ranking(args)
 
     if not os.path.isabs(args.domain):
         args.domain = os.path.abspath(args.domain)
@@ -263,8 +270,13 @@ def main():
     _apply_validation(args)
 
     policy = planner.Planner(
-        args.domain, args.problem, args.planners,
-        args.safe_planner, args.rank, args.all_outcome, args.verbose,
+        args.domain,
+        args.problem,
+        planners=args.planners,
+        safe_planner=args.safe_planner,
+        ranking=args.ranking,
+        alloutcome=args.all_outcome,
+        verbose=args.verbose,
     )
     plan = policy.plan()
     verdict = report_io.classify_plan(plan)

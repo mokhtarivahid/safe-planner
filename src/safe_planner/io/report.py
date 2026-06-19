@@ -153,6 +153,7 @@ def build_run_report(policy, plan: Optional[Dict[Any, Any]] = None,
         "problem": getattr(policy.problem, "problem", None),
         "arguments": list(arguments) if arguments is not None else list(sys.argv[1:]),
         "planners": list(planners) if planners is not None else list(policy.planners),
+        "ranking": getattr(policy, "ranking", "source"),
         "deterministic_domains": len(policy.domains),
         "non_deterministic_actions": sorted(set(policy.prob_actions)) if policy.prob_actions else [],
         "timings_seconds": {

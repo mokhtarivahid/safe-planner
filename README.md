@@ -168,7 +168,7 @@ More precisely, the following combinations are supported by Safe-Planner for mod
 
 ```bash
 # using the 'sp' script
-./sp <DOMAIN> <PROBLEM> [-c <PLANNERS_LIST>] [-r] [-a] [-sp] \
+./sp <DOMAIN> <PROBLEM> [-c <PLANNERS_LIST>] [-r <MODE>] [-a] [-sp] \
      [-d] [--render svg|pdf|png] [-p] [-j] [-s] \
      [--profile PLANNER:NAME] [--list-profiles [PLANNER]] \
      [-V] [--val-timeout SECS] [--val-epsilon EPS] [--val-verbose] \
@@ -198,6 +198,7 @@ safe-planner <DOMAIN> <PROBLEM> [...]
 safe-planner/
 ├── sp                        # convenience wrapper -> `python3 -m safe_planner`
 ├── pyproject.toml            # src-layout packaging metadata
+├── CHANGELOG.md              # release notes
 ├── requirements.txt          # plain pip dependency list (mirrors pyproject)
 ├── src/safe_planner/         # Python package
 │   ├── cli.py                # command-line entry point (argparse)
@@ -220,7 +221,7 @@ safe-planner/
 ├── third_party/pddl-solvers/ # git submodule with all integrated planners
 ├── benchmarks/               # FOND + classical benchmark suites
 ├── tests/                    # unit tests
-├── src/                      # batch-run shell scripts (batch-run*.sh)
+├── scripts/                  # batch-run shell scripts (batch-run*.sh)
 └── results/                  # generated stats and plots
 ```
 
@@ -249,9 +250,36 @@ that one. The currently-selected default is marked with `*`. Examples:
 ./sp --list-profiles symk
 ```
 
-`-r`: reverse the ranking of compiled classical domains when going from
-non-deterministic to deterministic (default ranking is ascending by effect
-count). Sometimes helps avoid misleading plans.
+`-r MODE`, `--ranking MODE`: choose how probabilistic/non-deterministic
+outcomes and the resulting single-outcome classical domains are ordered.
+Omitting this option is equivalent to `-r 0`.
+
+| Mode | Strategy | Behavior |
+|------|----------|----------|
+| `0` | `source` | Preserve domain action, probabilistic/`oneof` block, and alternative order. This is the default. |
+| `1` | `effect-count-asc` | Rank the smallest syntactic effects first. |
+| `2` | `effect-count-desc` | Rank the largest syntactic effects first. |
+| `3` | `probability-desc` | Rank complete outcomes and single-outcome domains by descending joint probability. |
+
+An implicit residual no-op is appended after explicitly modeled alternatives
+in source mode. `oneof` alternatives have no probability, so source order
+breaks their ties under probability ranking.
+
+All sorts are stable, so source order resolves ties. Ranking changes search
+order and generated outcome suffixes (`action_0`, `action_1`, ...); it does not
+remove modeled outcomes or weaken the safety requirement.
+
+The Python API uses the descriptive strategy names:
+
+```python
+from safe_planner import Planner
+
+policy = Planner(domain_file, problem_file, ranking="probability-desc")
+```
+
+For probabilistic blocks whose explicit probabilities sum to less than one,
+Safe-Planner calculates the residual probability and represents it as an
+implicit no-op outcome. Blocks whose probabilities exceed one are rejected.
 
 `-a`: compile the non-deterministic domain into one classical domain using
 the all-outcome compilation strategy only (skips single-outcome).
@@ -327,11 +355,12 @@ shell pipelines / CI:
 # Run Safe-Planner with FF (the default planner).
 ./sp benchmarks/fond-domains/elevators/p01.pddl
 
-# Race FF + Madagascar (dual replanning) with default ranking.
+# Race FF + Madagascar using source order (the default).
 ./sp benchmarks/fond-domains/elevators/p01.pddl -c ff madagascar
 
-# Same race, reversed ranking, with full output: dot + PDF + structured report.
-./sp benchmarks/fond-domains/elevators/p01.pddl -c ff madagascar -r \
+# Rank likely determinizations first and produce full output.
+./sp benchmarks/fond-domains/elevators/p01.pddl -c ff madagascar \
+     -r 3 \
      -d --render pdf -s --summary
 
 # Override the FD profile.
@@ -459,4 +488,3 @@ The following reference describes the algorithm of **Safe-Planner**.
 }
 
 ```
-

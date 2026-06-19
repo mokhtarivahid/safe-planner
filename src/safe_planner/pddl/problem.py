@@ -148,7 +148,7 @@ class State(object):
             ## make all possible combination of probabilistic effects
             prob_effects_lst = list()
             for prob_effects in action.prob_effects:
-                if sum([probability[0] for probability in prob_effects]) == 1:
+                if abs(sum(probability[0] for probability in prob_effects) - 1.0) <= 1e-9:
                     prob_effects_lst.append(prob_effects)
                 else:
                     prob_effects_lst.append(prob_effects+tuple([(0, domain.GroundedEffect())]))

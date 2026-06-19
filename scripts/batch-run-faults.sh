@@ -2,6 +2,10 @@
 ##
 # @Description: run the planner in batch of problems in a directory
 ##
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+safe_planner="${script_dir}/../sp"
+cd "$script_dir" || exit 1
+
 declare -a arr=("../benchmarks/fond-domains/faults/d_1_1.pddl ../benchmarks/fond-domains/faults/p_1_1.pddl"
                 "../benchmarks/fond-domains/faults/d_2_1.pddl ../benchmarks/fond-domains/faults/p_2_1.pddl"
                 "../benchmarks/fond-domains/faults/d_2_2.pddl ../benchmarks/fond-domains/faults/p_2_2.pddl"
@@ -61,16 +65,16 @@ declare -a arr=("../benchmarks/fond-domains/faults/d_1_1.pddl ../benchmarks/fond
 time_out=1800  # timeout in s
 
 function show_usage (){
-    printf "Usage: $0 [-c <PLANNERS>] [-r] [-a] [-h] \n"
+    printf "Usage: $0 [-c <PLANNERS>] [-r MODE] [-a] [-h] \n"
     printf "\n"
     printf "positional arguments:\n"
     printf " path\n"
     printf "      Path to the planning domain and problems\n"
     printf "\n"
     printf "optional arguments:\n"
-    printf " -r|--rank\n"
-    printf "      Rank the compiled domains in a descending order,\n"
-    printf "      if not given, rank in an aescending order (default)\n"
+    printf " -r|--ranking MODE\n"
+    printf "      0=source (default), 1=effect-count-asc,\n"
+    printf "      2=effect-count-desc, 3=probability-desc\n"
     printf " -a|--all-outcome\n"
     printf "      Run the planner using only the all-outcome compilation\n"
 #     printf " -d|--dot\n"
@@ -102,8 +106,9 @@ while [ ! -z "$1" ]; do
            args+=" $1"
            solver='NDP2'
            ;;
-       --rank|-r)
-           args+=" $1"
+       --ranking|-r)
+           args+=" $1 $2"
+           shift
            ;;
        --planners|-c)
            shift
@@ -158,7 +163,7 @@ do
   printf $problem
 
   start_time=`date +%s%N`
-  output=`timeout $time_out nice -n 0 python3 main.py $domain $problem $args -c $planners&`
+  output=`timeout $time_out nice -n 0 "$safe_planner" $domain $problem $args -c $planners&`
 
   # check if timeout is over
   status=`echo $output | grep -c "@ PLAN"`

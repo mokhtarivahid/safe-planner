@@ -3,12 +3,15 @@
 # @Description: run the planner in batch of problems in a directory
 ##
 
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+safe_planner="${script_dir}/../sp"
+
 ##### or in batch:
 
 # ```bash
-# # cd src/
+# # cd scripts/
 # # run Safe-Planner in batch for each used FOND domain within 30m for each problem
-# ./batch-run.sh ../benchmarks/fond-domains/acrobatics -r -c ff m
+# ./batch-run.sh ../benchmarks/fond-domains/acrobatics -r 3 -c ff m
 # ./batch-run.sh ../benchmarks/fond-domains/beam-walk -c ff m
 # ./batch-run.sh ../benchmarks/fond-domains/blocksworld -c ff m
 # ./batch-run.sh ../benchmarks/fond-domains/elevators -c ff m
@@ -18,27 +21,27 @@
 # ./batch-run.sh ../benchmarks/fond-domains/tireworld -c ff m
 # ./batch-run.sh ../benchmarks/fond-domains/triangle-tireworld -c ff m
 # ./batch-run.sh ../benchmarks/fond-domains/zenotravel -c ff m
-# ./batch-run.sh ../benchmarks/fond-domains/doors -r -c ff m
-# ./batch-run.sh ../benchmarks/fond-domains/islands -r -c ff m
-# ./batch-run.sh ../benchmarks/fond-domains/miner -r -c ff m
-# ./batch-run.sh ../benchmarks/fond-domains/tireworld-spiky -r -c ff m
-# ./batch-run.sh ../benchmarks/fond-domains/tireworld-truck -r -c ff m
+# ./batch-run.sh ../benchmarks/fond-domains/doors -r 1 -c ff m
+# ./batch-run.sh ../benchmarks/fond-domains/islands -r 1 -c ff m
+# ./batch-run.sh ../benchmarks/fond-domains/miner -r 1 -c ff m
+# ./batch-run.sh ../benchmarks/fond-domains/tireworld-spiky -r 1 -c ff m
+# ./batch-run.sh ../benchmarks/fond-domains/tireworld-truck -r 1 -c ff m
 # ```
 
 
 time_out=1800  # timeout in s
 
 function show_usage (){
-    printf "Usage: $0 <PATH> [-c <PLANNERS>] [-r] [-a] [-h] \n"
+    printf "Usage: $0 <PATH> [-c <PLANNERS>] [-r MODE] [-a] [-h] \n"
     printf "\n"
     printf "positional arguments:\n"
     printf " path\n"
     printf "      Path to the planning domain and problems\n"
     printf "\n"
     printf "optional arguments:\n"
-    printf " -r|--rank\n"
-    printf "      Rank the compiled domains in a descending order,\n"
-    printf "      if not given, rank in an aescending order (default)\n"
+    printf " -r|--ranking MODE\n"
+    printf "      0=source (default), 1=effect-count-asc,\n"
+    printf "      2=effect-count-desc, 3=probability-desc\n"
     printf " -a|--all-outcome\n"
     printf "      Run the planner using only the all-outcome compilation\n"
 #     printf " -d|--dot\n"
@@ -70,8 +73,9 @@ while [ ! -z "$1" ]; do
            args+=" $1"
            solver='NDP2'
            ;;
-       --rank|-r)
-           args+=" $1"
+       --ranking|-r)
+           args+=" $1 $2"
+           shift
            ;;
        --planners|-c)
            shift
@@ -128,7 +132,7 @@ do
   printf $problem
 
   start_time=`date +%s%N`
-  output=`timeout $time_out nice -n 0 python3 main.py $domain $problem $args -c $planners&`
+  output=`timeout $time_out nice -n 0 "$safe_planner" $domain $problem $args -c $planners&`
 
   # check if timeout is over
   status=`echo $output | grep -c "@ PLAN"`

@@ -3,21 +3,31 @@
 import argparse
 import os, time
 
+from safe_planner import compilation
+
 def parse():
-    usage = 'python3 main.py <DOMAIN> <PROBLEM> [<PLANNER>] [-v | --verbose N] [-h | --help]'
+    usage = ('python3 dot_plan.py <DOMAIN> <PROBLEM> [<PLANNER>] '
+             '[-r MODE] [-v N]')
     description = "Safe-Planner is a non-deterministic planner for PPDDL."
-    parser = argparse.ArgumentParser(usage=usage, description=description)
+    parser = argparse.ArgumentParser(
+        usage=usage,
+        description=description,
+        allow_abbrev=False,
+    )
 
     parser.add_argument('domain',  type=str, help='path to PDDL domain file')
     parser.add_argument('problem', type=str, help='path to PDDL problem file')
     parser.add_argument("planner", type=str, nargs='?', const=1, 
         help="external planner: ff, m, optic, vhpop, ... (default=ff)", default="ff")
+    compilation.add_ranking_arguments(parser)
     # parser.add_argument("-v", "--verbose", help="increase output verbosity", 
     #     action="store_true")
     parser.add_argument("-v", "--verbose", default=0, type=int, 
         help="increase output verbosity: 0 (nothing), 1 (high-level), 2 (external planners outputs) (default=0)", )
 
-    return parser.parse_args()
+    args = parser.parse_args()
+    compilation.resolve_cli_ranking(args)
+    return args
 
 
 ###############################################################################
@@ -123,7 +133,13 @@ if __name__ == '__main__':
 
     args = parse()
 
-    policy = planner.Planner(args.domain, args.problem, args.planner, args.verbose)
+    policy = planner.Planner(
+        args.domain,
+        args.problem,
+        planners=[args.planner],
+        ranking=args.ranking,
+        verbose=args.verbose,
+    )
 
     plan = policy.plan(tree=True)
     policy.print_plan(plan)
